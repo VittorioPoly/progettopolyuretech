@@ -1,0 +1,115 @@
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --bg-color: #212529;
+    --text-color: #f8f9fa;
+    --border-color: #495057;
+    --hover-bg: #343a40;
+    --card-bg: #2d3339;
+    --card-border: #495057;
+    --input-bg: #343a40;
+    --input-border: #495057;
+    --footer-bg: #343a40;
+    --footer-text: #adb5bd;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.navbar-dark {
+    background-color: #1d2124 !important;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+}
+
+.form-control {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+.footer {
+    background-color: var(--footer-bg) !important;
+    color: var(--footer-text);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Stili specifici per il tema scuro */
+.text-muted {
+    color: #adb5bd !important;
+}
+
+.table {
+    color: var(--text-color);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.pagination .page-link {
+    color: var(--primary-color);
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.alert {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.alert-success {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #75b798;
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #ea868f;
+}
+
+.alert-warning {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffda6a;
+}
+
+.alert-info {
+    background-color: rgba(13, 202, 240, 0.2);
+    color: #6edff6;
+}
+
+/* Stili per i moduli */
+.module-card {
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+    height: 100%;
+}
+
+.module-card:hover {
+    transform: translateY(-5px);
+}
+
+.module-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}

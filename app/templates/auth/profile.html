@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Profilo Utente{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="my-2"><i class="fas fa-id-card me-2"></i>Profilo Utente</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle mx-auto mb-3">
+                        <span class="avatar-initials">{{ current_user.username[:1] | upper }}</span>
+                    </div>
+                    <h4 class="mb-0">{{ current_user.username }}</h4>
+                    <p class="text-muted">
+                        <span class="badge bg-{{ 'primary' if current_user.is_admin() else 'secondary' }}">
+                            {{ 'Amministratore' if current_user.is_admin() else 'Operatore' }}
+                        </span>
+                    </p>
+                </div>
+                
+                <div class="list-group mb-4">
+                    <div class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4 text-muted">Email</div>
+                            <div class="col-md-8 text-truncate">{{ current_user.email }}</div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4 text-muted">Data registrazione</div>
+                            <div class="col-md-8">{{ current_user.created_at | format_date('%d/%m/%Y %H:%M') }}</div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4 text-muted">Ultimo accesso</div>
+                            <div class="col-md-8">
+                                {% if current_user.last_login %}
+                                    {{ current_user.last_login | format_date('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                    Non disponibile
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('change_password') }}" class="btn btn-primary">
+                        <i class="fas fa-key me-1"></i>Modifica Password
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Torna alla Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .avatar-initials {
+        color: white;
+        font-size: 42px;
+        font-weight: bold;
+        line-height: 1;
+    }
+</style>
+{% endblock %}

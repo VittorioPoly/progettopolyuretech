@@ -1,0 +1,85 @@
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --bg-color: #ffffff;
+    --text-color: #212529;
+    --border-color: #dee2e6;
+    --hover-bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --card-border: #e9ecef;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --footer-bg: #f8f9fa;
+    --footer-text: #6c757d;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.navbar-dark {
+    background-color: var(--primary-color) !important;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.form-control {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+.footer {
+    background-color: var(--footer-bg) !important;
+    color: var(--footer-text);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Stili specifici per il tema chiaro */
+.table {
+    color: var(--text-color);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.pagination .page-link {
+    color: var(--primary-color);
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+/* Stili per i moduli */
+.module-card {
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+    height: 100%;
+}
+
+.module-card:hover {
+    transform: translateY(-5px);
+}
+
+.module-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
