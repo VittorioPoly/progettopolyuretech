@@ -1,0 +1,68 @@
+.modulo8-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  
+  .form-section {
+    flex: 1 1 45%;
+    background: #f7f7f7;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  }
+  
+  .form-section h4 {
+    margin-bottom: 1rem;
+  }
+  
+  .form-section input,
+  .form-section textarea,
+  .form-section select,
+  .form-section button {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  button.delete {
+    background: #c0392b;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    cursor: pointer;
+  }
+  
+  button.delete:hover {
+    background: #e74c3c;
+  }
+  
+  .association-section {
+    margin: 2rem 0;
+    background: #eef;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .lists {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  
+  .list {
+    flex: 1 1 45%;
+  }
+  
+  .card {
+    background: #fff;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 3px rgba(0,0,0,0.05);
+  }
+  

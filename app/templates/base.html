@@ -4,117 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ title }}{% endblock %} - {{ app_name }}</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- Tema principale (cambierà in base al tema selezionato) -->
     <link id="theme-style" rel="stylesheet" href="{{ url_for('static', filename='css/theme-' + theme + '.css') }}">
-    
+
     <!-- CSS personalizzato comune -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modulo8.css') }}">
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Header principale con logo, nome utente e controlli -->
     <header class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
                 <i class="fas fa-building me-2"></i>{{ app_name }}
             </a>
-            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarMain">
                 {% if current_user.is_authenticated %}
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
                             <i class="fas fa-home me-1"></i>Dashboard
                         </a>
                     </li>
-                    
-                    <!-- Modulo 1 (tutti) -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('modulo1_index') }}">
+                        <a class="nav-link" href="{{ url_for('modulo1.index') }}">
                             <i class="fas fa-clipboard-list me-1"></i>Modulo 1
                         </a>
                     </li>
-                    
-                    <!-- Modulo 5 (tutti) -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('modulo5_index') }}">
+                        <a class="nav-link" href="{{ url_for('modulo5.index') }}">
                             <i class="fas fa-clipboard-check me-1"></i>Modulo 5
                         </a>
                     </li>
-                    
                     {% if current_user.is_admin() %}
-                    <!-- Dropdown per moduli solo admin -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminModulesDropdown" data-bs-toggle="dropdown">
                             <i class="fas fa-shield-alt me-1"></i>Moduli Admin
                         </a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="{{ url_for('modulo2_index') }}">
-                                <i class="fas fa-chart-line me-1"></i>Fatturato Clienti
-                            </a>
-                            <a class="dropdown-item" href="{{ url_for('modulo3_index') }}">
-                                <i class="fas fa-chart-bar me-1"></i>Spese Fornitori
-                            </a>
-                            <a class="dropdown-item" href="{{ url_for('modulo4_index') }}">
-                                <i class="fas fa-file-pdf me-1"></i>Generazione PDF
-                            </a>
-                            <a class="dropdown-item" href="{{ url_for('modulo6_index') }}">
-                                <i class="fas fa-list-ul me-1"></i>Modulo 6
-                            </a>
-                            <a class="dropdown-item" href="{{ url_for('modulo7_index') }}">
-                                <i class="fas fa-list-ol me-1"></i>Modulo 7
-                            </a>
-                            <a class="dropdown-item" href="{{ url_for('modulo8_index') }}">
-                                <i class="fas fa-users me-1"></i>Dipendenti e Competenze
-                            </a>
-                            <a class="dropdown-item" href="{{ url_for('modulo9_index') }}">
-                                <i class="fas fa-file-excel me-1"></i>Analisi Excel
-                            </a>
+                            <a class="dropdown-item" href="{{ url_for('modulo2.index') }}"><i class="fas fa-chart-line me-1"></i>Fatturato Clienti</a>
+                            <a class="dropdown-item" href="{{ url_for('modulo3.index') }}"><i class="fas fa-chart-bar me-1"></i>Spese Fornitori</a>
+                            <a class="dropdown-item" href="{{ url_for('modulo4.index') }}"><i class="fas fa-file-pdf me-1"></i>Generazione PDF</a>
+                            <a class="dropdown-item" href="{{ url_for('modulo6.index') }}"><i class="fas fa-list-ul me-1"></i>Modulo 6</a>
+                            <a class="dropdown-item" href="{{ url_for('modulo7.index') }}"><i class="fas fa-list-ol me-1"></i>Modulo 7</a>
+                            <a class="dropdown-item" href="{{ url_for('modulo8.index') }}"><i class="fas fa-users me-1"></i>Dipendenti e Competenze</a>
+                            <a class="dropdown-item" href="{{ url_for('modulo9.index') }}"><i class="fas fa-file-excel me-1"></i>Analisi Excel</a>
                         </div>
                     </li>
-                    
-                    <!-- Amministrazione utenti (solo admin) -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">
                             <i class="fas fa-user-plus me-1"></i>Nuovo Utente
                         </a>
                     </li>
                     {% endif %}
                 </ul>
-                
-                <!-- Menu utente a destra -->
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown">
                             <i class="fas fa-user-circle me-1"></i>{{ current_user.username }}
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="{{ url_for('profile') }}">
-                                <i class="fas fa-id-card me-1"></i>Profilo
-                            </a>
-                            <a class="dropdown-item" href="{{ url_for('change_password') }}">
-                                <i class="fas fa-key me-1"></i>Cambia Password
-                            </a>
+                            <a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-id-card me-1"></i>Profilo</a>
+                            <a class="dropdown-item" href="{{ url_for('auth.change_password') }}"><i class="fas fa-key me-1"></i>Cambia Password</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt me-1"></i>Logout
-                            </a>
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
                         </div>
                     </li>
-                    
-                    <!-- Cambio tema -->
                     <li class="nav-item">
                         <div class="nav-link">
                             <div class="form-check form-switch">
@@ -130,10 +97,8 @@
             </div>
         </div>
     </header>
-    
-    <!-- Contenitore principale -->
+
     <main class="container py-4">
-        <!-- Messaggi flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -144,32 +109,23 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
-        <!-- Titolo della pagina -->
+
         <div class="page-header mb-4">
             <h1>{% block page_title %}{{ title }}{% endblock %}</h1>
         </div>
-        
-        <!-- Contenuto principale -->
+
         {% block content %}{% endblock %}
     </main>
-    
-    <!-- Footer -->
+
     <footer class="footer mt-auto py-3 bg-light">
         <div class="container text-center">
-            <span class="text-muted">
-                &copy; {{ current_year }} {{ app_name }} - Tutti i diritti riservati
-            </span>
+            <span class="text-muted">&copy; {{ current_year }} {{ app_name }} - Tutti i diritti riservati</span>
         </div>
     </footer>
-    
-    <!-- jQuery e Bootstrap JS -->
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Script personalizzato comune -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
     {% block extra_js %}{% endblock %}
 </body>
 </html>
