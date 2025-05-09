@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-form">
+  <h2>Nuova Competenza</h2>
+  <form method="post">
+    <div class="form-group">
+      <label for="nome">Nome competenza</label>
+      <input type="text" id="nome" name="nome" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-success mt-2">Salva</button>
+    <a href="{{ url_for('modulo8.competenze') }}" class="btn btn-secondary mt-2">Annulla</a>
+  </form>
+</div>
+{% endblock %}

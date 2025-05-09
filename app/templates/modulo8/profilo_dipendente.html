@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-profile">
+  <h2>Profilo Dipendente</h2>
+
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link active" href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}">Profilo</a></li>      
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.performance_dipendente', id=dip.id) }}">Performance</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.timbrature_mese', dip_id=dip.id, anno=now.year, mese=now.month) }}">Timbrature</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.vestiario_dipendente', id=dip.id) }}">Vestiario</a>
+    </li>
+  </ul>
+
+  <dl class="row">
+    <dt class="col-sm-3">ID</dt>
+    <dd class="col-sm-9">{{ dip.id }}</dd>
+
+    <dt class="col-sm-3">Nome</dt>
+    <dd class="col-sm-9">{{ dip.nome }}</dd>
+
+    <dt class="col-sm-3">Cognome</dt>
+    <dd class="col-sm-9">{{ dip.cognome }}</dd>
+
+    <dt class="col-sm-3">Ruolo</dt>
+    <dd class="col-sm-9">{{ dip.ruolo }}</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">{{ dip.email or '—' }}</dd>
+
+    <dt class="col-sm-3">Data Assunzione</dt>
+    <dd class="col-sm-9">
+      {{ dip.data_assunzione.strftime('%d/%m/%Y') if dip.data_assunzione else '—' }}
+    </dd>
+
+    <!-- Aggiungi qui altri campi che ti servono -->
+  </dl>
+
+  <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">← Torna a Gestione Dipendenti</a>
+</div>
+{% endblock %}

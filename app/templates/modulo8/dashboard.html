@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-dashboard">
+  <h1>Modulo 8 - Dashboard</h1>
+  <div class="cards">
+    <div class="card">
+      <a href="{{ url_for('modulo8.dipendenti') }}">Gestione Dipendenti</a>
+    </div>
+    <div class="card">
+      <a href="{{ url_for('modulo8.competenze') }}">Gestione Competenze</a>
+    </div>
+    <div class="card">
+      <a href="{{ url_for('modulo8.timbrature_mese', dip_id=1, anno=2025, mese=5) }}">Timbrature</a>
+    </div>
+    <div class="card">
+      <a href="{{ url_for('modulo8.gestione_vestiario') }}">Gestione Vestiario</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

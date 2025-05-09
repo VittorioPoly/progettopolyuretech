@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-timbrature">
+  <h2>Timbrature di {{ dip.nome }} {{ dip.cognome }} – {{ mese }}/{{ anno }}</h2>
+
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.visualizza_dipendente', id=dip.id) }}">Profilo</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.performance', id=dip.id) }}">Performance</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="{{ url_for('modulo8.timbrature_mese', dip_id=dip.id, anno=anno, mese=mese) }}">Timbrature</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.vestiario_dipendente', id=dip.id) }}">Vestiario</a>
+    </li>
+  </ul>
+
+  <p>
+    <small>
+      Clicca sull’icona &quot;📷&quot; accanto a ciascun campo per inquadrare il QR code con lo scanner.
+    </small>
+  </p>
+
+  <table class="table table-bordered table-sm">
+    <thead class="thead-light">
+      <tr>
+        <th>Giorno</th>
+        <th>Entrata 1</th>
+        <th>Uscita 1</th>
+        <th>Entrata 2</th>
+        <th>Uscita 2</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for giorno in giorni %}
+      <tr>
+        <td>{{ giorno }}</td>
+        {% for tipo in ['entrata1','uscita1','entrata2','uscita2'] %}
+        <td id="cell-{{ giorno }}-{{ tipo }}">
+          {{ timbrature_map.get(giorno, {}).get(tipo) or '—' }}
+          <button
+            class="btn btn-sm btn-outline-primary scan-btn"
+            data-dip-id="{{ dip.id }}"
+            data-giorno="{{ giorno }}"
+            data-tipo="{{ tipo }}"
+            title="Timbra {{ tipo }}"
+          >📷</button>
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Zona scanner: verrà mostrata con JS quando l'operatore clicca su 📷 -->
+  <div id="qr-scanner-container" style="display:none;">
+    <video id="qr-video" width="300" height="200"></video>
+    <button id="close-scanner" class="btn btn-sm btn-danger mt-2">Chiudi</button>
+  </div>
+
+  <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary mt-3">← Torna a Gestione Dipendenti</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='js/qr-scanner.min.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const scannerContainer = document.getElementById('qr-scanner-container');
+      const videoElem = document.getElementById('qr-video');
+      const closeBtn = document.getElementById('close-scanner');
+      let currentButton = null;
+
+      // inizializza QR Scanner (usa libreria qr-scanner.min.js)
+      const qrScanner = new QrScanner(videoElem, result => {
+        if (!currentButton) return;
+        const dipId = currentButton.dataset.dipId;
+        const giorno = currentButton.dataset.giorno;
+        const tipo = currentButton.dataset.tipo;
+        // invia via fetch al backend
+        fetch("{{ url_for('modulo8.timbratura_qrcode') }}", {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ dipendente_id: dipId, tipo: tipo, giorno: giorno })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            // aggiorna cella nella tabella
+            const cell = document.getElementById(`cell-${giorno}-${tipo}`);
+            cell.querySelector('span')?.remove();
+            cell.insertAdjacentText('afterbegin', data.timestamp_display);
+          } else {
+            alert('Errore nel registrare la timbratura');
+          }
+        })
+        .finally(() => {
+          qrScanner.stop();
+          scannerContainer.style.display = 'none';
+        });
+      });
+
+      // handler click sui bottoni 📷
+      document.querySelectorAll('.scan-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentButton = btn;
+          scannerContainer.style.display = 'block';
+          qrScanner.start();
+        });
+      });
+
+      closeBtn.addEventListener('click', () => {
+        qrScanner.stop();
+        scannerContainer.style.display = 'none';
+      });
+    });
+  </script>
+{% endblock %}

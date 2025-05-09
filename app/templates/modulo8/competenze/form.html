@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-list">
+  <h2>Gestione Competenze</h2>
+  <a href="{{ url_for('modulo8.nuova_competenza') }}" class="btn btn-primary mb-3">+ Nuova Competenza</a>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome Competenza</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in competenze %}
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.nome }}</td>
+        <td>
+          <!-- qui potresti avere link per modifica/cancella -->
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

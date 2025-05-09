@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-performance">
+  <h2>Valutazione Performance di {{ dip.nome }} {{ dip.cognome }}</h2>
+
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.visualizza_dipendente', id=dip.id) }}">Profilo</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="{{ url_for('modulo8.performance', id=dip.id) }}">Performance</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.timbrature_mese', dip_id=dip.id, anno=now.year, mese=now.month) }}">Timbrature</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.vestiario_dipendente', id=dip.id) }}">Vestiario</a>
+    </li>
+  </ul>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Competenza</th>
+        <th>Valutazione</th>
+        <th>Data</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in performance %}
+      <tr>
+        <td>{{ p.competenza.nome }}</td>
+        <td>{{ p.valutazione }}</td>
+        <td>{{ p.data.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="3" class="text-center">Nessuna valutazione ancora inserita.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3 class="mt-4">Aggiungi Valutazione</h3>
+  <form action="{{ url_for('modulo8.performance', id=dip.id) }}" method="post">
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label for="competenza_id">Competenza</label>
+        <select class="form-control" id="competenza_id" name="competenza_id" required>
+          <option value="">-- Seleziona Competenza --</option>
+          {% for c in competenze %}
+          <option value="{{ c.id }}">{{ c.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="valutazione">Valutazione</label>
+        <input type="number" class="form-control" id="valutazione" name="valutazione" min="1" max="5" required>
+      </div>
+      <div class="form-group col-md-2 align-self-end">
+        <button type="submit" class="btn btn-success btn-block">Aggiungi</button>
+      </div>
+    </div>
+  </form>
+
+  <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary mt-3">← Torna a Gestione Dipendenti</a>
+</div>
+{% endblock %}

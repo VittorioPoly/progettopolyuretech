@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-vestiario-employee">
+  <h2>Vestiario di {{ dip.nome }} {{ dip.cognome }}</h2>
+
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.visualizza_dipendente', id=dip.id) }}">Profilo</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.performance', id=dip.id) }}">Performance</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('modulo8.timbrature_mese', dip_id=dip.id, anno=now.year, mese=now.month) }}">Timbrature</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="{{ url_for('modulo8.vestiario_dipendente', id=dip.id) }}">Vestiario</a>
+    </li>
+  </ul>
+
+  <!-- Articoli attualmente assegnati -->
+  <section class="mb-5">
+    <h3>Articoli Assegnati</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Articolo</th>
+          <th>Taglia</th>
+          <th>Quantità</th>
+          <th>Data Assegnazione</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in assegnazioni %}
+        <tr>
+          <td>{{ a.item.nome }}</td>
+          <td>{{ a.item.taglia or '—' }}</td>
+          <td>{{ a.quantita }}</td>
+          <td>{{ a.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>
+            <form action="{{ url_for('modulo8.reso_vestiario') }}" method="post" style="display:inline;">
+              <input type="hidden" name="prelievo_id" value="{{ a.id }}">
+              <button type="submit" class="btn btn-sm btn-warning">Reso</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="text-center">Nessun articolo assegnato.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Storico prelievi per questo dipendente -->
+  <section>
+    <h3>Storico Prelievi</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Articolo</th>
+          <th>Quantità</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in history %}
+        <tr>
+          <td>{{ h.item.nome }}</td>
+          <td>{{ h.quantita }}</td>
+          <td>{{ h.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="text-center">Nessuna voce di storico.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary mt-3">← Torna a Gestione Dipendenti</a>
+</div>
+{% endblock %}

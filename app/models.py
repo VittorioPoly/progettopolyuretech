@@ -269,7 +269,7 @@ class Dipendente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(64), nullable=False)
     cognome = db.Column(db.String(64), nullable=False)
-    email = db.Column(db.String(120), unique=True)
+    email = db.Column(db.String(120), unique=True, nullable=True)
     telefono = db.Column(db.String(20))
     data_assunzione = db.Column(db.DateTime)
     reparto = db.Column(db.String(64))
@@ -301,6 +301,46 @@ class Competenza(db.Model):
     def __repr__(self):
         return f'<Competenza {self.nome}>'
 
+# ==== Modulo 8: Timbrature ====
+class Timbratura(db.Model):
+    __tablename__ = 'timbrature'
+    id = db.Column(db.Integer, primary_key=True)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
+    tipo = db.Column(db.String(20), nullable=False)         # 'entrata1','uscita1','entrata2','uscita2'
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    dipendente = db.relationship('Dipendente', backref=db.backref('timbrature', lazy='dynamic'))
+
+    def __repr__(self):
+        return f'<Timbratura d{self.dipendente_id} {self.tipo} @ {self.timestamp}>'
+
+# ==== Modulo 8: Vestiario / Magazzino ====
+class Inventory(db.Model):
+    __tablename__ = 'inventory'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(128), nullable=False)
+    taglia = db.Column(db.String(64))                        # facoltativa
+    quantita = db.Column(db.Integer, default=0, nullable=False)
+
+    def __repr__(self):
+        return f'<Inventory {self.nome} ({self.taglia}) x{self.quantita}>'
+
+# registro di ogni prelievo di vestiario
+class PrelievoVestiario(db.Model):
+    __tablename__ = 'prelievi_vestiario'
+    id = db.Column(db.Integer, primary_key=True)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('inventory.id'), nullable=False)
+    quantita = db.Column(db.Integer, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    dipendente = db.relationship('Dipendente', backref='prelievi_vestiario')
+    item = db.relationship('Inventory')
+
+    def __repr__(self):
+        return f'<PrelievoVestiario d{self.dipendente_id} i{self.item_id} x{self.quantita}>'
+# Per il tuo import in modulo8.py
+VestiarioItem = Inventory
 
 # Modulo 9: Analisi dati da Excel (solo admin)
 class DatiExcel(db.Model):

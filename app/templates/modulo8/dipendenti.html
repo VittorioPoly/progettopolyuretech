@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-list">
+  <h2>Gestione Dipendenti</h2>
+  <a href="{{ url_for('modulo8.nuovo_dipendente') }}" class="btn btn-primary mb-3">+ Nuovo Dipendente</a>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Cognome</th>
+        <th>Ruolo</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in dipendenti %}
+      <tr>
+        <td>{{ d.id }}</td>
+        <td>{{ d.nome }}</td>
+        <td>{{ d.cognome }}</td>
+        <td>{{ d.ruolo }}</td>
+        <td>
+          <a href="{{ url_for('modulo8.profilo_dipendente', id=d.id) }}">Profilo</a>
+          <a href="{{ url_for('modulo8.performance_dipendente', id=d.id) }}">Performance</a> |
+          <a href="{{ url_for('modulo8.timbrature_mese', dip_id=d.id, anno=now.year, mese=now.month) }}">Timbrature</a> |
+          <a href="{{ url_for('modulo8.vestiario_dipendente', id=d.id) }}">Vestiario</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

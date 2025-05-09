@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-vestiario">
+  <h2>Gestione Vestiario</h2>
+
+  <!-- Sezione Inventario -->
+  <section class="mb-5">
+    <h3>Inventario Articoli</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Articolo</th>
+          <th>Taglia</th>
+          <th>Quantità Disponibile</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in inventory %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.nome }}</td>
+          <td>{{ item.taglia or '—' }}</td>
+          <td>{{ item.quantita }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Sezione Prelievo -->
+  <section>
+    <h3>Registra Prelievo</h3>
+    <form action="{{ url_for('modulo8.prelievo_vestiario') }}" method="post" class="form-inline">
+      <div class="form-group mb-2 mr-2">
+        <label for="dipendente_id" class="sr-only">Dipendente</label>
+        <select class="form-control" id="dipendente_id" name="dipendente_id" required>
+          <option value="">-- Seleziona Dipendente --</option>
+          {% for d in dipendenti %}
+          <option value="{{ d.id }}">{{ d.nome }} {{ d.cognome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group mb-2 mr-2">
+        <label for="item_id" class="sr-only">Articolo</label>
+        <select class="form-control" id="item_id" name="item_id" required>
+          <option value="">-- Seleziona Articolo --</option>
+          {% for item in inventory %}
+          <option value="{{ item.id }}">{{ item.nome }}{% if item.taglia %} ({{ item.taglia }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group mb-2 mr-2">
+        <label for="quantita" class="sr-only">Quantità</label>
+        <input type="number" class="form-control" id="quantita" name="quantita" min="1" value="1" required>
+      </div>
+      <button type="submit" class="btn btn-success mb-2">Registra</button>
+    </form>
+  </section>
+
+  <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary mt-4">← Torna a Gestione Dipendenti</a>
+</div>
+{% endblock %}

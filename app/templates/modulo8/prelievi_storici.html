@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-vestiario-history">
+  <h2>Storico Prelievi Vestiario</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Dipendente</th>
+        <th>Articolo</th>
+        <th>Taglia</th>
+        <th>Quantità</th>
+        <th>Data</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in all_prelievi %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.dipendente.nome }} {{ p.dipendente.cognome }}</td>
+        <td>{{ p.item.nome }}</td>
+        <td>{{ p.item.taglia or '—' }}</td>
+        <td>{{ p.quantita }}</td>
+        <td>{{ p.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center">Nessun prelievo registrato.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="{{ url_for('modulo8.vestiario') }}" class="btn btn-secondary mt-3">← Torna a Gestione Vestiario</a>
+</div>
+{% endblock %}

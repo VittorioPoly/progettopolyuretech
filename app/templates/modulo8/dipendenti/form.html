@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-form">
+  <h2>Nuovo Dipendente</h2>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      {{ form.nome.label(class="form-label required") }}
+      {{ form.nome(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.cognome.label(class="form-label required") }}
+      {{ form.cognome(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.email.label }}
+      {{ form.email(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.telefono.label }}
+      {{ form.telefono(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.data_assunzione.label }}
+      {{ form.data_assunzione(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.reparto.label }}
+      {{ form.reparto(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.ruolo.label }}
+      {{ form.ruolo(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.note.label }}
+      {{ form.note(class="form-control", rows=3) }}
+    </div>
+    <div class="form-group">
+      {{ form.competenze.label }}
+      {{ form.competenze(class="form-control", size=5) }}
+    </div>
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">Annulla</a>
+  </form>
+</div>
+{% endblock %}
