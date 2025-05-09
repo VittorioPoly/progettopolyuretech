@@ -22,7 +22,7 @@
         <td>{{ d.cognome }}</td>
         <td>{{ d.ruolo }}</td>
         <td>
-          <a href="{{ url_for('modulo8.profilo_dipendente', id=d.id) }}">Profilo</a>
+          <a href="{{ url_for('modulo8.profilo_dipendente', id=d.id) }}">Profilo</a> |
           <a href="{{ url_for('modulo8.performance_dipendente', id=d.id) }}">Performance</a> |
           <a href="{{ url_for('modulo8.timbrature_mese', dip_id=d.id, anno=now.year, mese=now.month) }}">Timbrature</a> |
           <a href="{{ url_for('modulo8.vestiario_dipendente', id=d.id) }}">Vestiario</a>
