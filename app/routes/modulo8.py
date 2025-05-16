@@ -5,9 +5,10 @@ from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Invent
 from app.utils import admin_required
 from datetime import datetime
 from calendar import monthrange
-from app.models import PrelievoVestiario, Inventory, Dipendente
-from app.forms import DipendenteForm
-from app.models import Dipendente
+from app.forms import (
+    DipendenteStep1Form, DipendenteStep2Form, DipendenteStep3Form,
+    DipendenteStep4Form, DipendenteStep5Form, CompetenzaForm
+)
 
 modulo8 = Blueprint('modulo8', __name__, url_prefix='/modulo8')
 
@@ -36,24 +37,20 @@ def dipendenti():
 @login_required
 @admin_required
 def nuovo_dipendente():
-    form = DipendenteForm()
+    form = DipendenteStep1Form()
     if form.validate_on_submit():
         # crea e salva il dipendente
         dip = Dipendente(
             nome=form.nome.data,
             cognome=form.cognome.data,
+            anno_nascita=form.anno_nascita.data,
+            luogo_nascita=form.luogo_nascita.data,
+            provincia_nascita=form.provincia_nascita.data,
+            codice_fiscale=form.codice_fiscale.data,
             email=form.email.data,
             telefono=form.telefono.data,
-            data_assunzione=form.data_assunzione.data,
-            reparto=form.reparto.data,
-            ruolo=form.ruolo.data,
-            note=form.note.data,
             created_by_id=current_user.id
         )
-        # assegna competenze (many-to-many)
-        dip.competenze = Competenza.query.filter(
-            Competenza.id.in_(form.competenze.data)
-        ).all()
         db.session.add(dip)
         db.session.commit()
         flash('Dipendente creato con successo', 'success')
@@ -118,20 +115,66 @@ def competenze():
         competenze=comps
     )
 
-@modulo8.route('/competenze/nuova', methods=['GET','POST'])
+@modulo8.route('/competenze/nuova', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def nuova_competenza():
-    if request.method == 'POST':
+    form = CompetenzaForm()
+    if form.validate_on_submit():
         comp = Competenza(
-            nome=request.form['nome'], descrizione=request.form.get('descrizione'),
-            livello=request.form.get('livello'), area=request.form.get('area'),
+            nome=form.nome.data,
+            descrizione=form.descrizione.data,
+            livello=form.livello.data,
+            area=form.area.data,
             created_by_id=current_user.id
         )
-        db.session.add(comp); db.session.commit()
-        flash('Competenza creata', 'success')
-        return redirect(url_for('modulo8.gestione_competenze'))
-    return render_template('modulo8/competenze/form.html')
+        db.session.add(comp)
+        db.session.commit()
+        flash('Competenza creata con successo', 'success')
+        return redirect(url_for('modulo8.competenze'))
+    
+    return render_template('modulo8/competenza_form.html', 
+                         title='Nuova Competenza',
+                         form=form)
+
+@modulo8.route('/competenze/modifica/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_competenza(id):
+    competenza = Competenza.query.get_or_404(id)
+    form = CompetenzaForm()
+    
+    if form.validate_on_submit():
+        competenza.nome = form.nome.data
+        competenza.descrizione = form.descrizione.data
+        competenza.livello = form.livello.data
+        competenza.area = form.area.data
+        
+        db.session.commit()
+        flash('Competenza aggiornata con successo', 'success')
+        return redirect(url_for('modulo8.competenze'))
+    
+    # Pre-popola il form
+    if request.method == 'GET':
+        form.nome.data = competenza.nome
+        form.descrizione.data = competenza.descrizione
+        form.livello.data = competenza.livello
+        form.area.data = competenza.area
+    
+    return render_template('modulo8/competenza_form.html', 
+                         title='Modifica Competenza',
+                         form=form)
+
+@modulo8.route('/competenze/visualizza/<int:id>')
+@login_required
+@admin_required
+def visualizza_competenza(id):
+    competenza = Competenza.query.get_or_404(id)
+    dipendenti = competenza.dipendenti.all()
+    return render_template('modulo8/competenze/view.html',
+                         title=f'Dettagli Competenza: {competenza.nome}',
+                         competenza=competenza,
+                         dipendenti=dipendenti)
 
 # timbrature: endpoint per QR
 @modulo8.route('/timbrature/qrcode', methods=['POST'])
@@ -265,3 +308,161 @@ def prelievo_vestiario():
 
     flash(f'Prelievo di {qta}× {item.nome} registrato per {dip.nome}.', 'success')
     return redirect(url_for('modulo8.vestiario'))
+
+@modulo8.route('/dipendenti/modifica/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_dipendente(id):
+    dipendente = Dipendente.query.get_or_404(id)
+    step = int(request.args.get('step', 1))
+    
+    if step == 1:
+        form = DipendenteStep1Form(obj=dipendente)
+    elif step == 2:
+        form = DipendenteStep2Form(obj=dipendente)
+    elif step == 3:
+        form = DipendenteStep3Form(obj=dipendente)
+    elif step == 4:
+        form = DipendenteStep4Form(obj=dipendente)
+        # Precompila le competenze
+        form.competenze.choices = [(c.id, c.nome) for c in Competenza.query.order_by(Competenza.nome).all()]
+        form.competenze.data = [c.id for c in dipendente.competenze]
+    elif step == 5:
+        form = DipendenteStep5Form(obj=dipendente)
+        # Precompila il vestiario
+        form.vestiario.choices = [(v.id, v.nome) for v in VestiarioItem.query.order_by(VestiarioItem.nome).all()]
+        form.vestiario.data = [v.id for v in dipendente.vestiario]
+    else:
+        return redirect(url_for('modulo8.dipendenti'))
+    
+    if form.validate_on_submit():
+        action = request.form.get('action')
+        
+        if action == 'prev':
+            return redirect(url_for('modulo8.modifica_dipendente', id=id, step=step-1))
+        elif action == 'next':
+            # Aggiorna i dati del dipendente
+            if step == 1:
+                dipendente.nome = form.nome.data
+                dipendente.cognome = form.cognome.data
+                dipendente.anno_nascita = form.anno_nascita.data
+                dipendente.luogo_nascita = form.luogo_nascita.data
+                dipendente.provincia_nascita = form.provincia_nascita.data
+                dipendente.codice_fiscale = form.codice_fiscale.data
+                dipendente.email = form.email.data
+                dipendente.telefono = form.telefono.data
+            elif step == 2:
+                dipendente.matricola = form.matricola.data
+                dipendente.reparto = form.reparto.data
+                dipendente.ruolo = form.ruolo.data
+                dipendente.data_assunzione_somministrazione = form.data_assunzione_somministrazione.data
+                dipendente.agenzia_somministrazione = form.agenzia_somministrazione.data
+                dipendente.data_assunzione_indeterminato = form.data_assunzione_indeterminato.data
+                dipendente.legge_104 = form.legge_104.data == 'si'
+                dipendente.donatore_avis = form.donatore_avis.data == 'si'
+            elif step == 3:
+                dipendente.indirizzo_residenza = form.indirizzo_residenza.data
+                dipendente.citta_residenza = form.citta_residenza.data
+                dipendente.provincia_residenza = form.provincia_residenza.data
+                dipendente.cap_residenza = form.cap_residenza.data
+            elif step == 4:
+                # Aggiorna le competenze
+                dipendente.competenze = []
+                for competenza_id in form.competenze.data:
+                    competenza = Competenza.query.get(competenza_id)
+                    if competenza:
+                        dipendente.competenze.append(competenza)
+            elif step == 5:
+                # Aggiorna il vestiario
+                dipendente.vestiario = []
+                for vestiario_id in form.vestiario.data:
+                    vestiario = VestiarioItem.query.get(vestiario_id)
+                    if vestiario:
+                        dipendente.vestiario.append(vestiario)
+            
+            db.session.commit()
+            return redirect(url_for('modulo8.modifica_dipendente', id=id, step=step+1))
+        elif action == 'submit':
+            # Aggiorna i dati del dipendente
+            if step == 1:
+                dipendente.nome = form.nome.data
+                dipendente.cognome = form.cognome.data
+                dipendente.anno_nascita = form.anno_nascita.data
+                dipendente.luogo_nascita = form.luogo_nascita.data
+                dipendente.provincia_nascita = form.provincia_nascita.data
+                dipendente.codice_fiscale = form.codice_fiscale.data
+                dipendente.email = form.email.data
+                dipendente.telefono = form.telefono.data
+            elif step == 2:
+                dipendente.matricola = form.matricola.data
+                dipendente.reparto = form.reparto.data
+                dipendente.ruolo = form.ruolo.data
+                dipendente.data_assunzione_somministrazione = form.data_assunzione_somministrazione.data
+                dipendente.agenzia_somministrazione = form.agenzia_somministrazione.data
+                dipendente.data_assunzione_indeterminato = form.data_assunzione_indeterminato.data
+                dipendente.legge_104 = form.legge_104.data == 'si'
+                dipendente.donatore_avis = form.donatore_avis.data == 'si'
+            elif step == 3:
+                dipendente.indirizzo_residenza = form.indirizzo_residenza.data
+                dipendente.citta_residenza = form.citta_residenza.data
+                dipendente.provincia_residenza = form.provincia_residenza.data
+                dipendente.cap_residenza = form.cap_residenza.data
+            elif step == 4:
+                # Aggiorna le competenze
+                dipendente.competenze = []
+                for competenza_id in form.competenze.data:
+                    competenza = Competenza.query.get(competenza_id)
+                    if competenza:
+                        dipendente.competenze.append(competenza)
+            elif step == 5:
+                # Aggiorna il vestiario
+                dipendente.vestiario = []
+                for vestiario_id in form.vestiario.data:
+                    vestiario = VestiarioItem.query.get(vestiario_id)
+                    if vestiario:
+                        dipendente.vestiario.append(vestiario)
+            
+            db.session.commit()
+            flash('Dipendente modificato con successo!', 'success')
+            return redirect(url_for('modulo8.dipendenti'))
+    
+    return render_template('modulo8/dipendenti/modifica_step.html', form=form, dipendente=dipendente, step=step)
+
+@modulo8.route('/dipendenti/elimina/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def elimina_dipendente(id):
+    dip = Dipendente.query.get_or_404(id)
+    db.session.delete(dip)
+    db.session.commit()
+    flash('Dipendente eliminato con successo', 'success')
+    return redirect(url_for('modulo8.dipendenti'))
+
+@modulo8.route('/dipendenti/archivia/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def archivia_dipendente(id):
+    dip = Dipendente.query.get_or_404(id)
+    data_cessazione = datetime.strptime(request.form['data_cessazione'], '%Y-%m-%d')
+    dip.data_cessazione = datetime.combine(data_cessazione, datetime.min.time())
+    dip.archiviato = True
+    db.session.commit()
+    flash('Dipendente archiviato con successo', 'success')
+    return redirect(url_for('modulo8.dipendenti'))
+
+@modulo8.route('/dipendenti/storico')
+@login_required
+@admin_required
+def storico_dipendenti():
+    dipendenti = Dipendente.query.filter_by(archiviato=True).order_by(Dipendente.data_cessazione.desc()).all()
+    return render_template('modulo8/dipendenti/storico.html', dipendenti=dipendenti)
+
+@modulo8.route('/dipendenti/storico/<int:id>')
+@login_required
+@admin_required
+def visualizza_archivio_dipendente(id):
+    dip = Dipendente.query.get_or_404(id)
+    if not dip.archiviato:
+        flash('Dipendente non archiviato', 'danger')
+        return redirect(url_for('modulo8.dipendenti'))
+    return render_template('modulo8/dipendenti/view_archivio.html', dip=dip)

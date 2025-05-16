@@ -66,3 +66,84 @@
     box-shadow: 0 0 3px rgba(0,0,0,0.05);
   }
   
+  /* Stili per il modulo 8 - Gestione Competenze */
+
+  .module-list {
+    padding: 20px;
+  }
+
+  .module-list h2 {
+    margin-bottom: 25px;
+    color: #2c3e50;
+  }
+
+  /* Stili per la tabella delle competenze */
+  .table-competenze {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .table-competenze thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    color: #495057;
+    font-weight: 600;
+  }
+
+  .table-competenze tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  /* Stili per i form */
+  .form-competenza {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .form-competenza label {
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .form-competenza .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+  }
+
+  /* Stili per i pulsanti */
+  .btn-action {
+    margin: 0 5px;
+  }
+
+  .btn-add-competenza {
+    margin-bottom: 20px;
+  }
+
+  /* Stili per i messaggi di errore */
+  .error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .module-list {
+      padding: 10px;
+    }
+    
+    .table-competenze {
+      font-size: 0.9rem;
+    }
+    
+    .btn-action {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+  

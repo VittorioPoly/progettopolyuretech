@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+  <h2>Storico Dipendenti</h2>
+  
+  <div class="mb-4">
+    <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Torna a Gestione Dipendenti
+    </a>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Cognome</th>
+        <th>Email</th>
+        <th>Reparto</th>
+        <th>Ruolo</th>
+        <th>Data Assunzione</th>
+        <th>Data Cessazione</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dip in dipendenti %}
+      <tr>
+        <td>{{ dip.nome }}</td>
+        <td>{{ dip.cognome }}</td>
+        <td>{{ dip.email or '—' }}</td>
+        <td>{{ dip.reparto or '—' }}</td>
+        <td>{{ dip.ruolo or '—' }}</td>
+        <td>{{ dip.data_assunzione.strftime('%d/%m/%Y') }}</td>
+        <td>{{ dip.data_cessazione.strftime('%d/%m/%Y') }}</td>
+        <td>
+          <div class="btn-group">
+            <a href="{{ url_for('modulo8.visualizza_archivio_dipendente', id=dip.id) }}" class="btn btn-sm btn-info">
+              <i class="fas fa-eye"></i> Visualizza
+            </a>
+            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ dip.id }}">
+              <i class="fas fa-trash"></i> Elimina
+            </button>
+          </div>
+
+          <!-- Modal per eliminazione -->
+          <div class="modal fade" id="deleteModal{{ dip.id }}" tabindex="-1">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Elimina Dipendente Archivio</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <p>Sei sicuro di voler eliminare definitivamente il dipendente {{ dip.nome }} {{ dip.cognome }} dall'archivio?</p>
+                  <p class="text-danger">Questa azione eliminerà tutti i dati associati al dipendente e non può essere annullata.</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                  <form action="{{ url_for('modulo8.elimina_dipendente', id=dip.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} 

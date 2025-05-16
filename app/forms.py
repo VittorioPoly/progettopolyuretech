@@ -213,41 +213,63 @@ Modulo7ViewForm = Modulo6ViewForm
 # Form per Modulo 8: Gestione dipendenti e competenze
 # ======================================================
 
-class DipendenteForm(FlaskForm):
-    """Form per aggiungere/modificare dipendenti"""
-    nome = StringField('Nome', validators=[DataRequired(), Length(max=64)])
-    cognome = StringField('Cognome', validators=[DataRequired(), Length(max=64)])
+class DipendenteStep1Form(FlaskForm):
+    """Form per il primo step: dati personali"""
+    nome = StringField('Nome', validators=[DataRequired(), Length(max=100)])
+    cognome = StringField('Cognome', validators=[DataRequired(), Length(max=100)])
+    anno_nascita = IntegerField('Anno di Nascita', validators=[
+        DataRequired(),
+        NumberRange(min=1900, max=datetime.now().year)
+    ])
+    luogo_nascita = StringField('Luogo di Nascita', validators=[DataRequired(), Length(max=100)])
+    provincia_nascita = StringField('Provincia di Nascita', validators=[DataRequired(), Length(min=2, max=2)])
+    codice_fiscale = StringField('Codice Fiscale', validators=[Optional(), Length(min=16, max=16)])
     email = StringField('Email', validators=[Optional(), Email(), Length(max=120)])
     telefono = StringField('Telefono', validators=[Optional(), Length(max=20)])
-    data_assunzione = DateField('Data Assunzione', validators=[Optional()], format='%Y-%m-%d')
-    reparto = StringField('Reparto', validators=[Optional(), Length(max=64)])
-    ruolo = StringField('Ruolo', validators=[Optional(), Length(max=64)])
-    note = TextAreaField('Note', validators=[Optional(), Length(max=1000)])
-    competenze = SelectMultipleField('Competenze', coerce=int, validators=[Optional()])
-    submit = SubmitField('Salva')
-    
-    def __init__(self, *args, **kwargs):
-        super(DipendenteForm, self).__init__(*args, **kwargs)
-        self.competenze.choices = [(c.id, c.nome) for c in Competenza.query.order_by(Competenza.nome).all()]
-    
-    def validate_email(self, email):
-        """Verifica che l'email non esista già per un altro dipendente"""
-        if email.data:
-            dip = Dipendente.query.filter_by(email=email.data).first()
-            if dip is not None and (not hasattr(self, 'id') or dip.id != self.id.data):
-                raise ValidationError('Email già registrata per un altro dipendente.')
+
+class DipendenteStep2Form(FlaskForm):
+    """Form per il secondo step: dati lavorativi"""
+    matricola = StringField('N° Matricola', validators=[DataRequired(), Length(max=20)])
+    reparto = StringField('Reparto', validators=[Optional(), Length(max=100)])
+    ruolo = StringField('Ruolo', validators=[Optional(), Length(max=100)])
+    data_assunzione_somministrazione = DateField('Data Assunzione in Somministrazione', validators=[Optional()])
+    agenzia_somministrazione = StringField('Agenzia Somministrazione', validators=[Optional(), Length(max=100)])
+    data_assunzione_indeterminato = DateField('Data Assunzione Tempo Indeterminato', validators=[Optional()])
+    legge_104 = SelectField('Legge 104', choices=[('no', 'No'), ('si', 'Si')], validators=[DataRequired()])
+    donatore_avis = SelectField('Donatore Avis', choices=[('no', 'No'), ('si', 'Si')], validators=[DataRequired()])
+
+class DipendenteStep3Form(FlaskForm):
+    """Form per il terzo step: residenza"""
+    indirizzo_residenza = StringField('Indirizzo', validators=[DataRequired(), Length(max=200)])
+    citta_residenza = StringField('Città', validators=[DataRequired(), Length(max=100)])
+    provincia_residenza = StringField('Provincia', validators=[DataRequired(), Length(min=2, max=2)])
+    cap_residenza = StringField('CAP', validators=[DataRequired(), Length(min=5, max=5)])
+
+class DipendenteStep4Form(FlaskForm):
+    """Form per il quarto step: competenze"""
+    competenze = SelectField('Competenze', coerce=int, validators=[Optional()], render_kw={"multiple": "multiple"})
+
+class DipendenteStep5Form(FlaskForm):
+    """Form per il quinto step: vestiario"""
+    vestiario = SelectField('Vestiario', coerce=int, validators=[Optional()], render_kw={"multiple": "multiple"})
 
 
 class CompetenzaForm(FlaskForm):
     """Form per aggiungere/modificare competenze"""
-    nome = StringField('Nome competenza', validators=[DataRequired(), Length(max=64)])
-    descrizione = TextAreaField('Descrizione', validators=[Optional(), Length(max=1000)])
+    nome = StringField('Nome', validators=[DataRequired(), Length(max=100)])
+    descrizione = TextAreaField('Descrizione', validators=[Optional(), Length(max=500)])
     livello = SelectField('Livello', choices=[
         ('base', 'Base'),
         ('intermedio', 'Intermedio'),
         ('avanzato', 'Avanzato')
-    ])
-    area = StringField('Area', validators=[Optional(), Length(max=64)])
+    ], validators=[DataRequired()])
+    area = SelectField('Area', choices=[
+        ('tecnica', 'Tecnica'),
+        ('soft_skill', 'Soft Skill'),
+        ('sicurezza', 'Sicurezza'),
+        ('qualita', 'Qualità'),
+        ('altro', 'Altro')
+    ], validators=[DataRequired()])
     submit = SubmitField('Salva')
     
     def validate_nome(self, nome):

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+  <h2>Dettagli Dipendente Archivio</h2>
+  
+  <div class="dipendente-details">
+    <dl class="row">
+      <dt class="col-sm-3">Nome</dt>
+      <dd class="col-sm-9">{{ dip.nome }}</dd>
+
+      <dt class="col-sm-3">Cognome</dt>
+      <dd class="col-sm-9">{{ dip.cognome }}</dd>
+
+      <dt class="col-sm-3">Email</dt>
+      <dd class="col-sm-9">{{ dip.email or '—' }}</dd>
+
+      <dt class="col-sm-3">Telefono</dt>
+      <dd class="col-sm-9">{{ dip.telefono or '—' }}</dd>
+
+      <dt class="col-sm-3">Data Assunzione</dt>
+      <dd class="col-sm-9">{{ dip.data_assunzione.strftime('%d/%m/%Y') }}</dd>
+
+      <dt class="col-sm-3">Data Cessazione</dt>
+      <dd class="col-sm-9">{{ dip.data_cessazione.strftime('%d/%m/%Y') }}</dd>
+
+      <dt class="col-sm-3">Reparto</dt>
+      <dd class="col-sm-9">{{ dip.reparto or '—' }}</dd>
+
+      <dt class="col-sm-3">Ruolo</dt>
+      <dd class="col-sm-9">{{ dip.ruolo or '—' }}</dd>
+
+      <dt class="col-sm-3">Note</dt>
+      <dd class="col-sm-9">{{ dip.note or '—' }}</dd>
+    </dl>
+  </div>
+
+  <h3 class="mt-4">Competenze</h3>
+  {% if dip.competenze %}
+  <ul class="list-group">
+    {% for comp in dip.competenze %}
+    <li class="list-group-item">
+      {{ comp.nome }}
+      {% if comp.livello %}
+      <span class="badge bg-secondary">{{ comp.livello }}</span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Nessuna competenza registrata.</p>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{{ url_for('modulo8.storico_dipendenti') }}" class="btn btn-secondary">← Torna a Storico Dipendenti</a>
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+      <i class="fas fa-trash"></i> Elimina Definitivamente
+    </button>
+  </div>
+
+  <!-- Modal per eliminazione -->
+  <div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Elimina Dipendente Archivio</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Sei sicuro di voler eliminare definitivamente il dipendente {{ dip.nome }} {{ dip.cognome }} dall'archivio?</p>
+          <p class="text-danger">Questa azione eliminerà tutti i dati associati al dipendente e non può essere annullata.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <form action="{{ url_for('modulo8.elimina_dipendente', id=dip.id) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger">Elimina</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

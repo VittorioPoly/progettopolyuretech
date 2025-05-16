@@ -32,7 +32,7 @@ def create_app(config_name='default'):
     session_extension.init_app(app)  # Usa session_extension invece di session
     
     # Configura il login_manager
-    login_manager.login_view = 'login'
+    login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Effettua il login per accedere a questa pagina.'
     login_manager.login_message_category = 'warning'
     

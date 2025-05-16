@@ -2,12 +2,13 @@
 {% block content %}
 <div class="module-list">
   <h2>Gestione Competenze</h2>
-  <a href="{{ url_for('modulo8.nuova_competenza') }}" class="btn btn-primary mb-3">+ Nuova Competenza</a>
-  <table class="table table-striped">
+  <a href="{{ url_for('modulo8.nuova_competenza') }}" class="btn btn-primary btn-add-competenza">+ Nuova Competenza</a>
+  <table class="table table-striped table-competenze">
     <thead>
       <tr>
         <th>ID</th>
         <th>Nome Competenza</th>
+        <th>Descrizione</th>
         <th>Azioni</th>
       </tr>
     </thead>
@@ -16,8 +17,10 @@
       <tr>
         <td>{{ c.id }}</td>
         <td>{{ c.nome }}</td>
+        <td>{{ c.descrizione }}</td>
         <td>
-          <!-- qui potresti avere link per modifica/cancella -->
+          <a href="{{ url_for('modulo8.modifica_competenza', id=c.id) }}" class="btn btn-sm btn-primary btn-action">Modifica</a>
+          <a href="{{ url_for('modulo8.visualizza_competenza', id=c.id) }}" class="btn btn-sm btn-info btn-action">Visualizza</a>
         </td>
       </tr>
       {% endfor %}

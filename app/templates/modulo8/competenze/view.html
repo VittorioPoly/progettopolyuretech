@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+  <h2>Dettagli Competenza</h2>
+  
+  <div class="competenza-details">
+    <dl class="row">
+      <dt class="col-sm-3">Nome</dt>
+      <dd class="col-sm-9">{{ competenza.nome }}</dd>
+
+      <dt class="col-sm-3">Descrizione</dt>
+      <dd class="col-sm-9">{{ competenza.descrizione or '—' }}</dd>
+
+      <dt class="col-sm-3">Livello</dt>
+      <dd class="col-sm-9">{{ competenza.livello or '—' }}</dd>
+
+      <dt class="col-sm-3">Area</dt>
+      <dd class="col-sm-9">{{ competenza.area or '—' }}</dd>
+    </dl>
+  </div>
+
+  <h3 class="mt-4">Dipendenti con questa competenza</h3>
+  {% if dipendenti %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Cognome</th>
+        <th>Reparto</th>
+        <th>Ruolo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in dipendenti %}
+      <tr>
+        <td>{{ d.nome }}</td>
+        <td>{{ d.cognome }}</td>
+        <td>{{ d.reparto or '—' }}</td>
+        <td>{{ d.ruolo or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Nessun dipendente ha questa competenza.</p>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{{ url_for('modulo8.competenze') }}" class="btn btn-secondary">← Torna a Gestione Competenze</a>
+    <a href="{{ url_for('modulo8.modifica_competenza', id=competenza.id) }}" class="btn btn-primary">Modifica Competenza</a>
+  </div>
+</div>
+{% endblock %} 

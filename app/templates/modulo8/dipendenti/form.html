@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="module-form">
-  <h2>Nuovo Dipendente</h2>
+  <h2>Nuovo Dipendente - Dati Personali</h2>
   <form method="post">
     {{ form.hidden_tag() }}
     <div class="form-group">
@@ -21,27 +21,25 @@
       {{ form.telefono(class="form-control") }}
     </div>
     <div class="form-group">
-      {{ form.data_assunzione.label }}
-      {{ form.data_assunzione(class="form-control") }}
+      {{ form.anno_nascita.label }}
+      {{ form.anno_nascita(class="form-control") }}
     </div>
     <div class="form-group">
-      {{ form.reparto.label }}
-      {{ form.reparto(class="form-control") }}
+      {{ form.luogo_nascita.label }}
+      {{ form.luogo_nascita(class="form-control") }}
     </div>
     <div class="form-group">
-      {{ form.ruolo.label }}
-      {{ form.ruolo(class="form-control") }}
+      {{ form.provincia_nascita.label }}
+      {{ form.provincia_nascita(class="form-control") }}
     </div>
     <div class="form-group">
-      {{ form.note.label }}
-      {{ form.note(class="form-control", rows=3) }}
+      {{ form.codice_fiscale.label }}
+      {{ form.codice_fiscale(class="form-control") }}
     </div>
-    <div class="form-group">
-      {{ form.competenze.label }}
-      {{ form.competenze(class="form-control", size=5) }}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">Salva e Continua</button>
+      <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">Annulla</a>
     </div>
-    {{ form.submit(class="btn btn-success") }}
-    <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">Annulla</a>
   </form>
 </div>
 {% endblock %}

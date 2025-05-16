@@ -18,7 +18,7 @@ class User(UserMixin, db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120))
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), default='operatore')  # 'operatore' o 'admin'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -267,20 +267,42 @@ class Dipendente(db.Model):
     __tablename__ = 'dipendente'
     
     id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(64), nullable=False)
-    cognome = db.Column(db.String(64), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=True)
+    nome = db.Column(db.String(100), nullable=False)
+    cognome = db.Column(db.String(100), nullable=False)
+    anno_nascita = db.Column(db.Integer, nullable=False)
+    luogo_nascita = db.Column(db.String(100), nullable=False)
+    provincia_nascita = db.Column(db.String(2), nullable=False)
+    codice_fiscale = db.Column(db.String(16))
+    email = db.Column(db.String(120))
     telefono = db.Column(db.String(20))
-    data_assunzione = db.Column(db.DateTime)
-    reparto = db.Column(db.String(64))
-    ruolo = db.Column(db.String(64))
+    matricola = db.Column(db.String(20), unique=True)
+    reparto = db.Column(db.String(100))
+    ruolo = db.Column(db.String(100))
+    data_assunzione_somministrazione = db.Column(db.Date)
+    agenzia_somministrazione = db.Column(db.String(100))
+    data_assunzione_indeterminato = db.Column(db.Date)
+    legge_104 = db.Column(db.Boolean, default=False)
+    donatore_avis = db.Column(db.Boolean, default=False)
+    indirizzo_residenza = db.Column(db.String(200))
+    citta_residenza = db.Column(db.String(100))
+    provincia_residenza = db.Column(db.String(2))
+    cap_residenza = db.Column(db.String(5))
+    data_cessazione = db.Column(db.Date)
     note = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    archiviato = db.Column(db.Boolean, default=False)
     
-    # Relazione many-to-many con competenze
-    competenze = db.relationship('Competenza', secondary=dipendente_competenza,
-                                 backref=db.backref('dipendenti', lazy='dynamic'))
+    competenze = db.relationship('Competenza', secondary='dipendente_competenza', backref='dipendenti')
+    vestiario = db.relationship('Inventory', secondary='prelievi_vestiario', backref='dipendenti')
+
+    @property
+    def data_assunzione_date(self):
+        """Restituisce solo la data di assunzione senza l'orario"""
+        return self.data_assunzione.date() if self.data_assunzione else None
+    
+    @property
+    def data_cessazione_date(self):
+        """Restituisce solo la data di cessazione senza l'orario"""
+        return self.data_cessazione.date() if self.data_cessazione else None
     
     def __repr__(self):
         return f'<Dipendente {self.nome} {self.cognome}>'
@@ -308,8 +330,6 @@ class Timbratura(db.Model):
     dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
     tipo = db.Column(db.String(20), nullable=False)         # 'entrata1','uscita1','entrata2','uscita2'
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-    dipendente = db.relationship('Dipendente', backref=db.backref('timbrature', lazy='dynamic'))
 
     def __repr__(self):
         return f'<Timbratura d{self.dipendente_id} {self.tipo} @ {self.timestamp}>'

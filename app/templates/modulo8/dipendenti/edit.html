@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+  <h2>Modifica Dipendente</h2>
+  
+  <form method="POST" class="mt-4">
+    {{ form.csrf_token }}
+    
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="nome" class="form-label">Nome *</label>
+        {{ form.nome(class="form-control", required=true) }}
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label for="cognome" class="form-label">Cognome *</label>
+        {{ form.cognome(class="form-control", required=true) }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="email" class="form-label">Email</label>
+        {{ form.email(class="form-control", type="email") }}
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label for="telefono" class="form-label">Telefono</label>
+        {{ form.telefono(class="form-control") }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="data_assunzione" class="form-label">Data Assunzione *</label>
+        {{ form.data_assunzione(class="form-control", type="date", required=true) }}
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label for="reparto" class="form-label">Reparto</label>
+        {{ form.reparto(class="form-control") }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="ruolo" class="form-label">Ruolo</label>
+        {{ form.ruolo(class="form-control") }}
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label for="competenze" class="form-label">Competenze</label>
+        {{ form.competenze(class="form-select", multiple=true) }}
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="note" class="form-label">Note</label>
+      {{ form.note(class="form-control", rows=3) }}
+    </div>
+
+    <div class="mt-4">
+      <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">Annulla</a>
+      <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+    </div>
+  </form>
+</div>
+{% endblock %} 
