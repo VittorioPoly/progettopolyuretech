@@ -40,4 +40,4 @@ def index():
 
     recent_activities = []  # opzionalmente da implementare
 
-    return render_template('dashboard/index.html', title='Dashboard', stats=stats, recent_activities=recent_activities)
+    return render_template('index.html', title='Dashboard', stats=stats, recent_activities=recent_activities)

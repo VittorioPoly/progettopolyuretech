@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Dashboard Principale</h1>
+        <p class="dashboard-subtitle">Gestione completa del sistema</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Modulo 1 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card primary-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 1</h3>
+                    <p>Gestione dati e documenti</p>
+                    <a href="{{ url_for('modulo1.list') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 2 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card success-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 2</h3>
+                    <p>Analisi e reportistica</p>
+                    <a href="{{ url_for('modulo2.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 3 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card warning-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 3</h3>
+                    <p>Configurazione sistema</p>
+                    <a href="{{ url_for('modulo3.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 4 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card danger-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 4</h3>
+                    <p>Gestione fatture</p>
+                    <a href="{{ url_for('modulo4.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 5 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card secondary-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 5</h3>
+                    <p>Gestione attività</p>
+                    <a href="{{ url_for('modulo5.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 6 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card dark-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 6</h3>
+                    <p>Gestione calendario</p>
+                    <a href="{{ url_for('modulo6.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 7 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card purple-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 7</h3>
+                    <p>Gestione logistica</p>
+                    <a href="{{ url_for('modulo7.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 8 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card info-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 8</h3>
+                    <p>Gestione risorse umane</p>
+                    <a href="{{ url_for('modulo8.dashboard') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modulo 9 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card teal-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Modulo 9</h3>
+                    <p>Analisi avanzata</p>
+                    <a href="{{ url_for('modulo9.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 1rem;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem 0;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.dashboard-subtitle {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.dashboard-card {
+    position: relative;
+    border-radius: 12px;
+    padding: 1.25rem;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    color: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.9;
+}
+
+.card-content h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.card-content p {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.card-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.card-link:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateX(3px);
+}
+
+/* Gradients */
+.primary-gradient {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.success-gradient {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.warning-gradient {
+    background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.info-gradient {
+    background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.danger-gradient {
+    background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+}
+
+.secondary-gradient {
+    background: linear-gradient(135deg, #858796 0%, #60616f 100%);
+}
+
+.dark-gradient {
+    background: linear-gradient(135deg, #5a5c69 0%, #373840 100%);
+}
+
+.purple-gradient {
+    background: linear-gradient(135deg, #6f42c1 0%, #4e2a84 100%);
+}
+
+.teal-gradient {
+    background: linear-gradient(135deg, #20c997 0%, #13855c 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0.75rem;
+    }
+    
+    .dashboard-title {
+        font-size: 1.75rem;
+    }
+    
+    .dashboard-card {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %} 

@@ -1,19 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="text-center mb-4">Dashboard Modulo 8</h2>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Dashboard Modulo 8</h1>
+        <p class="dashboard-subtitle">Gestione completa delle risorse umane</p>
+    </div>
     
     <div class="row g-4">
         <!-- Gestione Dipendenti -->
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm hover-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x mb-3 text-primary"></i>
-                    <h5 class="card-title">Gestione Dipendenti</h5>
-                    <p class="card-text text-muted">Gestisci i dipendenti, le loro informazioni e documenti</p>
-                    <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-primary stretched-link">
-                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+            <div class="dashboard-card primary-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Gestione Dipendenti</h3>
+                    <p>Gestisci i dipendenti, le loro informazioni e documenti</p>
+                    <a href="{{ url_for('modulo8.dipendenti') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -21,13 +26,15 @@
 
         <!-- Gestione Competenze -->
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm hover-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-tasks fa-3x mb-3 text-success"></i>
-                    <h5 class="card-title">Gestione Competenze</h5>
-                    <p class="card-text text-muted">Gestisci le competenze e le certificazioni</p>
-                    <a href="{{ url_for('modulo8.competenze') }}" class="btn btn-success stretched-link">
-                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+            <div class="dashboard-card success-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Gestione Competenze</h3>
+                    <p>Gestisci le competenze e le certificazioni</p>
+                    <a href="{{ url_for('modulo8.competenze') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -35,13 +42,15 @@
 
         <!-- Gestione Timbrature -->
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm hover-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x mb-3 text-warning"></i>
-                    <h5 class="card-title">Gestione Timbrature</h5>
-                    <p class="card-text text-muted">Monitora le presenze e le timbrature</p>
-                    <a href="{{ url_for('modulo8.timbrature_mese', dip_id=1, anno=2025, mese=5) }}" class="btn btn-warning stretched-link">
-                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+            <div class="dashboard-card warning-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Gestione Timbrature</h3>
+                    <p>Monitora le presenze e le timbrature</p>
+                    <a href="{{ url_for('modulo8.timbrature_mese', dip_id=1, anno=2025, mese=5) }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -49,13 +58,15 @@
 
         <!-- Gestione Vestiario -->
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm hover-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-tshirt fa-3x mb-3 text-info"></i>
-                    <h5 class="card-title">Gestione Vestiario</h5>
-                    <p class="card-text text-muted">Gestisci l'inventario e i prelievi del vestiario</p>
-                    <a href="{{ url_for('modulo8.gestione_vestiario') }}" class="btn btn-info stretched-link">
-                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+            <div class="dashboard-card info-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Gestione Vestiario</h3>
+                    <p>Gestisci l'inventario e i prelievi del vestiario</p>
+                    <a href="{{ url_for('modulo8.gestione_vestiario') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -64,42 +75,113 @@
 </div>
 
 <style>
-.hover-card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.hover-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-.card {
-    border: none;
-    border-radius: 10px;
-}
-
-.card-body {
+.dashboard-container {
     padding: 2rem;
+    background: #f8f9fa;
+    min-height: 100vh;
 }
 
-.btn {
-    border-radius: 5px;
-    padding: 0.5rem 1.5rem;
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
 }
 
-.text-primary { color: #0d6efd !important; }
-.text-success { color: #198754 !important; }
-.text-warning { color: #ffc107 !important; }
-.text-info { color: #0dcaf0 !important; }
+.dashboard-title {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
 
-.btn-primary { background-color: #0d6efd; border-color: #0d6efd; }
-.btn-success { background-color: #198754; border-color: #198754; }
-.btn-warning { background-color: #ffc107; border-color: #ffc107; color: #000; }
-.btn-info { background-color: #0dcaf0; border-color: #0dcaf0; color: #000; }
+.dashboard-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
 
-.btn:hover {
+.dashboard-card {
+    position: relative;
+    border-radius: 15px;
+    padding: 2rem;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    color: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
     opacity: 0.9;
-    transform: translateY(-1px);
+}
+
+.card-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.card-content p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+}
+
+.card-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+
+.card-link:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateX(5px);
+}
+
+/* Gradients */
+.primary-gradient {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.success-gradient {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.warning-gradient {
+    background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.info-gradient {
+    background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .dashboard-title {
+        font-size: 2rem;
+    }
+    
+    .dashboard-card {
+        padding: 1.5rem;
+    }
 }
 </style>
 {% endblock %}
