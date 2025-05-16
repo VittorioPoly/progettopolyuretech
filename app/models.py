@@ -7,10 +7,10 @@ from sqlalchemy.orm import relationship
 from app import db, login_manager
 
 # Tabella di associazione per relazione many-to-many tra dipendenti e competenze
-dipendente_competenza = db.Table('dipendente_competenza',
-    db.Column('dipendente_id', db.Integer, db.ForeignKey('dipendente.id'), primary_key=True),
-    db.Column('competenza_id', db.Integer, db.ForeignKey('competenza.id'), primary_key=True)
-)
+# dipendente_competenza = db.Table('dipendente_competenza',
+#     db.Column('dipendente_id', db.Integer, db.ForeignKey('dipendente.id'), primary_key=True),
+#     db.Column('competenza_id', db.Integer, db.ForeignKey('competenza.id'), primary_key=True)
+# )
 
 class User(UserMixin, db.Model):
     """Modello per gli utenti del sistema con gestione dei ruoli"""
@@ -292,9 +292,18 @@ class Dipendente(db.Model):
     archiviato = db.Column(db.Boolean, default=False)
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     
-    competenze = db.relationship('Competenza', secondary='dipendente_competenza', backref='dipendenti')
-    vestiario = db.relationship('Inventory', secondary='prelievi_vestiario', backref='dipendenti')
     created_by = db.relationship('User', backref='dipendenti_creati')
+
+    competenze = db.relationship('Competenza', 
+                               secondary='dipendente_competenza',
+                               backref=db.backref('dipendenti', lazy='dynamic'))
+    competenze_associate = db.relationship('DipendenteCompetenza', 
+                                         back_populates='dipendente',
+                                         overlaps="competenze,dipendenti")
+    vestiario = db.relationship('Inventory', 
+                              secondary='prelievi_vestiario', 
+                              backref='dipendenti')
+    performance = db.relationship('Performance', back_populates='dipendente', cascade='all, delete-orphan')
 
     @property
     def data_assunzione_date(self):
@@ -322,8 +331,27 @@ class Competenza(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     
+    dipendenti_associati = db.relationship('DipendenteCompetenza', 
+                                         back_populates='competenza',
+                                         overlaps="competenze,dipendenti")
+    performance = db.relationship('Performance', back_populates='competenza', cascade='all, delete-orphan')
+    
     def __repr__(self):
         return f'<Competenza {self.nome}>'
+
+
+class DipendenteCompetenza(db.Model):
+    __tablename__ = 'dipendente_competenza'
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), primary_key=True)
+    competenza_id = db.Column(db.Integer, db.ForeignKey('competenza.id'), primary_key=True)
+    percentuale = db.Column(db.Integer, default=0)  # Valore da 0 a 100
+
+    dipendente = db.relationship('Dipendente', 
+                               back_populates='competenze_associate',
+                               overlaps="competenze,dipendenti")
+    competenza = db.relationship('Competenza', 
+                               back_populates='dipendenti_associati',
+                               overlaps="competenze,dipendenti")
 
 # ==== Modulo 8: Timbrature ====
 class Timbratura(db.Model):
@@ -397,3 +425,20 @@ class RecordExcel(db.Model):
     
     def __repr__(self):
         return f'<RecordExcel {self.id}>'
+
+class Performance(db.Model):
+    """Modello per le performance dei dipendenti"""
+    __tablename__ = 'performance'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
+    competenza_id = db.Column(db.Integer, db.ForeignKey('competenza.id'), nullable=False)
+    valutazione = db.Column(db.Integer, nullable=False)  # percentuale da 0 a 100
+    data = db.Column(db.DateTime, default=datetime.utcnow)
+    note = db.Column(db.Text)
+    
+    dipendente = db.relationship('Dipendente', back_populates='performance')
+    competenza = db.relationship('Competenza', back_populates='performance')
+    
+    def __repr__(self):
+        return f'<Performance {self.dipendente.nome} {self.competenza.nome} {self.valutazione}%>'

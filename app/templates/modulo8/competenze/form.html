@@ -21,6 +21,30 @@
         <td>
           <a href="{{ url_for('modulo8.modifica_competenza', id=c.id) }}" class="btn btn-sm btn-primary btn-action">Modifica</a>
           <a href="{{ url_for('modulo8.visualizza_competenza', id=c.id) }}" class="btn btn-sm btn-info btn-action">Visualizza</a>
+          <button type="button" class="btn btn-sm btn-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal{{ c.id }}">
+            <i class="fas fa-trash"></i> Elimina
+          </button>
+          
+          <!-- Modal di conferma eliminazione -->
+          <div class="modal fade" id="deleteModal{{ c.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ c.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="deleteModalLabel{{ c.id }}">Conferma eliminazione</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  Sei sicuro di voler eliminare la competenza "{{ c.nome }}"?
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                  <form action="{{ url_for('modulo8.elimina_competenza', id=c.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
         </td>
       </tr>
       {% endfor %}

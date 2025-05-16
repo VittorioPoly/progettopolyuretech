@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
 from app import db
-from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario
+from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance
 from app.utils import admin_required
 from datetime import datetime
 from calendar import monthrange
@@ -249,17 +249,113 @@ def profilo_dipendente(id):
     return render_template('modulo8/profilo_dipendente.html',dip=dip,now=datetime.utcnow())
 
 # subpages: performance, timbrature, vestiario per singolo dipendente
-@modulo8.route(
-    '/modulo8/dipendenti/<int:id>/performance',
-    endpoint='performance_dipendente',
-    methods=['GET','POST']
-)
+@modulo8.route('/dipendenti/<int:id>/performance')
 @login_required
 @admin_required
-def performance_dipendente(id):
-    dip = Dipendente.query.get_or_404(id)
-    # … qui calcoli performance_list e comp_list …
-    return render_template('modulo8/dipendenti/performance.html', dip=dip, now=datetime.utcnow(), performance=performance_list, competenze=comp_list)
+def performance(id):
+    dipendente = Dipendente.query.get_or_404(id)
+    performance_list = Performance.query.filter_by(dipendente_id=id).order_by(Performance.data.desc()).all()
+    
+    # Calcola le statistiche
+    media_performance = 0
+    if performance_list:
+        media_performance = sum(p.valutazione for p in performance_list) / len(performance_list)
+    
+    # Prepara i dati per il grafico
+    performance_data = {
+        'labels': [p.data.strftime('%d/%m/%Y') for p in performance_list],
+        'values': [p.valutazione for p in performance_list]
+    }
+    
+    # Recupera le competenze non ancora valutate
+    competenze_valutate = {p.competenza_id for p in performance_list}
+    competenze_disponibili = Competenza.query.filter(~Competenza.id.in_(competenze_valutate)).all()
+    
+    return render_template('modulo8/dipendenti/performance.html',
+                         dip=dipendente,
+                         performance=performance_list,
+                         competenze=competenze_disponibili,
+                         media_performance=round(media_performance, 1),
+                         competenze_valutate=len(competenze_valutate),
+                         ultima_valutazione=performance_list[0].data if performance_list else None,
+                         performance_data=performance_data,
+                         now=datetime.now())
+
+@modulo8.route('/dipendenti/<int:id>/performance/aggiungi', methods=['POST'])
+@login_required
+@admin_required
+def aggiungi_performance(id):
+    dipendente = Dipendente.query.get_or_404(id)
+    competenza_id = request.form.get('competenza_id')
+    valutazione = request.form.get('valutazione')
+    note = request.form.get('note')
+    
+    if not competenza_id or not valutazione:
+        flash('Tutti i campi sono obbligatori', 'danger')
+        return redirect(url_for('modulo8.performance', id=id))
+    
+    try:
+        valutazione = int(valutazione)
+        if not 0 <= valutazione <= 100:
+            raise ValueError
+    except ValueError:
+        flash('La valutazione deve essere un numero tra 0 e 100', 'danger')
+        return redirect(url_for('modulo8.performance', id=id))
+    
+    performance = Performance(
+        dipendente_id=id,
+        competenza_id=competenza_id,
+        valutazione=valutazione,
+        note=note
+    )
+    
+    db.session.add(performance)
+    db.session.commit()
+    
+    flash('Valutazione aggiunta con successo', 'success')
+    return redirect(url_for('modulo8.performance', id=id))
+
+@modulo8.route('/dipendenti/performance/<int:id>/modifica', methods=['POST'])
+@login_required
+@admin_required
+def modifica_performance(id):
+    performance = Performance.query.get_or_404(id)
+    valutazione = request.form.get('valutazione')
+    note = request.form.get('note')
+    
+    if not valutazione:
+        flash('La valutazione è obbligatoria', 'danger')
+        return redirect(url_for('modulo8.performance', id=performance.dipendente_id))
+    
+    try:
+        valutazione = int(valutazione)
+        if not 0 <= valutazione <= 100:
+            raise ValueError
+    except ValueError:
+        flash('La valutazione deve essere un numero tra 0 e 100', 'danger')
+        return redirect(url_for('modulo8.performance', id=performance.dipendente_id))
+    
+    performance.valutazione = valutazione
+    performance.note = note
+    performance.data = datetime.utcnow()
+    
+    db.session.commit()
+    
+    flash('Valutazione modificata con successo', 'success')
+    return redirect(url_for('modulo8.performance', id=performance.dipendente_id))
+
+@modulo8.route('/dipendenti/performance/<int:id>/elimina', methods=['POST'])
+@login_required
+@admin_required
+def elimina_performance(id):
+    performance = Performance.query.get_or_404(id)
+    dipendente_id = performance.dipendente_id
+    
+    db.session.delete(performance)
+    db.session.commit()
+    
+    flash('Valutazione eliminata con successo', 'success')
+    return redirect(url_for('modulo8.performance', id=dipendente_id))
 
 @modulo8.route('/dipendenti/<int:id>/timbrature')
 @login_required
@@ -524,7 +620,9 @@ def modifica_dipendente(id):
         form = DipendenteStep4Form(obj=dipendente)
         # Precompila le competenze
         form.competenze.choices = [(c.id, c.nome) for c in Competenza.query.order_by(Competenza.nome).all()]
-        form.competenze.data = [c.id for c in dipendente.competenze]
+        # Precompila le percentuali
+        competenze_percentuali = {dc.competenza_id: dc.percentuale for dc in dipendente.competenze_associate}
+        form.competenze.data = list(competenze_percentuali.keys())
     elif step == 5:
         form = DipendenteStep5Form(obj=dipendente)
         # Precompila il vestiario
@@ -564,12 +662,18 @@ def modifica_dipendente(id):
                 dipendente.provincia_residenza = form.provincia_residenza.data
                 dipendente.cap_residenza = form.cap_residenza.data
             elif step == 4:
-                # Aggiorna le competenze
-                dipendente.competenze = []
+                # Rimuovi tutte le competenze esistenti
+                DipendenteCompetenza.query.filter_by(dipendente_id=dipendente.id).delete()
+                
+                # Aggiungi le nuove competenze con le relative percentuali
                 for competenza_id in form.competenze.data:
-                    competenza = Competenza.query.get(competenza_id)
-                    if competenza:
-                        dipendente.competenze.append(competenza)
+                    percentuale = int(request.form.get(f'percentuale_{competenza_id}', 0))
+                    dc = DipendenteCompetenza(
+                        dipendente_id=dipendente.id,
+                        competenza_id=competenza_id,
+                        percentuale=percentuale
+                    )
+                    db.session.add(dc)
             elif step == 5:
                 # Aggiorna il vestiario
                 dipendente.vestiario = []
@@ -606,12 +710,18 @@ def modifica_dipendente(id):
                 dipendente.provincia_residenza = form.provincia_residenza.data
                 dipendente.cap_residenza = form.cap_residenza.data
             elif step == 4:
-                # Aggiorna le competenze
-                dipendente.competenze = []
+                # Rimuovi tutte le competenze esistenti
+                DipendenteCompetenza.query.filter_by(dipendente_id=dipendente.id).delete()
+                
+                # Aggiungi le nuove competenze con le relative percentuali
                 for competenza_id in form.competenze.data:
-                    competenza = Competenza.query.get(competenza_id)
-                    if competenza:
-                        dipendente.competenze.append(competenza)
+                    percentuale = int(request.form.get(f'percentuale_{competenza_id}', 0))
+                    dc = DipendenteCompetenza(
+                        dipendente_id=dipendente.id,
+                        competenza_id=competenza_id,
+                        percentuale=percentuale
+                    )
+                    db.session.add(dc)
             elif step == 5:
                 # Aggiorna il vestiario
                 dipendente.vestiario = []
@@ -681,3 +791,19 @@ def modifica_item_vestiario(id):
         return redirect(url_for('modulo8.gestione_vestiario'))
         
     return render_template('modulo8/vestiario/modifica.html', form=form, item=item)
+
+@modulo8.route('/competenze/elimina/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def elimina_competenza(id):
+    competenza = Competenza.query.get_or_404(id)
+    
+    # Elimina prima le associazioni con i dipendenti
+    DipendenteCompetenza.query.filter_by(competenza_id=id).delete()
+    
+    # Poi elimina la competenza
+    db.session.delete(competenza)
+    db.session.commit()
+    
+    flash('Competenza eliminata con successo', 'success')
+    return redirect(url_for('modulo8.competenze'))

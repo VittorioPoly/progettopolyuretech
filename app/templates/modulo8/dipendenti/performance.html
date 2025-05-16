@@ -1,68 +1,243 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="module-performance">
-  <h2>Valutazione Performance di {{ dip.nome }} {{ dip.cognome }}</h2>
-
-  <ul class="nav nav-tabs mb-4">
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('modulo8.visualizza_dipendente', id=dip.id) }}">Profilo</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" href="{{ url_for('modulo8.performance', id=dip.id) }}">Performance</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('modulo8.timbrature_mese', dip_id=dip.id, anno=now.year, mese=now.month) }}">Timbrature</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{{ url_for('modulo8.vestiario_dipendente', id=dip.id) }}">Vestiario</a>
-    </li>
-  </ul>
-
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Competenza</th>
-        <th>Valutazione</th>
-        <th>Data</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in performance %}
-      <tr>
-        <td>{{ p.competenza.nome }}</td>
-        <td>{{ p.valutazione }}</td>
-        <td>{{ p.data.strftime('%d/%m/%Y') }}</td>
-      </tr>
-      {% else %}
-      <tr>
-        <td colspan="3" class="text-center">Nessuna valutazione ancora inserita.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h3 class="mt-4">Aggiungi Valutazione</h3>
-  <form action="{{ url_for('modulo8.performance', id=dip.id) }}" method="post">
-    <div class="form-row">
-      <div class="form-group col-md-6">
-        <label for="competenza_id">Competenza</label>
-        <select class="form-control" id="competenza_id" name="competenza_id" required>
-          <option value="">-- Seleziona Competenza --</option>
-          {% for c in competenze %}
-          <option value="{{ c.id }}">{{ c.nome }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-group col-md-4">
-        <label for="valutazione">Valutazione</label>
-        <input type="number" class="form-control" id="valutazione" name="valutazione" min="1" max="5" required>
-      </div>
-      <div class="form-group col-md-2 align-self-end">
-        <button type="submit" class="btn btn-success btn-block">Aggiungi</button>
-      </div>
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Performance Dipendente</h2>
+        <div>
+            <a href="{{ url_for('modulo8.profilo_dipendente', id=dipendente.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna al profilo
+            </a>
+        </div>
     </div>
-  </form>
 
-  <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary mt-3">← Torna a Gestione Dipendenti</a>
+    <div class="row">
+        <!-- Grafico Performance -->
+        <div class="col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-line"></i> Andamento Performance</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiche -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie"></i> Statistiche</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h3 class="display-4">{{ media_performance|round(1) }}%</h3>
+                        <p class="text-muted">Media Performance</p>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4>{{ competenze_valutate }}</h4>
+                            <p class="text-muted">Competenze Valutate</p>
+                        </div>
+                        <div class="col-6">
+                            <h4>{{ competenze_da_valutare }}</h4>
+                            <p class="text-muted">Da Valutare</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ultime Valutazioni -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-history"></i> Ultime Valutazioni</h5>
+                </div>
+                <div class="card-body">
+                    {% if performance %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Competenza</th>
+                                        <th>Valutazione</th>
+                                        <th>Data</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in performance %}
+                                        <tr>
+                                            <td>{{ p.competenza.nome }}</td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" 
+                                                         style="width: {{ p.valutazione }}%;" 
+                                                         aria-valuenow="{{ p.valutazione }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                        {{ p.valutazione }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ p.data.strftime('%d-%m-%Y') }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-primary" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#modificaModal{{ p.id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#eliminaModal{{ p.id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nessuna valutazione registrata</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Nuova Valutazione -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0"><i class="fas fa-plus"></i> Nuova Valutazione</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('modulo8.aggiungi_performance', id=dipendente.id) }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="competenza_id" class="form-label">Competenza</label>
+                                    <select class="form-select" id="competenza_id" name="competenza_id" required>
+                                        <option value="">Seleziona una competenza</option>
+                                        {% for competenza in competenze_da_valutare_list %}
+                                            <option value="{{ competenza.id }}">{{ competenza.nome }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="valutazione" class="form-label">Valutazione (%)</label>
+                                    <input type="number" class="form-control" id="valutazione" name="valutazione" 
+                                           min="0" max="100" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="note" class="form-label">Note</label>
+                            <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salva Valutazione
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Modali per Modifica -->
+{% for p in performance %}
+<div class="modal fade" id="modificaModal{{ p.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifica Valutazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('modulo8.modifica_performance', id=p.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Competenza</label>
+                        <input type="text" class="form-control" value="{{ p.competenza.nome }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valutazione{{ p.id }}" class="form-label">Valutazione (%)</label>
+                        <input type="number" class="form-control" id="valutazione{{ p.id }}" 
+                               name="valutazione" value="{{ p.valutazione }}" min="0" max="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="note{{ p.id }}" class="form-label">Note</label>
+                        <textarea class="form-control" id="note{{ p.id }}" name="note" rows="3">{{ p.note }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modali per Eliminazione -->
+<div class="modal fade" id="eliminaModal{{ p.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Elimina Valutazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare questa valutazione?</p>
+                <p><strong>Competenza:</strong> {{ p.competenza.nome }}</p>
+                <p><strong>Valutazione:</strong> {{ p.valutazione }}%</p>
+                <p><strong>Data:</strong> {{ p.data.strftime('%d-%m-%Y') }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form method="POST" action="{{ url_for('modulo8.elimina_performance', id=p.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('performanceChart').getContext('2d');
+    var performanceData = {{ performance_data|tojson }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: performanceData.labels,
+            datasets: [{
+                label: 'Performance',
+                data: performanceData.data,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -48,6 +48,7 @@
   <table class="table table-striped">
     <thead>
       <tr>
+        <th>Matricola</th>
         <th>Nome</th>
         <th>Cognome</th>
         <th>Email</th>
@@ -61,6 +62,7 @@
     <tbody>
       {% for dip in dipendenti %}
       <tr>
+        <td>{{ dip.matricola or '—' }}</td>
         <td>{{ dip.nome }}</td>
         <td>{{ dip.cognome }}</td>
         <td>{{ dip.email or '—' }}</td>
