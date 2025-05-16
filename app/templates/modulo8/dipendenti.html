@@ -12,6 +12,39 @@
     </a>
   </div>
 
+  <!-- Barra di ricerca -->
+  <div class="search-container mb-4">
+    <form action="{{ url_for('modulo8.dipendenti') }}" method="GET" class="row g-3">
+      <div class="col-md-4">
+        <div class="input-group">
+          <input type="text" class="form-control" name="search" placeholder="Cerca per nome, cognome, email..." value="{{ request.args.get('search', '') }}">
+          <button class="btn btn-outline-secondary" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="reparto">
+          <option value="">Tutti i reparti</option>
+          {% for rep in reparti %}
+          <option value="{{ rep }}" {% if request.args.get('reparto') == rep %}selected{% endif %}>{{ rep }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="ruolo">
+          <option value="">Tutti i ruoli</option>
+          {% for r in ruoli %}
+          <option value="{{ r }}" {% if request.args.get('ruolo') == r %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filtra</button>
+      </div>
+    </form>
+  </div>
+
   <table class="table table-striped">
     <thead>
       <tr>
@@ -31,12 +64,23 @@
         <td>{{ dip.nome }}</td>
         <td>{{ dip.cognome }}</td>
         <td>{{ dip.email or '—' }}</td>
-        <td>{{ dip.data_assunzione_date.strftime('%Y-%m-%d') if dip.data_assunzione_date else '—' }}</td>
-        <td>{{ dip.data_cessazione_date.strftime('%Y-%m-%d') if dip.data_cessazione_date else '—' }}</td>
+        <td>
+          {% if dip.data_assunzione_indeterminato %}
+            {{ dip.data_assunzione_indeterminato.strftime('%d-%m-%Y') }}
+          {% elif dip.data_assunzione_somministrazione %}
+            {{ dip.data_assunzione_somministrazione.strftime('%d-%m-%Y') }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td>{{ dip.data_cessazione_date.strftime('%d-%m-%Y') if dip.data_cessazione_date else '—' }}</td>
         <td>{{ dip.reparto or '—' }}</td>
         <td>{{ dip.ruolo or '—' }}</td>
         <td>
           <div class="btn-group">
+            <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-sm btn-info">
+              <i class="fas fa-eye"></i> Visualizza
+            </a>
             <a href="{{ url_for('modulo8.modifica_dipendente', id=dip.id) }}" class="btn btn-sm btn-primary">
               <i class="fas fa-edit"></i> Modifica
             </a>

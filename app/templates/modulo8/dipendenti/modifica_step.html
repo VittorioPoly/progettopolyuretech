@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="module-view">
-    <h2>Modifica Dipendente: {{ dipendente.nome }} {{ dipendente.cognome }}</h2>
+    <h2>{% if is_new %}Nuovo Dipendente{% else %}Modifica Dipendente{% endif %}</h2>
     
     <div class="progress mb-4">
         <div class="progress-bar" role="progressbar" style="width: {{ (step / 5) * 100 }}%" 
@@ -10,219 +10,154 @@
         </div>
     </div>
 
-    <form method="POST" class="needs-validation" novalidate>
-        {{ form.csrf_token }}
-        {% if step == 1 %}
-            <h3>Dati Personali</h3>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.nome.label(class="form-label") }}
-                    {{ form.nome(class="form-control") }}
-                    {% if form.nome.errors %}
-                        <div class="invalid-feedback">{{ form.nome.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.cognome.label(class="form-label") }}
-                    {{ form.cognome(class="form-control") }}
-                    {% if form.cognome.errors %}
-                        <div class="invalid-feedback">{{ form.cognome.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    {{ form.data_nascita.label(class="form-label") }}
-                    {{ form.data_nascita(class="form-control", type="date") }}
-                    {% if form.data_nascita.errors %}
-                        <div class="invalid-feedback">{{ form.data_nascita.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-4 mb-3">
-                    {{ form.luogo_nascita.label(class="form-label") }}
-                    {{ form.luogo_nascita(class="form-control") }}
-                    {% if form.luogo_nascita.errors %}
-                        <div class="invalid-feedback">{{ form.luogo_nascita.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-4 mb-3">
-                    {{ form.provincia_nascita.label(class="form-label") }}
-                    {{ form.provincia_nascita(class="form-control") }}
-                    {% if form.provincia_nascita.errors %}
-                        <div class="invalid-feedback">{{ form.provincia_nascita.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    {{ form.codice_fiscale.label(class="form-label") }}
-                    {{ form.codice_fiscale(class="form-control") }}
-                    {% if form.codice_fiscale.errors %}
-                        <div class="invalid-feedback">{{ form.codice_fiscale.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-4 mb-3">
-                    {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control") }}
-                    {% if form.email.errors %}
-                        <div class="invalid-feedback">{{ form.email.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-4 mb-3">
-                    {{ form.telefono.label(class="form-label") }}
-                    {{ form.telefono(class="form-control") }}
-                    {% if form.telefono.errors %}
-                        <div class="invalid-feedback">{{ form.telefono.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                {% if step == 1 %}
+                    <h4>Dati Personali</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.nome.label(class="form-label") }}
+                            {{ form.nome(class="form-control") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.cognome.label(class="form-label") }}
+                            {{ form.cognome(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            {{ form.data_nascita.label(class="form-label") }}
+                            {{ form.data_nascita(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.luogo_nascita.label(class="form-label") }}
+                            {{ form.luogo_nascita(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.provincia_nascita.label(class="form-label") }}
+                            {{ form.provincia_nascita(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            {{ form.codice_fiscale.label(class="form-label") }}
+                            {{ form.codice_fiscale(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.telefono.label(class="form-label") }}
+                            {{ form.telefono(class="form-control") }}
+                        </div>
+                    </div>
+                {% elif step == 2 %}
+                    <h4>Dati Lavorativi</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form.matricola.label(class="form-label") }}
+                            {{ form.matricola(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.reparto.label(class="form-label") }}
+                            {{ form.reparto(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.ruolo.label(class="form-label") }}
+                            {{ form.ruolo(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            {{ form.data_assunzione_somministrazione.label(class="form-label") }}
+                            {{ form.data_assunzione_somministrazione(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.agenzia_somministrazione.label(class="form-label") }}
+                            {{ form.agenzia_somministrazione(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            {{ form.data_assunzione_indeterminato.label(class="form-label") }}
+                            {{ form.data_assunzione_indeterminato(class="form-control", type="date") }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            {{ form.legge_104.label(class="form-label") }}
+                            {{ form.legge_104(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.donatore_avis.label(class="form-label") }}
+                            {{ form.donatore_avis(class="form-select") }}
+                        </div>
+                    </div>
+                {% elif step == 3 %}
+                    <h4>Dati Residenza</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form.indirizzo_residenza.label(class="form-label") }}
+                            {{ form.indirizzo_residenza(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            {{ form.citta_residenza.label(class="form-label") }}
+                            {{ form.citta_residenza(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.provincia_residenza.label(class="form-label") }}
+                            {{ form.provincia_residenza(class="form-control") }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.cap_residenza.label(class="form-label") }}
+                            {{ form.cap_residenza(class="form-control") }}
+                        </div>
+                    </div>
+                {% elif step == 4 %}
+                    <h4>Competenze</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form.competenze.label(class="form-label") }}
+                            {{ form.competenze(class="form-select", multiple=True, size=10) }}
+                            <small class="form-text text-muted">Tieni premuto Ctrl (o Cmd su Mac) per selezionare più competenze</small>
+                        </div>
+                    </div>
+                {% elif step == 5 %}
+                    <h4>Vestiario</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form.vestiario.label(class="form-label") }}
+                            {{ form.vestiario(class="form-select", multiple=True, size=10) }}
+                            <small class="form-text text-muted">Tieni premuto Ctrl (o Cmd su Mac) per selezionare più capi</small>
+                        </div>
+                    </div>
+                {% endif %}
 
-        {% elif step == 2 %}
-            <h3>Dati Lavorativi</h3>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.matricola.label(class="form-label") }}
-                    {{ form.matricola(class="form-control") }}
-                    {% if form.matricola.errors %}
-                        <div class="invalid-feedback">{{ form.matricola.errors[0] }}</div>
+                <div class="mt-4">
+                    {% if step > 1 %}
+                        <button type="submit" name="action" value="prev" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Indietro
+                        </button>
+                    {% endif %}
+                    
+                    {% if step < 5 %}
+                        <button type="submit" name="action" value="next" class="btn btn-primary">
+                            Avanti <i class="fas fa-arrow-right"></i>
+                        </button>
+                    {% else %}
+                        <button type="submit" name="action" value="next" class="btn btn-success">
+                            <i class="fas fa-save"></i> Salva
+                        </button>
                     {% endif %}
                 </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.reparto.label(class="form-label") }}
-                    {{ form.reparto(class="form-control") }}
-                    {% if form.reparto.errors %}
-                        <div class="invalid-feedback">{{ form.reparto.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.ruolo.label(class="form-label") }}
-                    {{ form.ruolo(class="form-control") }}
-                    {% if form.ruolo.errors %}
-                        <div class="invalid-feedback">{{ form.ruolo.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.data_assunzione_somministrazione.label(class="form-label") }}
-                    {{ form.data_assunzione_somministrazione(class="form-control", type="date") }}
-                    {% if form.data_assunzione_somministrazione.errors %}
-                        <div class="invalid-feedback">{{ form.data_assunzione_somministrazione.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.agenzia_somministrazione.label(class="form-label") }}
-                    {{ form.agenzia_somministrazione(class="form-control") }}
-                    {% if form.agenzia_somministrazione.errors %}
-                        <div class="invalid-feedback">{{ form.agenzia_somministrazione.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.data_assunzione_indeterminato.label(class="form-label") }}
-                    {{ form.data_assunzione_indeterminato(class="form-control", type="date") }}
-                    {% if form.data_assunzione_indeterminato.errors %}
-                        <div class="invalid-feedback">{{ form.data_assunzione_indeterminato.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.legge_104.label(class="form-label") }}
-                    {{ form.legge_104(class="form-select") }}
-                    {% if form.legge_104.errors %}
-                        <div class="invalid-feedback">{{ form.legge_104.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.donatore_avis.label(class="form-label") }}
-                    {{ form.donatore_avis(class="form-select") }}
-                    {% if form.donatore_avis.errors %}
-                        <div class="invalid-feedback">{{ form.donatore_avis.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-
-        {% elif step == 3 %}
-            <h3>Residenza</h3>
-            <div class="row">
-                <div class="col-12 mb-3">
-                    {{ form.indirizzo_residenza.label(class="form-label") }}
-                    {{ form.indirizzo_residenza(class="form-control") }}
-                    {% if form.indirizzo_residenza.errors %}
-                        <div class="invalid-feedback">{{ form.indirizzo_residenza.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.citta_residenza.label(class="form-label") }}
-                    {{ form.citta_residenza(class="form-control") }}
-                    {% if form.citta_residenza.errors %}
-                        <div class="invalid-feedback">{{ form.citta_residenza.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-3 mb-3">
-                    {{ form.provincia_residenza.label(class="form-label") }}
-                    {{ form.provincia_residenza(class="form-control") }}
-                    {% if form.provincia_residenza.errors %}
-                        <div class="invalid-feedback">{{ form.provincia_residenza.errors[0] }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-3 mb-3">
-                    {{ form.cap_residenza.label(class="form-label") }}
-                    {{ form.cap_residenza(class="form-control") }}
-                    {% if form.cap_residenza.errors %}
-                        <div class="invalid-feedback">{{ form.cap_residenza.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-
-        {% elif step == 4 %}
-            <h3>Competenze</h3>
-            <div class="row">
-                <div class="col-12 mb-3">
-                    {{ form.competenze.label(class="form-label") }}
-                    {{ form.competenze(class="form-select", size="10") }}
-                    {% if form.competenze.errors %}
-                        <div class="invalid-feedback">{{ form.competenze.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-
-        {% elif step == 5 %}
-            <h3>Vestiario</h3>
-            <div class="row">
-                <div class="col-12 mb-3">
-                    {{ form.vestiario.label(class="form-label") }}
-                    {{ form.vestiario(class="form-select", size="10") }}
-                    {% if form.vestiario.errors %}
-                        <div class="invalid-feedback">{{ form.vestiario.errors[0] }}</div>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-
-        <div class="d-flex justify-content-between mt-4">
-            {% if step > 1 %}
-                <button type="submit" name="action" value="prev" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Indietro
-                </button>
-            {% else %}
-                <div></div>
-            {% endif %}
-            
-            {% if step < 5 %}
-                <button type="submit" name="action" value="next" class="btn btn-primary">
-                    Avanti <i class="fas fa-arrow-right"></i>
-                </button>
-            {% else %}
-                <button type="submit" name="action" value="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i> Salva
-                </button>
-            {% endif %}
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %} 
