@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Gestione Vestiario</h2>
+    
+    <!-- Pulsanti di azione -->
+    <div class="mb-4">
+        <a href="{{ url_for('modulo8.aggiungi_item_vestiario') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuovo Item
+        </a>
+    </div>
+
+    <!-- Tabella items -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Taglia</th>
+                    <th>Quantità</th>
+                    <th>Stato</th>
+                    <th>Azioni</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.nome }}</td>
+                    <td>{{ item.taglia }}</td>
+                    <td>{{ item.quantita }}</td>
+                    <td>
+                        {% if item.quantita > 0 %}
+                            <span class="badge bg-success">Disponibile</span>
+                        {% else %}
+                            <span class="badge bg-danger">Esaurito</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('modulo8.modifica_item_vestiario', id=item.id) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger" onclick="deleteItem({{ item.id }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal di conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare questo item?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Elimina</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteItem(id) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const confirmBtn = document.getElementById('confirmDelete');
+    
+    confirmBtn.onclick = function() {
+        fetch(`/modulo8/vestiario/elimina/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Errore durante l\'eliminazione');
+            }
+        });
+        modal.hide();
+    };
+    
+    modal.show();
+}
+</script>
+{% endblock %} 

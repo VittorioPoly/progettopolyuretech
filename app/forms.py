@@ -7,6 +7,7 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, N
 from datetime import datetime
 from app.models import User, Cliente, Fornitore, Competenza, Dipendente
 from app import db
+from app.data.italian_locations import COMUNI_ITALIANI, PROVINCE_ITALIANE
 
 # ======================================================
 # Form per autenticazione e gestione utenti
@@ -217,15 +218,23 @@ class DipendenteStep1Form(FlaskForm):
     """Form per il primo step: dati personali"""
     nome = StringField('Nome', validators=[DataRequired(), Length(max=100)])
     cognome = StringField('Cognome', validators=[DataRequired(), Length(max=100)])
-    anno_nascita = IntegerField('Anno di Nascita', validators=[
-        DataRequired(),
-        NumberRange(min=1900, max=datetime.now().year)
-    ])
-    luogo_nascita = StringField('Luogo di Nascita', validators=[DataRequired(), Length(max=100)])
-    provincia_nascita = StringField('Provincia di Nascita', validators=[DataRequired(), Length(min=2, max=2)])
+    data_nascita = DateField('Data di Nascita', validators=[DataRequired()], format='%Y-%m-%d')
+    luogo_nascita = SelectField('Luogo di Nascita', validators=[DataRequired()], choices=[])
+    luogo_nascita_altro = StringField('Altro Luogo di Nascita', validators=[Optional(), Length(max=100)])
+    provincia_nascita = SelectField('Provincia di Nascita', validators=[DataRequired()], choices=[])
+    provincia_nascita_altro = StringField('Altra Provincia di Nascita', validators=[Optional(), Length(max=100)])
     codice_fiscale = StringField('Codice Fiscale', validators=[Optional(), Length(min=16, max=16)])
     email = StringField('Email', validators=[Optional(), Email(), Length(max=120)])
     telefono = StringField('Telefono', validators=[Optional(), Length(max=20)])
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.luogo_nascita.choices = [(c['nome'], c['nome']) for c in COMUNI_ITALIANI]
+        self.luogo_nascita.choices.append(('altro', 'Altro...'))
+        self.luogo_nascita.choices.insert(0, ('', 'Seleziona un comune...'))
+        self.provincia_nascita.choices = [(p['sigla'], f"{p['sigla']} - {p['nome']}") for p in PROVINCE_ITALIANE]
+        self.provincia_nascita.choices.append(('altro', 'Altro...'))
+        self.provincia_nascita.choices.insert(0, ('', 'Seleziona una provincia...'))
 
 class DipendenteStep2Form(FlaskForm):
     """Form per il secondo step: dati lavorativi"""
@@ -242,8 +251,8 @@ class DipendenteStep3Form(FlaskForm):
     """Form per il terzo step: residenza"""
     indirizzo_residenza = StringField('Indirizzo', validators=[DataRequired(), Length(max=200)])
     citta_residenza = StringField('Città', validators=[DataRequired(), Length(max=100)])
-    provincia_residenza = StringField('Provincia', validators=[DataRequired(), Length(min=2, max=2)])
-    cap_residenza = StringField('CAP', validators=[DataRequired(), Length(min=5, max=5)])
+    provincia_residenza = StringField('Provincia', validators=[DataRequired(), Length(max=2)])
+    cap_residenza = StringField('CAP', validators=[DataRequired(), Length(max=5)])
 
 class DipendenteStep4Form(FlaskForm):
     """Form per il quarto step: competenze"""

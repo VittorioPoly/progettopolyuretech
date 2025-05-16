@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Nuovo Item Vestiario</h2>
+    
+    <form method="POST" class="mt-4">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.nome.label(class="form-label") }}
+            {{ form.nome(class="form-control") }}
+            {% if form.nome.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.nome.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.taglia.label(class="form-label") }}
+            {{ form.taglia(class="form-control") }}
+            {% if form.taglia.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.taglia.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.quantita.label(class="form-label") }}
+            {{ form.quantita(class="form-control") }}
+            {% if form.quantita.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.quantita.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Salva</button>
+            <a href="{{ url_for('modulo8.gestione_vestiario') }}" class="btn btn-secondary">Annulla</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

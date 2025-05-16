@@ -44,11 +44,11 @@ def recreate_table():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome VARCHAR(100) NOT NULL,
             cognome VARCHAR(100) NOT NULL,
-            anno_nascita INTEGER,
-            luogo_nascita VARCHAR(100),
-            provincia_nascita VARCHAR(2),
+            data_nascita DATE NOT NULL,
+            luogo_nascita VARCHAR(100) NOT NULL,
+            provincia_nascita VARCHAR(2) NOT NULL,
             codice_fiscale VARCHAR(16),
-            email VARCHAR(100),
+            email VARCHAR(120),
             telefono VARCHAR(20),
             matricola VARCHAR(20) UNIQUE,
             reparto VARCHAR(100),
@@ -64,7 +64,9 @@ def recreate_table():
             cap_residenza VARCHAR(5),
             data_cessazione DATE,
             note TEXT,
-            archiviato BOOLEAN DEFAULT 0
+            archiviato BOOLEAN DEFAULT 0,
+            created_by_id INTEGER,
+            FOREIGN KEY (created_by_id) REFERENCES users (id)
         )
         ''')
         

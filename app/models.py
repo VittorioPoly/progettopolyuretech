@@ -269,7 +269,7 @@ class Dipendente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     cognome = db.Column(db.String(100), nullable=False)
-    anno_nascita = db.Column(db.Integer, nullable=False)
+    data_nascita = db.Column(db.Date, nullable=False)
     luogo_nascita = db.Column(db.String(100), nullable=False)
     provincia_nascita = db.Column(db.String(2), nullable=False)
     codice_fiscale = db.Column(db.String(16))
@@ -290,9 +290,11 @@ class Dipendente(db.Model):
     data_cessazione = db.Column(db.Date)
     note = db.Column(db.Text)
     archiviato = db.Column(db.Boolean, default=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     
     competenze = db.relationship('Competenza', secondary='dipendente_competenza', backref='dipendenti')
     vestiario = db.relationship('Inventory', secondary='prelievi_vestiario', backref='dipendenti')
+    created_by = db.relationship('User', backref='dipendenti_creati')
 
     @property
     def data_assunzione_date(self):

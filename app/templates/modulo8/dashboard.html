@@ -1,20 +1,105 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="module-dashboard">
-  <h1>Dashboard</h1>
-  <div class="cards">
-    <div class="card">
-      <a href="{{ url_for('modulo8.dipendenti') }}">Gestione Dipendenti</a>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Dashboard Modulo 8</h2>
+    
+    <div class="row g-4">
+        <!-- Gestione Dipendenti -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x mb-3 text-primary"></i>
+                    <h5 class="card-title">Gestione Dipendenti</h5>
+                    <p class="card-text text-muted">Gestisci i dipendenti, le loro informazioni e documenti</p>
+                    <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-primary stretched-link">
+                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestione Competenze -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-3x mb-3 text-success"></i>
+                    <h5 class="card-title">Gestione Competenze</h5>
+                    <p class="card-text text-muted">Gestisci le competenze e le certificazioni</p>
+                    <a href="{{ url_for('modulo8.competenze') }}" class="btn btn-success stretched-link">
+                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestione Timbrature -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-3x mb-3 text-warning"></i>
+                    <h5 class="card-title">Gestione Timbrature</h5>
+                    <p class="card-text text-muted">Monitora le presenze e le timbrature</p>
+                    <a href="{{ url_for('modulo8.timbrature_mese', dip_id=1, anno=2025, mese=5) }}" class="btn btn-warning stretched-link">
+                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestione Vestiario -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-tshirt fa-3x mb-3 text-info"></i>
+                    <h5 class="card-title">Gestione Vestiario</h5>
+                    <p class="card-text text-muted">Gestisci l'inventario e i prelievi del vestiario</p>
+                    <a href="{{ url_for('modulo8.gestione_vestiario') }}" class="btn btn-info stretched-link">
+                        Accedi <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <a href="{{ url_for('modulo8.competenze') }}">Gestione Competenze</a>
-    </div>
-    <div class="card">
-      <a href="{{ url_for('modulo8.timbrature_mese', dip_id=1, anno=2025, mese=5) }}">Timbrature</a>
-    </div>
-    <div class="card">
-      <a href="{{ url_for('modulo8.gestione_vestiario') }}">Gestione Vestiario</a>
-    </div>
-  </div>
 </div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.btn {
+    border-radius: 5px;
+    padding: 0.5rem 1.5rem;
+}
+
+.text-primary { color: #0d6efd !important; }
+.text-success { color: #198754 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-info { color: #0dcaf0 !important; }
+
+.btn-primary { background-color: #0d6efd; border-color: #0d6efd; }
+.btn-success { background-color: #198754; border-color: #198754; }
+.btn-warning { background-color: #ffc107; border-color: #ffc107; color: #000; }
+.btn-info { background-color: #0dcaf0; border-color: #0dcaf0; color: #000; }
+
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+</style>
 {% endblock %}

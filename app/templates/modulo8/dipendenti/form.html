@@ -13,28 +13,36 @@
       {{ form.cognome(class="form-control") }}
     </div>
     <div class="form-group">
-      {{ form.email.label }}
+      {{ form.data_nascita.label(class="form-label required") }}
+      {{ form.data_nascita(class="form-control", type="date") }}
+    </div>
+    <div class="form-group">
+      {{ form.luogo_nascita.label(class="form-label required") }}
+      {{ form.luogo_nascita(class="form-select", id="luogo_nascita") }}
+      <div id="luogo_nascita_altro_group" style="display: none; margin-top: 10px;">
+        {{ form.luogo_nascita_altro.label(class="form-label") }}
+        {{ form.luogo_nascita_altro(class="form-control") }}
+      </div>
+    </div>
+    <div class="form-group">
+      {{ form.provincia_nascita.label(class="form-label required") }}
+      {{ form.provincia_nascita(class="form-select", id="provincia_nascita") }}
+      <div id="provincia_nascita_altro_group" style="display: none; margin-top: 10px;">
+        {{ form.provincia_nascita_altro.label(class="form-label") }}
+        {{ form.provincia_nascita_altro(class="form-control") }}
+      </div>
+    </div>
+    <div class="form-group">
+      {{ form.codice_fiscale.label(class="form-label") }}
+      {{ form.codice_fiscale(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.email.label(class="form-label") }}
       {{ form.email(class="form-control") }}
     </div>
     <div class="form-group">
-      {{ form.telefono.label }}
+      {{ form.telefono.label(class="form-label") }}
       {{ form.telefono(class="form-control") }}
-    </div>
-    <div class="form-group">
-      {{ form.anno_nascita.label }}
-      {{ form.anno_nascita(class="form-control") }}
-    </div>
-    <div class="form-group">
-      {{ form.luogo_nascita.label }}
-      {{ form.luogo_nascita(class="form-control") }}
-    </div>
-    <div class="form-group">
-      {{ form.provincia_nascita.label }}
-      {{ form.provincia_nascita(class="form-control") }}
-    </div>
-    <div class="form-group">
-      {{ form.codice_fiscale.label }}
-      {{ form.codice_fiscale(class="form-control") }}
     </div>
     <div class="form-actions">
       <button type="submit" class="btn btn-success">Salva e Continua</button>
@@ -42,4 +50,24 @@
     </div>
   </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const luogoNascitaSelect = document.getElementById('luogo_nascita');
+    const luogoNascitaAltroGroup = document.getElementById('luogo_nascita_altro_group');
+    const provinciaNascitaSelect = document.getElementById('provincia_nascita');
+    const provinciaNascitaAltroGroup = document.getElementById('provincia_nascita_altro_group');
+
+    if (luogoNascitaSelect) {
+      luogoNascitaSelect.addEventListener('change', function() {
+          luogoNascitaAltroGroup.style.display = this.value === 'altro' ? 'block' : 'none';
+      });
+    }
+    if (provinciaNascitaSelect) {
+      provinciaNascitaSelect.addEventListener('change', function() {
+          provinciaNascitaAltroGroup.style.display = this.value === 'altro' ? 'block' : 'none';
+      });
+    }
+});
+</script>
 {% endblock %}

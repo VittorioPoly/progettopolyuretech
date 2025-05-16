@@ -9,8 +9,16 @@ from app.forms import (
     DipendenteStep1Form, DipendenteStep2Form, DipendenteStep3Form,
     DipendenteStep4Form, DipendenteStep5Form, CompetenzaForm
 )
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField
+from wtforms.validators import DataRequired, NumberRange
 
 modulo8 = Blueprint('modulo8', __name__, url_prefix='/modulo8')
+
+class VestiarioForm(FlaskForm):
+    nome = StringField('Nome', validators=[DataRequired()])
+    taglia = StringField('Taglia', validators=[DataRequired()])
+    quantita = IntegerField('Quantità', validators=[DataRequired(), NumberRange(min=0)])
 
 @modulo8.route('/')
 @login_required
@@ -39,13 +47,19 @@ def dipendenti():
 def nuovo_dipendente():
     form = DipendenteStep1Form()
     if form.validate_on_submit():
+        # Determina il luogo di nascita
+        luogo_nascita = form.luogo_nascita_altro.data if form.luogo_nascita.data == 'altro' else form.luogo_nascita.data
+        
+        # Determina la provincia di nascita
+        provincia_nascita = form.provincia_nascita_altro.data if form.provincia_nascita.data == 'altro' else form.provincia_nascita.data
+        
         # crea e salva il dipendente
         dip = Dipendente(
             nome=form.nome.data,
             cognome=form.cognome.data,
-            anno_nascita=form.anno_nascita.data,
-            luogo_nascita=form.luogo_nascita.data,
-            provincia_nascita=form.provincia_nascita.data,
+            data_nascita=form.data_nascita.data,
+            luogo_nascita=luogo_nascita,
+            provincia_nascita=provincia_nascita,
             codice_fiscale=form.codice_fiscale.data,
             email=form.email.data,
             telefono=form.telefono.data,
@@ -242,6 +256,24 @@ def gestione_vestiario():
     items = Inventory.query.all()
     return render_template('modulo8/vestiario/inventory.html', items=items)
 
+@modulo8.route('/vestiario/nuovo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def aggiungi_item_vestiario():
+    form = VestiarioForm()
+    if form.validate_on_submit():
+        item = Inventory(
+            nome=form.nome.data,
+            taglia=form.taglia.data,
+            quantita=form.quantita.data
+        )
+        db.session.add(item)
+        db.session.commit()
+        flash('Item aggiunto con successo', 'success')
+        return redirect(url_for('modulo8.gestione_vestiario'))
+        
+    return render_template('modulo8/vestiario/nuovo.html', form=form)
+
 @modulo8.route('/vestiario/prelievo', methods=['POST'])
 @login_required
 @admin_required
@@ -345,7 +377,7 @@ def modifica_dipendente(id):
             if step == 1:
                 dipendente.nome = form.nome.data
                 dipendente.cognome = form.cognome.data
-                dipendente.anno_nascita = form.anno_nascita.data
+                dipendente.data_nascita = form.data_nascita.data
                 dipendente.luogo_nascita = form.luogo_nascita.data
                 dipendente.provincia_nascita = form.provincia_nascita.data
                 dipendente.codice_fiscale = form.codice_fiscale.data
@@ -387,7 +419,7 @@ def modifica_dipendente(id):
             if step == 1:
                 dipendente.nome = form.nome.data
                 dipendente.cognome = form.cognome.data
-                dipendente.anno_nascita = form.anno_nascita.data
+                dipendente.data_nascita = form.data_nascita.data
                 dipendente.luogo_nascita = form.luogo_nascita.data
                 dipendente.provincia_nascita = form.provincia_nascita.data
                 dipendente.codice_fiscale = form.codice_fiscale.data
@@ -466,3 +498,20 @@ def visualizza_archivio_dipendente(id):
         flash('Dipendente non archiviato', 'danger')
         return redirect(url_for('modulo8.dipendenti'))
     return render_template('modulo8/dipendenti/view_archivio.html', dip=dip)
+
+@modulo8.route('/vestiario/modifica/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_item_vestiario(id):
+    item = Inventory.query.get_or_404(id)
+    form = VestiarioForm(obj=item)
+    
+    if form.validate_on_submit():
+        item.nome = form.nome.data
+        item.taglia = form.taglia.data
+        item.quantita = form.quantita.data
+        db.session.commit()
+        flash('Item modificato con successo', 'success')
+        return redirect(url_for('modulo8.gestione_vestiario'))
+        
+    return render_template('modulo8/vestiario/modifica.html', form=form, item=item)
