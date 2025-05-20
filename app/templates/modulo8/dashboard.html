@@ -71,6 +71,38 @@
             </div>
         </div>
     </div>
+    <div class="row g-4 mt-2">
+        <!-- Formazione -->
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card formazione-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Formazione</h3>
+                    <p>Gestisci i corsi di formazione e lo stato dei dipendenti</p>
+                    <a href="{{ url_for('modulo8.formazione') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Sicurezza -->
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card sicurezza-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Sicurezza</h3>
+                    <p>Gestisci i corsi e le attività di sicurezza aziendale</p>
+                    <a href="{{ url_for('modulo8.sicurezza') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -166,6 +198,14 @@
 
 .info-gradient {
     background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.formazione-gradient {
+    background: linear-gradient(135deg, #8e54e9 0%, #4776e6 100%);
+}
+
+.sicurezza-gradient {
+    background: linear-gradient(135deg, #ff5858 0%, #f09819 100%);
 }
 
 /* Responsive adjustments */

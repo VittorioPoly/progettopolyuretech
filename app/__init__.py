@@ -28,7 +28,7 @@ def create_app(config_name='default'):
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
-    migrate.init_app(app)
+    migrate.init_app(app, db)
     session_extension.init_app(app)  # Usa session_extension invece di session
     
     # Configura il login_manager

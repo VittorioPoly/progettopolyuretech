@@ -91,4 +91,72 @@ def nuovo_dipendente_step():
             if field.name in step_data:
                 field.data = step_data[field.name]
     
-    return render_template('modulo8/dipendenti/nuovo_step.html', form=form, step=step) 
+    return render_template('modulo8/dipendenti/nuovo_step.html', form=form, step=step)
+
+@bp.route('/formazione')
+@login_required
+def formazione():
+    courses = TrainingCourse.query.order_by(TrainingCourse.date.desc()).all()
+    return render_template('modulo8/formazione/courses.html', courses=courses)
+
+@bp.route('/formazione/nuovo', methods=['GET', 'POST'])
+@login_required
+def nuovo_corso():
+    form = TrainingCourseForm()
+    form.employees.choices = [(e.id, f"{e.nome} {e.cognome}") for e in Employee.query.all()]
+    
+    if form.validate_on_submit():
+        course = TrainingCourse(
+            name=form.name.data,
+            description=form.description.data,
+            date=form.date.data
+        )
+        db.session.add(course)
+        
+        for employee_id in form.employees.data:
+            completion = CourseCompletion(
+                course=course,
+                employee_id=employee_id
+            )
+            db.session.add(completion)
+        
+        db.session.commit()
+        flash('Corso creato con successo!', 'success')
+        return redirect(url_for('modulo8.formazione'))
+    
+    return render_template('modulo8/formazione/course_form.html', form=form, title='Nuovo Corso')
+
+@bp.route('/formazione/<int:id>')
+@login_required
+def dettaglio_corso(id):
+    course = TrainingCourse.query.get_or_404(id)
+    return render_template('modulo8/formazione/course_detail.html', course=course)
+
+@bp.route('/formazione/completati')
+@login_required
+def corsi_completati():
+    completions = CourseCompletion.query.filter_by(status='completed').all()
+    return render_template('modulo8/formazione/completed_courses.html', completions=completions)
+
+@bp.route('/formazione/da-svolgere')
+@login_required
+def corsi_da_svolgere():
+    completions = CourseCompletion.query.filter_by(status='pending').all()
+    return render_template('modulo8/formazione/pending_courses.html', completions=completions)
+
+@bp.route('/formazione/completamento/<int:id>', methods=['GET', 'POST'])
+@login_required
+def aggiorna_completamento(id):
+    completion = CourseCompletion.query.get_or_404(id)
+    form = CourseCompletionForm()
+    
+    if form.validate_on_submit():
+        completion.status = form.status.data
+        if form.status.data == 'completed':
+            completion.completed_at = datetime.utcnow()
+        db.session.commit()
+        flash('Stato del corso aggiornato con successo!', 'success')
+        return redirect(url_for('modulo8.dettaglio_corso', id=completion.course_id))
+    
+    form.status.data = completion.status
+    return render_template('modulo8/formazione/update_completion.html', form=form, completion=completion) 

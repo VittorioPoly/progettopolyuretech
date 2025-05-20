@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Gestione Sicurezza</h1>
+        <p class="dashboard-subtitle">Gestisci i corsi e le attività di sicurezza aziendale</p>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Corsi di Sicurezza -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card primary-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Corsi di Sicurezza</h3>
+                    <p>Gestisci i corsi di sicurezza obbligatori</p>
+                    <a href="#" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificazioni -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card success-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Certificazioni</h3>
+                    <p>Gestisci le certificazioni di sicurezza</p>
+                    <a href="#" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controlli Periodici -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card warning-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Controlli Periodici</h3>
+                    <p>Monitora i controlli periodici di sicurezza</p>
+                    <a href="#" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 2rem;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+.dashboard-title {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.dashboard-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.dashboard-card {
+    position: relative;
+    border-radius: 15px;
+    padding: 2rem;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    color: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.card-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.card-content p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+}
+
+.card-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+
+.card-link:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateX(5px);
+}
+
+/* Gradients */
+.primary-gradient {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.success-gradient {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.warning-gradient {
+    background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+</style>
+{% endblock %} 

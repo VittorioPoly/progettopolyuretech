@@ -341,3 +341,50 @@ class DateRangeForm(FlaskForm):
             return False
             
         return True
+
+
+class TrainingCourseForm(FlaskForm):
+    name = StringField('Nome del Corso', validators=[DataRequired()])
+    description = TextAreaField('Descrizione')
+    date = DateField('Data del Corso', validators=[DataRequired()])
+    employees = SelectMultipleField('Dipendenti', coerce=int)
+    submit = SubmitField('Salva')
+
+class CourseCompletionForm(FlaskForm):
+    status = SelectField('Stato', choices=[
+        ('pending', 'Da Svolgere'),
+        ('in_progress', 'In Corso'),
+        ('completed', 'Completato')
+    ])
+    submit = SubmitField('Aggiorna Stato')
+
+class CorsoFormazioneForm(FlaskForm):
+    titolo = StringField('Titolo', validators=[DataRequired()])
+    descrizione = TextAreaField('Descrizione')
+    durata_ore = IntegerField('Durata (ore)', validators=[DataRequired(), NumberRange(min=1)])
+    data_inizio = DateTimeField('Data Inizio', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    data_fine = DateTimeField('Data Fine', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    data_scadenza = DateTimeField('Scadenza', format='%Y-%m-%dT%H:%M', validators=[Optional()])
+    is_obbligatorio = BooleanField('Corso Obbligatorio')
+    submit = SubmitField('Salva')
+
+    def validate_data_fine(self, data_fine):
+        if data_fine.data and self.data_inizio.data and data_fine.data <= self.data_inizio.data:
+            raise ValidationError('La data di fine deve essere successiva alla data di inizio')
+
+class PartecipazioneCorsoForm(FlaskForm):
+    dipendenti = SelectMultipleField('Dipendenti', coerce=int, validators=[DataRequired()])
+    stato = SelectField('Stato', choices=[
+        ('da_iniziare', 'Da Iniziare'),
+        ('in_corso', 'In Corso'),
+        ('completato', 'Completato')
+    ])
+    valutazione = SelectField('Valutazione', choices=[
+        (1, '1 - Insufficiente'),
+        (2, '2 - Sufficiente'),
+        (3, '3 - Buono'),
+        (4, '4 - Ottimo'),
+        (5, '5 - Eccellente')
+    ], coerce=int)
+    note = TextAreaField('Note')
+    submit = SubmitField('Salva')

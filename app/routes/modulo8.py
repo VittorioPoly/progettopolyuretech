@@ -1,13 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
 from app import db
-from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance
+from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso
 from app.utils import admin_required
 from datetime import datetime
 from calendar import monthrange
 from app.forms import (
     DipendenteStep1Form, DipendenteStep2Form, DipendenteStep3Form,
-    DipendenteStep4Form, DipendenteStep5Form, CompetenzaForm
+    DipendenteStep4Form, DipendenteStep5Form, CompetenzaForm, CorsoFormazioneForm, PartecipazioneCorsoForm
 )
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField
@@ -807,3 +807,173 @@ def elimina_competenza(id):
     
     flash('Competenza eliminata con successo', 'success')
     return redirect(url_for('modulo8.competenze'))
+
+@modulo8.route('/formazione')
+@login_required
+@admin_required
+def formazione():
+    return render_template('modulo8/formazione.html', title="Gestione Formazione")
+
+@modulo8.route('/sicurezza')
+@login_required
+@admin_required
+def sicurezza():
+    return render_template('modulo8/sicurezza.html', title="Gestione Sicurezza")
+
+@modulo8.route('/formazione/corsi')
+@login_required
+@admin_required
+def lista_corsi():
+    show_archived = request.args.get('show_archived', 'false') == 'true'
+    query = CorsoFormazione.query
+    if not show_archived:
+        query = query.filter_by(archiviato=False)
+    corsi = query.order_by(CorsoFormazione.data_inizio.desc()).all()
+    return render_template('modulo8/corsi/lista.html', corsi=corsi, show_archived=show_archived)
+
+@modulo8.route('/formazione/corsi/nuovo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def nuovo_corso():
+    form = CorsoFormazioneForm()
+    if form.validate_on_submit():
+        corso = CorsoFormazione(
+            titolo=form.titolo.data,
+            descrizione=form.descrizione.data,
+            durata_ore=form.durata_ore.data,
+            data_inizio=form.data_inizio.data,
+            data_fine=form.data_fine.data,
+            data_scadenza=form.data_scadenza.data,
+            is_obbligatorio=form.is_obbligatorio.data,
+            created_by_id=current_user.id
+        )
+        db.session.add(corso)
+        db.session.commit()
+        flash('Corso creato con successo', 'success')
+        return redirect(url_for('modulo8.lista_corsi'))
+    return render_template('modulo8/corsi/nuovo.html', form=form)
+
+@modulo8.route('/formazione/corsi/<int:id>')
+@login_required
+@admin_required
+def dettaglio_corso(id):
+    corso = CorsoFormazione.query.get_or_404(id)
+    partecipazioni = PartecipazioneCorso.query.filter_by(corso_id=id).all()
+    return render_template('modulo8/corsi/dettaglio.html', corso=corso, partecipazioni=partecipazioni)
+
+@modulo8.route('/formazione/corsi/<int:id>/modifica', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_corso(id):
+    corso = CorsoFormazione.query.get_or_404(id)
+    form = CorsoFormazioneForm(obj=corso)
+    if form.validate_on_submit():
+        corso.titolo = form.titolo.data
+        corso.descrizione = form.descrizione.data
+        corso.durata_ore = form.durata_ore.data
+        corso.data_inizio = form.data_inizio.data
+        corso.data_fine = form.data_fine.data
+        corso.data_scadenza = form.data_scadenza.data
+        corso.is_obbligatorio = form.is_obbligatorio.data
+        db.session.commit()
+        flash('Corso modificato con successo', 'success')
+        return redirect(url_for('modulo8.dettaglio_corso', id=corso.id))
+    return render_template('modulo8/corsi/modifica.html', form=form, corso=corso)
+
+@modulo8.route('/formazione/corsi/<int:id>/partecipanti/nuovo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def nuovo_partecipante(id):
+    corso = CorsoFormazione.query.get_or_404(id)
+    form = PartecipazioneCorsoForm()
+    dipendenti = Dipendente.query.filter_by(archiviato=False).order_by(Dipendente.nome).all()
+    form.dipendenti.choices = [(d.id, f"{d.nome} {d.cognome}") for d in dipendenti]
+    dipendenti_dict = {d.id: d for d in dipendenti}
+    
+    if form.validate_on_submit():
+        for dip_id in form.dipendenti.data:
+            partecipazione = PartecipazioneCorso(
+                dipendente_id=dip_id,
+                corso_id=id,
+                stato=form.stato.data,
+                valutazione=form.valutazione.data,
+                note=form.note.data
+            )
+            if form.stato.data == 'completato':
+                partecipazione.data_completamento = datetime.utcnow()
+            db.session.add(partecipazione)
+        db.session.commit()
+        flash('Partecipanti aggiunti con successo', 'success')
+        return redirect(url_for('modulo8.dettaglio_corso', id=id))
+    return render_template('modulo8/corsi/nuovo_partecipante.html', form=form, corso=corso, dipendenti_dict=dipendenti_dict)
+
+@modulo8.route('/formazione/corsi/partecipanti/<int:id>/modifica', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_partecipante(id):
+    partecipazione = PartecipazioneCorso.query.get_or_404(id)
+    form = PartecipazioneCorsoForm(obj=partecipazione)
+    if form.validate_on_submit():
+        partecipazione.stato = form.stato.data
+        partecipazione.valutazione = form.valutazione.data
+        partecipazione.note = form.note.data
+        if form.stato.data == 'completato' and not partecipazione.data_completamento:
+            partecipazione.data_completamento = datetime.utcnow()
+        db.session.commit()
+        flash('Partecipazione modificata con successo', 'success')
+        return redirect(url_for('modulo8.dettaglio_corso', id=partecipazione.corso_id))
+    return render_template('modulo8/corsi/modifica_partecipante.html', form=form, partecipazione=partecipazione)
+
+@modulo8.route('/formazione/corsi/<int:id>/archivia', methods=['POST'])
+@login_required
+@admin_required
+def archivia_corso(id):
+    corso = CorsoFormazione.query.get_or_404(id)
+    corso.archiviato = True
+    db.session.commit()
+    flash('Corso archiviato con successo', 'success')
+    return redirect(url_for('modulo8.lista_corsi'))
+
+@modulo8.route('/formazione/corsi/<int:id>/elimina', methods=['POST'])
+@login_required
+@admin_required
+def elimina_corso(id):
+    corso = CorsoFormazione.query.get_or_404(id)
+    db.session.delete(corso)
+    db.session.commit()
+    flash('Corso eliminato con successo', 'success')
+    return redirect(url_for('modulo8.lista_corsi'))
+
+@modulo8.route('/formazione/corsi/<int:id>/ripristina', methods=['POST'])
+@login_required
+@admin_required
+def ripristina_corso(id):
+    corso = CorsoFormazione.query.get_or_404(id)
+    corso.archiviato = False
+    db.session.commit()
+    flash('Corso ripristinato con successo', 'success')
+    return redirect(url_for('modulo8.lista_corsi'))
+
+@modulo8.route('/formazione/corsi/partecipanti/<int:id>/elimina', methods=['POST'])
+@login_required
+@admin_required
+def elimina_partecipante(id):
+    partecipazione = PartecipazioneCorso.query.get_or_404(id)
+    corso_id = partecipazione.corso_id
+    db.session.delete(partecipazione)
+    db.session.commit()
+    flash('Partecipante eliminato con successo', 'success')
+    return redirect(url_for('modulo8.dettaglio_corso', id=corso_id))
+
+@modulo8.route('/formazione/corsi/<int:id>/partecipanti/elimina', methods=['POST'])
+@login_required
+@admin_required
+def elimina_partecipanti(id):
+    ids = request.form.getlist('partecipanti_ids')
+    if ids:
+        PartecipazioneCorso.query.filter(PartecipazioneCorso.id.in_(ids)).delete(synchronize_session=False)
+        db.session.commit()
+        flash(f'Eliminati {len(ids)} partecipanti selezionati', 'success')
+    else:
+        flash('Nessun partecipante selezionato', 'warning')
+    return redirect(url_for('modulo8.dettaglio_corso', id=id))

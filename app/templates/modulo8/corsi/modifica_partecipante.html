@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Modifica Partecipazione</h1>
+        <a href="{{ url_for('modulo8.dettaglio_corso', id=partecipazione.corso_id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna al corso
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    <label class="form-label">Dipendente</label>
+                    <input class="form-control" type="text" value="{{ partecipazione.dipendente.nome }} {{ partecipazione.dipendente.cognome }}" disabled>
+                </div>
+                <div class="form-group">
+                    {{ form.stato.label(class="form-label") }}
+                    {{ form.stato(class="form-control") }}
+                    {% if form.stato.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.stato.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.valutazione.label(class="form-label") }}
+                    {{ form.valutazione(class="form-control") }}
+                    {% if form.valutazione.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.valutazione.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.note.label(class="form-label") }}
+                    {{ form.note(class="form-control", rows=2) }}
+                    {% if form.note.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.note.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-primary", value="Salva Modifiche") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

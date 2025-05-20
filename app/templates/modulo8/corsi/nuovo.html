@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Nuovo Corso di Formazione</h1>
+        <a href="{{ url_for('modulo8.lista_corsi') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna alla lista
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.titolo.label(class="form-label") }}
+                            {{ form.titolo(class="form-control") }}
+                            {% if form.titolo.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.titolo.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.durata_ore.label(class="form-label") }}
+                            {{ form.durata_ore(class="form-control") }}
+                            {% if form.durata_ore.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.durata_ore.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.descrizione.label(class="form-label") }}
+                    {{ form.descrizione(class="form-control", rows=4) }}
+                    {% if form.descrizione.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.descrizione.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form.data_inizio.label(class="form-label") }}
+                            {{ form.data_inizio(class="form-control", type="datetime-local") }}
+                            {% if form.data_inizio.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.data_inizio.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form.data_fine.label(class="form-label") }}
+                            {{ form.data_fine(class="form-control", type="datetime-local") }}
+                            {% if form.data_fine.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.data_fine.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {{ form.data_scadenza.label(class="form-label") }}
+                            {{ form.data_scadenza(class="form-control", type="datetime-local") }}
+                            {% if form.data_scadenza.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.data_scadenza.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        {{ form.is_obbligatorio(class="form-check-input") }}
+                        {{ form.is_obbligatorio.label(class="form-check-label") }}
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Aggiungi questo script per gestire la validazione delle date
+    document.addEventListener('DOMContentLoaded', function() {
+        const dataInizio = document.querySelector('input[name="data_inizio"]');
+        const dataFine = document.querySelector('input[name="data_fine"]');
+
+        // Funzione per formattare la data nel formato corretto per l'input datetime-local
+        function formatDateForInput(date) {
+            return date.toISOString().slice(0, 16);
+        }
+
+        // Imposta la data minima per data_fine quando cambia data_inizio
+        dataInizio.addEventListener('change', function() {
+            if (this.value) {
+                dataFine.min = this.value;
+            }
+        });
+
+        // Imposta la data massima per data_inizio quando cambia data_fine
+        dataFine.addEventListener('change', function() {
+            if (this.value) {
+                dataInizio.max = this.value;
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

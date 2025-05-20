@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestione Corsi di Formazione</h2>
+        <a href="{{ url_for('modulo8.nuovo_corso') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuovo Corso
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Filtri</h5>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('modulo8.formazione') }}" class="btn btn-outline-primary">Tutti</a>
+                        <a href="{{ url_for('modulo8.corsi_completati') }}" class="btn btn-outline-success">Completati</a>
+                        <a href="{{ url_for('modulo8.corsi_da_svolgere') }}" class="btn btn-outline-warning">Da Svolgere</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for course in courses %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.name }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ course.date.strftime('%d/%m/%Y') }}</h6>
+                    {% if course.description %}
+                    <p class="card-text">{{ course.description }}</p>
+                    {% endif %}
+                    <div class="mt-3">
+                        <span class="badge bg-info">{{ course.completions|length }} dipendenti assegnati</span>
+                        <span class="badge bg-success">{{ course.completions|selectattr('status', 'equalto', 'completed')|list|length }} completati</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('modulo8.dettaglio_corso', id=course.id) }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> Dettagli
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col">
+            <div class="alert alert-info">
+                Nessun corso di formazione trovato.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

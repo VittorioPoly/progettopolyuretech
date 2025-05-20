@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">{{ course.name }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h5>Data del Corso</h5>
+                        <p>{{ course.date.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                    
+                    {% if course.description %}
+                    <div class="mb-3">
+                        <h5>Descrizione</h5>
+                        <p>{{ course.description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Statistiche</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Dipendenti Assegnati</h6>
+                        <p class="h3">{{ course.completions|length }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Completati</h6>
+                        <p class="h3 text-success">{{ course.completions|selectattr('status', 'equalto', 'completed')|list|length }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>In Corso</h6>
+                        <p class="h3 text-warning">{{ course.completions|selectattr('status', 'equalto', 'in_progress')|list|length }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Da Svolgere</h6>
+                        <p class="h3 text-danger">{{ course.completions|selectattr('status', 'equalto', 'pending')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Dipendenti Assegnati</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Dipendente</th>
+                            <th>Stato</th>
+                            <th>Data Completamento</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for completion in course.completions %}
+                        <tr>
+                            <td>{{ completion.employee.nome }} {{ completion.employee.cognome }}</td>
+                            <td>
+                                {% if completion.status == 'completed' %}
+                                <span class="badge bg-success">Completato</span>
+                                {% elif completion.status == 'in_progress' %}
+                                <span class="badge bg-warning">In Corso</span>
+                                {% else %}
+                                <span class="badge bg-danger">Da Svolgere</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if completion.completed_at %}
+                                {{ completion.completed_at.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('modulo8.aggiorna_completamento', id=completion.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i> Aggiorna Stato
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

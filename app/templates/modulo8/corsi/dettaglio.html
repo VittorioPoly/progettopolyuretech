@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ corso.titolo }}</h1>
+        <div>
+            <a href="{{ url_for('modulo8.modifica_corso', id=corso.id) }}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifica Corso
+            </a>
+            <a href="{{ url_for('modulo8.nuovo_partecipante', id=corso.id) }}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Aggiungi Partecipante
+            </a>
+            <a href="{{ url_for('modulo8.lista_corsi') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla lista
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Dettagli Corso -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Dettagli Corso</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Durata</dt>
+                        <dd class="col-sm-8">{{ corso.durata_ore }} ore</dd>
+
+                        <dt class="col-sm-4">Data Inizio</dt>
+                        <dd class="col-sm-8">{{ corso.data_inizio.strftime('%d/%m/%Y %H:%M') }}</dd>
+
+                        <dt class="col-sm-4">Data Fine</dt>
+                        <dd class="col-sm-8">{{ corso.data_fine.strftime('%d/%m/%Y %H:%M') }}</dd>
+
+                        <dt class="col-sm-4">Tipo</dt>
+                        <dd class="col-sm-8">
+                            {% if corso.is_obbligatorio %}
+                            <span class="badge bg-danger">Obbligatorio</span>
+                            {% else %}
+                            <span class="badge bg-info">Opzionale</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Descrizione</dt>
+                        <dd class="col-sm-8">{{ corso.descrizione or 'Nessuna descrizione' }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista Partecipanti -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Partecipanti</h6>
+                    <form id="delete-selected-form" method="POST" action="{{ url_for('modulo8.elimina_partecipanti', id=corso.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm" id="delete-selected-btn" disabled onclick="return confirm('Sei sicuro di voler eliminare i partecipanti selezionati?')">
+                            <i class="fas fa-trash"></i> Elimina selezionati
+                        </button>
+                    </form>
+                </div>
+                <div class="card-body">
+                    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Cerca dipendente...">
+                    <form id="partecipanti-form" method="POST" action="{{ url_for('modulo8.elimina_partecipanti', id=corso.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="partecipantiTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="select-all"></th>
+                                        <th>Dipendente</th>
+                                        <th>Stato</th>
+                                        <th>Data Completamento</th>
+                                        <th>Valutazione</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for partecipazione in partecipazioni %}
+                                    <tr>
+                                        <td><input type="checkbox" name="partecipanti_ids" value="{{ partecipazione.id }}" class="partecipante-checkbox"></td>
+                                        <td>{{ partecipazione.dipendente.nome }} {{ partecipazione.dipendente.cognome }}</td>
+                                        <td>
+                                            {% if partecipazione.stato == 'da_iniziare' %}
+                                            <span class="badge bg-secondary">Da Iniziare</span>
+                                            {% elif partecipazione.stato == 'in_corso' %}
+                                            <span class="badge bg-warning">In Corso</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Completato</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if partecipazione.data_completamento %}
+                                            {{ partecipazione.data_completamento.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                            -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if partecipazione.valutazione %}
+                                            {{ partecipazione.valutazione }}
+                                            {% else %}
+                                            -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('modulo8.modifica_partecipante', id=partecipazione.id) }}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="POST" action="{{ url_for('modulo8.elimina_partecipante', id=partecipazione.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questo partecipante?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Ricerca partecipanti
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        var value = this.value.toLowerCase();
+        var rows = document.querySelectorAll('#partecipantiTable tbody tr');
+        rows.forEach(function(row) {
+            var nome = row.cells[1].textContent.toLowerCase();
+            row.style.display = nome.includes(value) ? '' : 'none';
+        });
+    });
+    // Seleziona/deseleziona tutti
+    document.getElementById('select-all').addEventListener('change', function() {
+        var checked = this.checked;
+        document.querySelectorAll('.partecipante-checkbox').forEach(function(cb) {
+            cb.checked = checked;
+        });
+        document.getElementById('delete-selected-btn').disabled = !checked;
+    });
+    // Abilita/disabilita il tasto elimina selezionati
+    document.querySelectorAll('.partecipante-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var anyChecked = Array.from(document.querySelectorAll('.partecipante-checkbox')).some(x => x.checked);
+            document.getElementById('delete-selected-btn').disabled = !anyChecked;
+        });
+    });
+    // Submit elimina selezionati
+    document.getElementById('delete-selected-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('partecipanti-form').submit();
+    });
+</script>
+{% endblock %}
+{% endblock %} 

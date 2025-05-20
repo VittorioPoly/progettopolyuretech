@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Lista Corsi di Formazione</h2>
+        <div>
+            <a href="{{ url_for('modulo8.nuovo_corso') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuovo Corso
+            </a>
+            <a href="{{ url_for('modulo8.lista_corsi', show_archived='true' if not show_archived else 'false') }}" class="btn btn-secondary">
+                {% if show_archived %}
+                    <i class="fas fa-eye"></i> Mostra Corsi Attivi
+                {% else %}
+                    <i class="fas fa-archive"></i> Mostra Corsi Archiviati
+                {% endif %}
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped" id="corsiTable">
+            <thead>
+                <tr>
+                    <th>Titolo</th>
+                    <th>Durata (ore)</th>
+                    <th>Data Inizio</th>
+                    <th>Data Fine</th>
+                    <th>Scadenza</th>
+                    <th>Tipo</th>
+                    <th>Partecipanti</th>
+                    <th>Azioni</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for corso in corsi %}
+                <tr {% if corso.archiviato %}class="table-secondary"{% endif %}>
+                    <td>{{ corso.titolo }}</td>
+                    <td>{{ corso.durata_ore }}</td>
+                    <td>{{ corso.data_inizio.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ corso.data_fine.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if corso.data_scadenza %}
+                            {{ corso.data_scadenza.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if corso.is_obbligatorio %}
+                            <span class="badge bg-danger">Obbligatorio</span>
+                        {% else %}
+                            <span class="badge bg-info">Opzionale</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ corso.partecipanti|length }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('modulo8.dettaglio_corso', id=corso.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if not corso.archiviato %}
+                                <a href="{{ url_for('modulo8.modifica_corso', id=corso.id) }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('modulo8.archivia_corso', id=corso.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('Sei sicuro di voler archiviare questo corso?')">
+                                        <i class="fas fa-archive"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for('modulo8.ripristina_corso', id=corso.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <form action="{{ url_for('modulo8.elimina_corso', id=corso.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questo corso? Questa azione non può essere annullata.')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">Nessun corso trovato.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#corsiTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Italian.json'
+            },
+            order: [[2, 'desc']]
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

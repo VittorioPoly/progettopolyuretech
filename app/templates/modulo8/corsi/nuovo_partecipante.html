@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Aggiungi Partecipanti al Corso</h1>
+        <a href="{{ url_for('modulo8.dettaglio_corso', id=corso.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna al corso
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-group mb-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cerca per nome, cognome o reparto...">
+                </div>
+                <div class="form-group">
+                    {{ form.dipendenti.label(class="form-label") }}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="select-all">
+                        <label class="form-check-label" for="select-all">Seleziona tutti</label>
+                    </div>
+                    <div id="dipendenti-list">
+                        {% for value, label in form.dipendenti.choices %}
+                        {% set dip = dipendenti_dict[value] if dipendenti_dict and value in dipendenti_dict else None %}
+                        <div class="form-check dipendente-item" data-nome="{{ label.lower() }}" data-reparto="{{ dip.reparto.lower() if dip and dip.reparto else '' }}">
+                            <input class="form-check-input" type="checkbox" name="dipendenti" id="dipendente_{{ value }}" value="{{ value }}">
+                            <label class="form-check-label" for="dipendente_{{ value }}">
+                                {{ label }}{% if dip and dip.reparto %} <span class="text-muted">({{ dip.reparto }})</span>{% endif %}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.dipendenti.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.dipendenti.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.stato.label(class="form-label") }}
+                    {{ form.stato(class="form-control") }}
+                    {% if form.stato.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.stato.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.valutazione.label(class="form-label") }}
+                    {{ form.valutazione(class="form-control") }}
+                    {% if form.valutazione.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.valutazione.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.note.label(class="form-label") }}
+                    {{ form.note(class="form-control", rows=2) }}
+                    {% if form.note.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.note.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-primary", value="Aggiungi Partecipanti") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% block scripts %}
+<script>
+    // Ricerca tra i dipendenti
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        var value = this.value.toLowerCase();
+        document.querySelectorAll('.dipendente-item').forEach(function(item) {
+            var nome = item.getAttribute('data-nome');
+            var reparto = item.getAttribute('data-reparto');
+            item.style.display = (nome.includes(value) || reparto.includes(value)) ? '' : 'none';
+        });
+    });
+    // Seleziona/deseleziona tutti
+    document.getElementById('select-all').addEventListener('change', function() {
+        var checked = this.checked;
+        document.querySelectorAll('.dipendente-item input[type="checkbox"]').forEach(function(cb) {
+            cb.checked = checked;
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 
