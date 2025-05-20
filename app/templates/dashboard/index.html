@@ -3,372 +3,346 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="alert alert-info">
-            <div class="d-flex align-items-center">
-                <div class="me-3">
-                    <i class="fas fa-user-circle fa-3x"></i>
-                </div>
-                <div>
-                    <h5 class="mb-1">Benvenuto, {{ current_user.username }}!</h5>
-                    <p class="mb-0">
-                        Accesso come 
-                        <span class="badge bg-{{ 'primary' if current_user.is_admin() else 'secondary' }}">
-                            {{ 'Amministratore' if current_user.is_admin() else 'Operatore' }}
-                        </span>
-                        • Ultimo accesso: 
-                        {% if current_user.last_login %}
-                            {{ current_user.last_login | format_date('%d/%m/%Y %H:%M') }}
-                        {% else %}
-                            Prima volta
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-12">
-        <h2 class="border-bottom pb-2 mb-4">Moduli disponibili</h2>
-    </div>
-    
-    <!-- Moduli accessibili a tutti gli utenti -->
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+<div class="dashboard-container">
+    <div class="row g-3">
+        <!-- Moduli accessibili a tutti gli utenti -->
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-1">
+                <div class="card-icon">
                     <i class="fas fa-clipboard-list"></i>
                 </div>
-                <h4 class="card-title">Modulo 1</h4>
-                <p class="card-text">Inserimento dati con caricamento foto. Permette di registrare valori numerici, note e immagini associate.</p>
-                <a href="{{ url_for('modulo1.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-users me-1"></i>Accessibile a tutti</small>
+                <div class="card-content">
+                    <h3>Non Conformità</h3>
+                    <a href="{{ url_for('modulo1.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-2">
+                <div class="card-icon">
                     <i class="fas fa-clipboard-check"></i>
                 </div>
-                <h4 class="card-title">Modulo 5</h4>
-                <p class="card-text">Inserimento dati con caricamento foto. Simile al Modulo 1 ma con scopo differente.</p>
-                <a href="{{ url_for('modulo5.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-users me-1"></i>Accessibile a tutti</small>
+                <div class="card-content">
+                    <h3>Accettazione Merce</h3>
+                    <a href="{{ url_for('modulo5.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    {% if current_user.is_admin() %}
-    <!-- Moduli accessibili solo agli amministratori -->
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        {% if current_user.is_admin() %}
+        <!-- Moduli accessibili solo agli amministratori -->
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-3">
+                <div class="card-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <h4 class="card-title">Modulo 2</h4>
-                <p class="card-text">Analisi fatturato clienti. Caricamento Excel con dati del fatturato, visualizzazione trend e analisi per cliente.</p>
-                <a href="{{ url_for('modulo2.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
+                <div class="card-content">
+                    <h3>Analisi Fatturato</h3>
+                    <a href="{{ url_for('modulo2.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-4">
+                <div class="card-icon">
                     <i class="fas fa-chart-bar"></i>
                 </div>
-                <h4 class="card-title">Modulo 3</h4>
-                <p class="card-text">Analisi spese fornitori. Caricamento Excel con dati delle spese, visualizzazione trend e analisi per fornitore.</p>
-                <a href="{{ url_for('modulo3.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
+                <div class="card-content">
+                    <h3>Analisi Spese</h3>
+                    <a href="{{ url_for('modulo3.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-5">
+                <div class="card-icon">
                     <i class="fas fa-file-pdf"></i>
                 </div>
-                <h4 class="card-title">Modulo 4</h4>
-                <p class="card-text">Generazione PDF. Inserimento di dati e creazione automatica di report in formato PDF.</p>
-                <a href="{{ url_for('modulo4.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
+                <div class="card-content">
+                    <h3>Reclami</h3>
+                    <a href="{{ url_for('modulo4.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-6">
+                <div class="card-icon">
                     <i class="fas fa-list-ul"></i>
                 </div>
-                <h4 class="card-title">Modulo 6</h4>
-                <p class="card-text">Inserimento dati con riepilogo. Permette di inserire valori e note con visualizzazione organizzata per ID.</p>
-                <a href="{{ url_for('modulo6.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
+                <div class="card-content">
+                    <h3>Richiesta Acquisto</h3>
+                    <a href="{{ url_for('modulo6.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-7">
+                <div class="card-icon">
                     <i class="fas fa-list-ol"></i>
                 </div>
-                <h4 class="card-title">Modulo 7</h4>
-                <p class="card-text">Inserimento dati con riepilogo. Simile al Modulo 6 ma con scopo differente.</p>
-                <a href="{{ url_for('modulo7.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
+                <div class="card-content">
+                    <h3>Codici Lavorazione</h3>
+                    <a href="{{ url_for('modulo7.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-8">
+                <div class="card-icon">
                     <i class="fas fa-users"></i>
                 </div>
-                <h4 class="card-title">Modulo 8</h4>
-                <p class="card-text">Gestione dipendenti e competenze. Inserimento dipendenti, competenze e associazione tra loro.</p>
-                <a href="{{ url_for('modulo8.dashboard') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
+                <div class="card-content">
+                    <h3>Dipendenti</h3>
+                    <a href="{{ url_for('modulo8.dashboard') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-9">
+                <div class="card-icon">
                     <i class="fas fa-file-excel"></i>
                 </div>
-                <h4 class="card-title">Modulo 9</h4>
-                <p class="card-text">Analisi dati Excel. Caricamento e analisi di dati da file Excel con visualizzazioni personalizzate.</p>
-                <a href="{{ url_for('modulo9.index') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
+                <div class="card-content">
+                    <h3>Magazzino</h3>
+                    <a href="{{ url_for('modulo9.index') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Gestione utenti (solo admin) -->
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 dashboard-card">
-            <div class="card-body text-center">
-                <div class="dashboard-icon text-primary">
+
+        <div class="col-2-4">
+            <div class="dashboard-card gradient-10">
+                <div class="card-icon">
                     <i class="fas fa-user-plus"></i>
                 </div>
-                <h4 class="card-title">Gestione Utenti</h4>
-                <p class="card-text">Registrazione nuovi utenti con assegnazione ruoli (amministratore o operatore).</p>
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary mt-2">
-                    <i class="fas fa-arrow-right me-1"></i>Accedi
-                </a>
-            </div>
-            <div class="card-footer bg-transparent border-top-0 text-muted text-center">
-                <small><i class="fas fa-shield-alt me-1"></i>Solo amministratori</small>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-<!-- Statistiche di sistema (solo admin) -->
-{% if current_user.is_admin() %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2 class="border-bottom pb-2 mb-4">Statistiche di sistema</h2>
-    </div>
-    
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-primary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-muted mb-1">Modulo 1</h6>
-                        <h4 class="card-title mb-0">{{ stats.modulo1_count }}</h4>
-                    </div>
-                    <div class="icon-shape bg-light text-primary rounded p-3">
-                        <i class="fas fa-clipboard-list"></i>
-                    </div>
-                </div>
-                <div class="small text-muted mt-2">
-                    <span class="text-nowrap">
-                        {% if stats.modulo1_unviewed %}
-                            <span class="badge bg-warning">{{ stats.modulo1_unviewed }} non visti</span>
-                        {% else %}
-                            <span class="badge bg-success">Tutti visti</span>
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-primary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-muted mb-1">Modulo 5</h6>
-                        <h4 class="card-title mb-0">{{ stats.modulo5_count }}</h4>
-                    </div>
-                    <div class="icon-shape bg-light text-primary rounded p-3">
-                        <i class="fas fa-clipboard-check"></i>
-                    </div>
-                </div>
-                <div class="small text-muted mt-2">
-                    <span class="text-nowrap">
-                        {% if stats.modulo5_unviewed %}
-                            <span class="badge bg-warning">{{ stats.modulo5_unviewed }} non visti</span>
-                        {% else %}
-                            <span class="badge bg-success">Tutti visti</span>
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-primary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-muted mb-1">Fatturato</h6>
-                        <h4 class="card-title mb-0">{{ stats.fatturato_totale | format_currency }}</h4>
-                    </div>
-                    <div class="icon-shape bg-light text-primary rounded p-3">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                </div>
-                <div class="small text-muted mt-2">
-                    <span class="text-nowrap">{{ stats.clienti_count }} clienti</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-3 mb-3">
-        <div class="card border-primary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-muted mb-1">Utenti</h6>
-                        <h4 class="card-title mb-0">{{ stats.users_count }}</h4>
-                    </div>
-                    <div class="icon-shape bg-light text-primary rounded p-3">
-                        <i class="fas fa-users"></i>
-                    </div>
-                </div>
-                <div class="small text-muted mt-2">
-                    <span class="text-nowrap">{{ stats.admin_count }} admin, {{ stats.operatori_count }} operatori</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Attività recenti -->
-<div class="row">
-    <div class="col-12">
-        <h2 class="border-bottom pb-2 mb-4">Attività recenti</h2>
-    </div>
-    
-    {% if recent_activities %}
-    <div class="col-12">
-        <div class="list-group shadow-sm">
-            {% for activity in recent_activities %}
-            <div class="list-group-item list-group-item-action">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">{{ activity.title }}</h5>
-                    <small class="text-muted">{{ activity.timestamp | format_date('%d/%m/%Y %H:%M') }}</small>
-                </div>
-                <p class="mb-1">{{ activity.description }}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                        <i class="fas fa-user me-1"></i>{{ activity.user }}
-                    </small>
-                    {% if activity.link %}
-                    <a href="{{ activity.link }}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-eye me-1"></i>Visualizza
+                <div class="card-content">
+                    <h3>Gestione Utenti</h3>
+                    <a href="{{ url_for('auth.register') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
                     </a>
-                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="col-12">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>Nessuna attività recente da visualizzare.
-        </div>
+
+    <div class="dashboard-footer">
+        <p class="dashboard-subtitle">Benvenuto, {{ current_user.username }}! Accesso come 
+            <span class="badge bg-{{ 'primary' if current_user.is_admin() else 'secondary' }}">
+                {{ 'Amministratore' if current_user.is_admin() else 'Operatore' }}
+            </span>
+            • Ultimo accesso: 
+            {% if current_user.last_login %}
+                {{ current_user.last_login | format_date('%d/%m/%Y %H:%M') }}
+            {% else %}
+                Prima volta
+            {% endif %}
+        </p>
     </div>
-    {% endif %}
 </div>
 
-<!-- Stile per le icone nelle card statistiche -->
 <style>
-    .icon-shape {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+.dashboard-container {
+    padding: 1rem;
+    background: var(--bs-body-bg);
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Custom column width for 5 cards per row */
+.col-2-4 {
+    flex: 0 0 20%;
+    max-width: 20%;
+    padding: 0 0.5rem;
+}
+
+.dashboard-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.dashboard-subtitle {
+    color: var(--bs-body-color);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.dashboard-card {
+    position: relative;
+    border-radius: 12px;
+    padding: 1.25rem;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    color: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.card-icon {
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.9;
+}
+
+.card-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.card-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.card-link:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateX(3px);
+}
+
+/* Gradients */
+.gradient-1 {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.gradient-2 {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.gradient-3 {
+    background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.gradient-4 {
+    background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.gradient-5 {
+    background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+}
+
+.gradient-6 {
+    background: linear-gradient(135deg, #6f42c1 0%, #4e2a8c 100%);
+}
+
+.gradient-7 {
+    background: linear-gradient(135deg, #fd7e14 0%, #d65e00 100%);
+}
+
+.gradient-8 {
+    background: linear-gradient(135deg, #20c997 0%, #13855c 100%);
+}
+
+.gradient-9 {
+    background: linear-gradient(135deg, #17a2b8 0%, #0f6674 100%);
+}
+
+.gradient-10 {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .dashboard-container {
+    background: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .dashboard-footer {
+    border-top-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .dashboard-subtitle {
+    color: var(--bs-light);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .col-2-4 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+}
+
+@media (max-width: 992px) {
+    .col-2-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+}
+
+@media (max-width: 768px) {
+    .col-2-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
     }
     
-    .icon-shape i {
-        font-size: 24px;
+    .dashboard-card {
+        padding: 1rem;
+        min-height: 160px;
     }
+
+    .card-icon {
+        font-size: 2rem;
+    }
+
+    .card-content h3 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .col-2-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
 </style>
 {% endblock %}

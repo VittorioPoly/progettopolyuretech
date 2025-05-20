@@ -13,6 +13,9 @@ class Config:
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    # Configurazione template
+    TEMPLATES_AUTO_RELOAD = True
+    
     # Configurazione upload file
     UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'uploads')
     UPLOAD_IMAGES_FOLDER = os.path.join(UPLOAD_FOLDER, 'images')
