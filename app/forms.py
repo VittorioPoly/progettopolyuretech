@@ -340,15 +340,15 @@ class CorsoFormazioneForm(FlaskForm):
     titolo = StringField('Titolo', validators=[DataRequired()])
     descrizione = TextAreaField('Descrizione')
     durata_ore = IntegerField('Durata (ore)', validators=[DataRequired(), NumberRange(min=1)])
-    data_inizio = DateTimeField('Data Inizio', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    data_fine = DateTimeField('Data Fine', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    data_scadenza = DateTimeField('Scadenza', format='%Y-%m-%dT%H:%M', validators=[Optional()])
+    giorno_inizio = DateField('Giorno Inizio', format='%Y-%m-%d', validators=[DataRequired()])
+    giorno_fine = DateField('Giorno Fine', format='%Y-%m-%d', validators=[DataRequired()])
+    scadenza_relativa = StringField('Scadenza (es. 1 anno, 6 mesi)', validators=[Optional()])
     is_obbligatorio = BooleanField('Corso Obbligatorio')
     submit = SubmitField('Salva')
 
-    def validate_data_fine(self, data_fine):
-        if data_fine.data and self.data_inizio.data and data_fine.data <= self.data_inizio.data:
-            raise ValidationError('La data di fine deve essere successiva alla data di inizio')
+    def validate_giorno_fine(self, giorno_fine):
+        if giorno_fine.data < self.giorno_inizio.data:
+            raise ValidationError('La data di fine non può essere precedente alla data di inizio.')
 
 class PartecipazioneCorsoForm(FlaskForm):
     dipendenti = SelectMultipleField('Dipendenti', coerce=int, validators=[DataRequired()])

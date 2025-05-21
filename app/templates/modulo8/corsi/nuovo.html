@@ -57,11 +57,11 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            {{ form.data_inizio.label(class="form-label") }}
-                            {{ form.data_inizio(class="form-control", type="datetime-local") }}
-                            {% if form.data_inizio.errors %}
+                            {{ form.giorno_inizio.label(class="form-label") }}
+                            {{ form.giorno_inizio(class="form-control", type="date") }}
+                            {% if form.giorno_inizio.errors %}
                             <div class="invalid-feedback d-block">
-                                {% for error in form.data_inizio.errors %}
+                                {% for error in form.giorno_inizio.errors %}
                                 {{ error }}
                                 {% endfor %}
                             </div>
@@ -70,11 +70,11 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            {{ form.data_fine.label(class="form-label") }}
-                            {{ form.data_fine(class="form-control", type="datetime-local") }}
-                            {% if form.data_fine.errors %}
+                            {{ form.giorno_fine.label(class="form-label") }}
+                            {{ form.giorno_fine(class="form-control", type="date") }}
+                            {% if form.giorno_fine.errors %}
                             <div class="invalid-feedback d-block">
-                                {% for error in form.data_fine.errors %}
+                                {% for error in form.giorno_fine.errors %}
                                 {{ error }}
                                 {% endfor %}
                             </div>
@@ -83,11 +83,11 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            {{ form.data_scadenza.label(class="form-label") }}
-                            {{ form.data_scadenza(class="form-control", type="datetime-local") }}
-                            {% if form.data_scadenza.errors %}
+                            {{ form.scadenza_relativa.label(class="form-label") }}
+                            {{ form.scadenza_relativa(class="form-control", placeholder="Es. 1 anno, 6 mesi") }}
+                            {% if form.scadenza_relativa.errors %}
                             <div class="invalid-feedback d-block">
-                                {% for error in form.data_scadenza.errors %}
+                                {% for error in form.scadenza_relativa.errors %}
                                 {{ error }}
                                 {% endfor %}
                             </div>
@@ -113,27 +113,19 @@
 
 {% block scripts %}
 <script>
-    // Aggiungi questo script per gestire la validazione delle date
     document.addEventListener('DOMContentLoaded', function() {
-        const dataInizio = document.querySelector('input[name="data_inizio"]');
-        const dataFine = document.querySelector('input[name="data_fine"]');
+        const giornoInizio = document.querySelector('input[name="giorno_inizio"]');
+        const giornoFine = document.querySelector('input[name="giorno_fine"]');
 
-        // Funzione per formattare la data nel formato corretto per l'input datetime-local
-        function formatDateForInput(date) {
-            return date.toISOString().slice(0, 16);
-        }
-
-        // Imposta la data minima per data_fine quando cambia data_inizio
-        dataInizio.addEventListener('change', function() {
+        giornoInizio.addEventListener('change', function() {
             if (this.value) {
-                dataFine.min = this.value;
+                giornoFine.min = this.value;
             }
         });
 
-        // Imposta la data massima per data_inizio quando cambia data_fine
-        dataFine.addEventListener('change', function() {
+        giornoFine.addEventListener('change', function() {
             if (this.value) {
-                dataInizio.max = this.value;
+                giornoInizio.max = this.value;
             }
         });
     });

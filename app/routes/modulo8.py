@@ -831,7 +831,7 @@ def lista_corsi():
     query = CorsoFormazione.query
     if not show_archived:
         query = query.filter_by(archiviato=False)
-    corsi = query.order_by(CorsoFormazione.data_inizio.desc()).all()
+    corsi = query.order_by(CorsoFormazione.giorno_inizio.desc()).all()
     return render_template('modulo8/corsi/lista.html', corsi=corsi, show_archived=show_archived)
 
 @modulo8.route('/formazione/corsi/nuovo', methods=['GET', 'POST'])
@@ -844,17 +844,17 @@ def nuovo_corso():
             titolo=form.titolo.data,
             descrizione=form.descrizione.data,
             durata_ore=form.durata_ore.data,
-            data_inizio=form.data_inizio.data,
-            data_fine=form.data_fine.data,
-            data_scadenza=form.data_scadenza.data,
+            giorno_inizio=form.giorno_inizio.data,
+            giorno_fine=form.giorno_fine.data,
+            scadenza_relativa=form.scadenza_relativa.data,
             is_obbligatorio=form.is_obbligatorio.data,
             created_by_id=current_user.id
         )
         db.session.add(corso)
         db.session.commit()
-        flash('Corso creato con successo', 'success')
+        flash('Corso creato con successo!', 'success')
         return redirect(url_for('modulo8.lista_corsi'))
-    return render_template('modulo8/corsi/nuovo.html', form=form)
+    return render_template('modulo8/corsi/nuovo.html', title='Nuovo Corso', form=form)
 
 @modulo8.route('/formazione/corsi/<int:id>')
 @login_required
@@ -874,14 +874,14 @@ def modifica_corso(id):
         corso.titolo = form.titolo.data
         corso.descrizione = form.descrizione.data
         corso.durata_ore = form.durata_ore.data
-        corso.data_inizio = form.data_inizio.data
-        corso.data_fine = form.data_fine.data
-        corso.data_scadenza = form.data_scadenza.data
+        corso.giorno_inizio = form.giorno_inizio.data
+        corso.giorno_fine = form.giorno_fine.data
+        corso.scadenza_relativa = form.scadenza_relativa.data
         corso.is_obbligatorio = form.is_obbligatorio.data
         db.session.commit()
-        flash('Corso modificato con successo', 'success')
+        flash('Corso aggiornato con successo!', 'success')
         return redirect(url_for('modulo8.dettaglio_corso', id=corso.id))
-    return render_template('modulo8/corsi/modifica.html', form=form, corso=corso)
+    return render_template('modulo8/corsi/nuovo.html', title='Modifica Corso', form=form, corso=corso)
 
 @modulo8.route('/formazione/corsi/<int:id>/partecipanti/nuovo', methods=['GET', 'POST'])
 @login_required

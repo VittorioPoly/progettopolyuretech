@@ -154,20 +154,18 @@
                 </div>
             </div>
             
-            <!-- Sicurezza (Esempio, se esiste) -->
-            {# 
+            <!-- Sicurezza -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-shield-alt me-2"></i>Sicurezza</h5>
-                    <a href="#" class="btn btn-light btn-sm"> {# SOSTITUIRE # con url_for corretto #}
-                        <i class="fas fa-edit me-1"></i> Gestisci
+                    <a href="{{ url_for('modulo8.sicurezza_dipendente', id=dip.id) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-external-link-alt me-1"></i> Gestisci
                     </a>
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-0">Gestisci le informazioni relative alla sicurezza.</p>
                 </div>
             </div>
-            #}
         </div>
     </div>
 </div>

@@ -29,11 +29,14 @@
                         <dt class="col-sm-4">Durata</dt>
                         <dd class="col-sm-8">{{ corso.durata_ore }} ore</dd>
 
-                        <dt class="col-sm-4">Data Inizio</dt>
-                        <dd class="col-sm-8">{{ corso.data_inizio.strftime('%d/%m/%Y %H:%M') }}</dd>
+                        <dt class="col-sm-4">Giorno Inizio</dt>
+                        <dd class="col-sm-8">{{ corso.giorno_inizio.strftime('%d/%m/%Y') if corso.giorno_inizio else '-' }}</dd>
 
-                        <dt class="col-sm-4">Data Fine</dt>
-                        <dd class="col-sm-8">{{ corso.data_fine.strftime('%d/%m/%Y %H:%M') }}</dd>
+                        <dt class="col-sm-4">Giorno Fine</dt>
+                        <dd class="col-sm-8">{{ corso.giorno_fine.strftime('%d/%m/%Y') if corso.giorno_fine else '-' }}</dd>
+
+                        <dt class="col-sm-4">Scadenza</dt>
+                        <dd class="col-sm-8">{{ corso.scadenza_relativa if corso.scadenza_relativa else '-' }}</dd>
 
                         <dt class="col-sm-4">Tipo</dt>
                         <dd class="col-sm-8">

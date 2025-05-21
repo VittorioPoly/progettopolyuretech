@@ -469,9 +469,9 @@ class CorsoFormazione(db.Model):
     titolo = db.Column(db.String(100), nullable=False)
     descrizione = db.Column(db.Text)
     durata_ore = db.Column(db.Integer)
-    data_inizio = db.Column(db.Date)
-    data_fine = db.Column(db.Date, nullable=True)
-    data_scadenza = db.Column(db.Date, nullable=True)
+    giorno_inizio = db.Column(db.Date)
+    giorno_fine = db.Column(db.Date, nullable=True)
+    scadenza_relativa = db.Column(db.String(50), nullable=True) # es. "1 anno", "6 mesi"
     is_obbligatorio = db.Column(db.Boolean, default=False)
     archiviato = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

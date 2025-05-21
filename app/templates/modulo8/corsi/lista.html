@@ -24,8 +24,8 @@
                 <tr>
                     <th>Titolo</th>
                     <th>Durata (ore)</th>
-                    <th>Data Inizio</th>
-                    <th>Data Fine</th>
+                    <th>Giorno Inizio</th>
+                    <th>Giorno Fine</th>
                     <th>Scadenza</th>
                     <th>Tipo</th>
                     <th>Partecipanti</th>
@@ -37,14 +37,10 @@
                 <tr {% if corso.archiviato %}class="table-secondary"{% endif %}>
                     <td>{{ corso.titolo }}</td>
                     <td>{{ corso.durata_ore }}</td>
-                    <td>{{ corso.data_inizio.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ corso.data_fine.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ corso.giorno_inizio.strftime('%d/%m/%Y') if corso.giorno_inizio else '-' }}</td>
+                    <td>{{ corso.giorno_fine.strftime('%d/%m/%Y') if corso.giorno_fine else '-' }}</td>
                     <td>
-                        {% if corso.data_scadenza %}
-                            {{ corso.data_scadenza.strftime('%d/%m/%Y') }}
-                        {% else %}
-                            -
-                        {% endif %}
+                        {{ corso.scadenza_relativa if corso.scadenza_relativa else '-' }}
                     </td>
                     <td>
                         {% if corso.is_obbligatorio %}
@@ -53,7 +49,7 @@
                             <span class="badge bg-info">Opzionale</span>
                         {% endif %}
                     </td>
-                    <td>{{ corso.partecipanti|length }}</td>
+                    <td>{{ corso.partecipazioni|length }}</td>
                     <td>
                         <div class="btn-group">
                             <a href="{{ url_for('modulo8.dettaglio_corso', id=corso.id) }}" class="btn btn-sm btn-info">
