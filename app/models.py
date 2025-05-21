@@ -470,11 +470,15 @@ class CorsoFormazione(db.Model):
     descrizione = db.Column(db.Text)
     durata_ore = db.Column(db.Integer)
     data_inizio = db.Column(db.Date)
+    data_fine = db.Column(db.Date, nullable=True)
+    data_scadenza = db.Column(db.Date, nullable=True)
     is_obbligatorio = db.Column(db.Boolean, default=False)
     archiviato = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     partecipazioni = db.relationship('PartecipazioneCorso', backref='corso', lazy=True)
+    created_by = db.relationship('User')
 
 class PartecipazioneCorso(db.Model):
     __tablename__ = 'partecipazione_corso'

@@ -245,7 +245,8 @@ def nuovo_dipendente():
         form=form,
         step=step,
         is_new=True,
-        competenze_lista=competenze_lista
+        competenze_lista=competenze_lista,
+        dip=None
     )
 
 @modulo8.route('/dipendenti/<int:id>')
@@ -610,28 +611,133 @@ def prelievo_vestiario():
     flash(f'Prelievo di {qta}× {item.nome} registrato per {dip.nome}.', 'success')
     return redirect(url_for('modulo8.vestiario'))
 
-@modulo8.route('/modulo8/dipendenti/<int:id>/modifica', methods=['GET', 'POST'])
+@modulo8.route('/dipendenti/<int:id>/modifica_step', methods=['GET','POST'])
 @login_required
 @admin_required
-def modifica_dipendente(id):
+def modifica_dipendente_step(id):
     dip = Dipendente.query.get_or_404(id)
-    form = DipendenteStep1Form(obj=dip)
-    
-    if form.validate_on_submit():
-        dip.nome = form.nome.data
-        dip.cognome = form.cognome.data
-        dip.data_nascita = form.data_nascita.data
-        dip.luogo_nascita = form.luogo_nascita.data
-        dip.provincia_nascita = form.provincia_nascita.data
-        dip.codice_fiscale = form.codice_fiscale.data
-        dip.email = form.email.data
-        dip.telefono = form.telefono.data
-        
-        db.session.commit()
-        flash('Dipendente aggiornato con successo', 'success')
+    step = int(request.args.get('step', 1))
+
+    # Determina il form corretto in base allo step
+    if step == 1:
+        form = DipendenteStep1Form(obj=dip)
+    elif step == 2:
+        form = DipendenteStep2Form(obj=dip)
+    elif step == 3:
+        form = DipendenteStep3Form(obj=dip)
+    elif step == 4:
+        form = DipendenteStep4Form() # Le competenze richiedono una logica speciale per il pre-compilamento
+        # Precompila le scelte per il campo competenze (non i dati selezionati)
+        form.competenze.choices = [(c.id, c.nome) for c in Competenza.query.order_by(Competenza.nome).all()]
+        # Precompila le competenze e percentuali esistenti per questo dipendente
+        if request.method == 'GET':
+            selected_competenze_ids = [c.id for c in dip.competenze]
+            form.competenze.data = selected_competenze_ids
+            # Le percentuali dovranno essere gestite separatamente nel template per il pre-filling
+            # Potremmo passare un dizionario di percentuali al template
+    elif step == 5:
+        form = DipendenteStep5Form() # Il vestiario richiede una logica speciale per il pre-compilamento
+        form.vestiario.choices = [(v.id, f"{v.nome} ({v.taglia})" if v.taglia else v.nome) for v in VestiarioItem.query.order_by(VestiarioItem.nome).all()]
+        if request.method == 'GET':
+            selected_vestiario_ids = [vi.id for vi in dip.vestiario] # Assumendo che dip.vestiario sia una lista di VestiarioItem
+            form.vestiario.data = selected_vestiario_ids
+    else:
+        flash('Step non valido.', 'warning')
         return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
+
+    if form.validate_on_submit():
+        action = request.form.get('action')
+        
+        if action == 'prev':
+            if step > 1:
+                return redirect(url_for('modulo8.modifica_dipendente_step', id=dip.id, step=step-1))
+            else:
+                return redirect(url_for('modulo8.profilo_dipendente', id=dip.id)) # Torna al profilo se si è al primo step
+
+        elif action == 'next':
+            # Salva i dati per lo step corrente
+            if step == 1:
+                dip.nome = form.nome.data
+                dip.cognome = form.cognome.data
+                dip.data_nascita = form.data_nascita.data
+                dip.luogo_nascita = form.luogo_nascita.data
+                dip.provincia_nascita = form.provincia_nascita.data
+                dip.codice_fiscale = form.codice_fiscale.data
+                dip.email = form.email.data
+                dip.telefono = form.telefono.data
+            elif step == 2:
+                dip.matricola = form.matricola.data
+                dip.reparto = form.reparto.data
+                dip.ruolo = form.ruolo.data
+                dip.data_assunzione_somministrazione = form.data_assunzione_somministrazione.data
+                dip.agenzia_somministrazione = form.agenzia_somministrazione.data
+                dip.data_assunzione_indeterminato = form.data_assunzione_indeterminato.data
+                dip.legge_104 = form.legge_104.data == 'si'
+                dip.donatore_avis = form.donatore_avis.data == 'si'
+            elif step == 3:
+                dip.indirizzo_residenza = form.indirizzo_residenza.data
+                dip.citta_residenza = form.citta_residenza.data
+                dip.provincia_residenza = form.provincia_residenza.data
+                dip.cap_residenza = form.cap_residenza.data
+            elif step == 4:
+                # Gestione competenze (rimuovi vecchie, aggiungi nuove con percentuali)
+                # Rimuovi tutte le competenze esistenti per questo dipendente
+                DipendenteCompetenza.query.filter_by(dipendente_id=dip.id).delete()
+                
+                competenze_selezionate_ids = request.form.getlist('competenze')
+                for comp_id_str in competenze_selezionate_ids:
+                    comp_id = int(comp_id_str)
+                    percentuale_str = request.form.get(f'percentuale_{comp_id}', '0')
+                    percentuale = int(percentuale_str) if percentuale_str.isdigit() else 0
+                    
+                    nuova_dip_competenza = DipendenteCompetenza(
+                        dipendente_id=dip.id,
+                        competenza_id=comp_id,
+                        percentuale=percentuale
+                    )
+                    db.session.add(nuova_dip_competenza)
+            elif step == 5:
+                # Gestione vestiario (rimuovi vecchi, aggiungi nuovi)
+                # Questo è un many-to-many semplice, quindi WTForms dovrebbe gestirlo con form.populate_obj se il campo è corretto
+                # Tuttavia, la gestione many-to-many con SelectMultipleField può essere tricky per l'update.
+                # Un approccio più sicuro è cancellare e ricreare le associazioni.
+                dip.vestiario = [] # Rimuove le vecchie associazioni
+                selected_vestiario_ids = form.vestiario.data
+                if selected_vestiario_ids:
+                    for vest_id in selected_vestiario_ids:
+                        item = VestiarioItem.query.get(vest_id)
+                        if item:
+                            dip.vestiario.append(item)
+            
+            db.session.commit()
+            flash(f'Dati dello step {step} aggiornati con successo!', 'success')
+
+            if step < 5: # Assumendo 5 step totali
+                return redirect(url_for('modulo8.modifica_dipendente_step', id=dip.id, step=step+1))
+            else:
+                # Dopo l'ultimo step, torna al profilo del dipendente
+                return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
+
+    # Per il GET request, se non è validate_on_submit, semplicemente renderizza il template
+    # con il form pre-compilato.
     
-    return render_template('modulo8/dipendenti/modifica_step.html', form=form, dip=dip, step=1)
+    competenze_lista = None
+    dip_competenze_percentuali = {}
+    if step == 4:
+        competenze_lista = Competenza.query.order_by(Competenza.nome).all()
+        # Iterate over dip.competenze_associate to get DipendenteCompetenza objects
+        for dc_assoc in dip.competenze_associate: 
+            dip_competenze_percentuali[dc_assoc.competenza_id] = dc_assoc.percentuale
+
+    return render_template(
+        'modulo8/dipendenti/modifica_step.html',
+        form=form,
+        step=step,
+        is_new=False, # Stiamo modificando, non creando
+        dip=dip,      # Passa l'oggetto dipendente al template
+        competenze_lista=competenze_lista, # Per lo step 4
+        dip_competenze_percentuali=dip_competenze_percentuali # Per pre-compilare le percentuali step 4
+    )
 
 @modulo8.route('/dipendenti/elimina/<int:id>', methods=['POST'])
 @login_required

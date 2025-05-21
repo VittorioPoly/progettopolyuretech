@@ -83,7 +83,7 @@
             <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-sm btn-info">
               <i class="fas fa-eye"></i> Visualizza
             </a>
-            <a href="{{ url_for('modulo8.modifica_dipendente', id=dip.id) }}" class="btn btn-sm btn-primary">
+            <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id) }}" class="btn btn-sm btn-primary">
               <i class="fas fa-edit"></i> Modifica
             </a>
             <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#archiveModal{{ dip.id }}">
@@ -103,6 +103,7 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ url_for('modulo8.archivia_dipendente', id=dip.id) }}" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <div class="modal-body">
                     <p>Stai per archiviare il dipendente {{ dip.nome }} {{ dip.cognome }}.</p>
                     <div class="mb-3">
@@ -134,6 +135,7 @@
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
                   <form action="{{ url_for('modulo8.elimina_dipendente', id=dip.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">Elimina</button>
                   </form>
                 </div>

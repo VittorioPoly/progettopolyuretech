@@ -18,7 +18,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-user me-2"></i>Dati Personali</h5>
-                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=1) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=1) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -40,7 +40,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-briefcase me-2"></i>Dati Lavorativi</h5>
-                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=2) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=2) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -62,7 +62,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-home me-2"></i>Dati Residenza</h5>
-                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=3) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=3) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -83,17 +83,17 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-tasks me-2"></i>Competenze</h5>
-                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=4) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=4) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
                 <div class="card-body">
-                    {% if dip.competenze %}
+                    {% if dip.competenze_associate %}
                         <ul class="list-group list-group-flush">
-                            {% for dc in dip.competenze %}
+                            {% for dc_assoc in dip.competenze_associate %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ dc.competenza.nome }}
-                                <span class="badge bg-primary rounded-pill">{{ dc.percentuale }}%</span>
+                                {{ dc_assoc.competenza.nome }}
+                                <span class="badge bg-primary rounded-pill">{{ dc_assoc.percentuale }}%</span>
                             </li>
                             {% endfor %}
                         </ul>
@@ -107,19 +107,18 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-orange text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-tshirt me-2"></i>Vestiario</h5>
-                     <a href="{{ url_for('modulo8.dip_vestiario', id=dip.id) }}" class="btn btn-light btn-sm">
+                     <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=5) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
                 <div class="card-body">
-                    {% if dip.vestizione %} {# Assumendo che la relazione si chiami 'vestizione' #}
+                    {% if dip.vestiario %} {# Assumendo che la relazione sia dip.vestiario e contenga VestiarioItem #}
                         <ul class="list-group list-group-flush">
-                            {% for item in dip.vestizione %}
+                            {% for item in dip.vestiario %}
                             <li class="list-group-item">
-                                {{ item.vestiario_item.nome }} 
-                                {% if item.vestiario_item.taglia %}({{ item.vestiario_item.taglia }}){% endif %}
-                                - Quantità: {{ item.quantita }}
-                                {% if item.data_consegna %} - Consegnato il: {{ item.data_consegna.strftime('%d-%m-%Y') }}{% endif %}
+                                {{ item.nome }} 
+                                {% if item.taglia %}({{ item.taglia }}){% endif %}
+                                {# Se vuoi mostrare quantità o data consegna da una tabella associativa, dovrai accedere a quell'oggetto #}
                             </li>
                             {% endfor %}
                         </ul>
@@ -138,9 +137,7 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    {# Qui potresti mostrare un riepilogo o un messaggio, es: #}
                     <p class="text-muted mb-0">Visualizza lo storico completo delle timbrature.</p>
-                    {# Oppure le ultime N timbrature se hai i dati disponibili qui #}
                 </div>
             </div>
 
@@ -153,7 +150,6 @@
                     </a>
                 </div>
                 <div class="card-body">
-                     {# Qui potresti mostrare un riepilogo dei corsi o un messaggio #}
                     <p class="text-muted mb-0">Gestisci i corsi di formazione del dipendente.</p>
                 </div>
             </div>

@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="module-view">
-    <h2>{% if is_new %}Nuovo Dipendente{% else %}Modifica Dipendente{% endif %}</h2>
+    <h2>
+        {% if is_new %}
+            Nuovo Dipendente
+        {% else %}
+            Modifica Dipendente: {{ dip.nome }} {{ dip.cognome }}
+        {% endif %}
+        - Step {{ step }} di 5
+    </h2>
     
     <div class="progress mb-4">
         <div class="progress-bar" role="progressbar" 
@@ -13,27 +20,12 @@
         </div>
     </div>
 
-    <!-- Show navigation tabs only when editing an existing employee -->
-    {% if not is_new %}
-    <ul class="nav nav-tabs mb-4">
-        <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}">Profilo</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('modulo8.performance', id=dip.id) }}">Performance</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('modulo8.dip_timbrature', id=dip.id) }}">Timbrature</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('modulo8.dip_vestiario', id=dip.id) }}">Vestiario</a>
-        </li>
-    </ul>
-    {% endif %}
+    <!-- Show navigation tabs only when editing an existing employee AND on their profile page (not here) -->
+    {# Pulsanti di navigazione tra sezioni del profilo non mostrati qui, ma sulla pagina profilo_dipendente #}
 
     <div class="card">
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" action="{% if is_new %}{{ url_for('modulo8.nuovo_dipendente', step=step) }}{% else %}{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=step) }}{% endif %}">
                 {{ form.hidden_tag() }}
                 
                 {% if step == 1 %}
@@ -150,15 +142,21 @@
                                 <label class="form-label mb-3 fw-bold">Competenze</label>
                                 <div class="competenze-list">
                                     {% for comp in competenze_lista %}
-                                        <div class="competenza-item">
-                                            <input type="checkbox" name="competenze" value="{{ comp.id }}" id="comp_{{ comp.id }}" class="form-check-input competenza-check-input">
+                                        <div class="competenza-item {% if not is_new and comp.id in form.competenze.data %}selected{% endif %}">
+                                            <input type="checkbox" 
+                                                   name="competenze" 
+                                                   value="{{ comp.id }}" 
+                                                   id="comp_{{ comp.id }}" 
+                                                   class="form-check-input competenza-check-input"
+                                                   {% if not is_new and comp.id in form.competenze.data %}checked{% endif %}>
                                             <label class="competenza-label mb-0 ms-2" for="comp_{{ comp.id }}">{{ comp.nome }}</label>
                                             <select name="percentuale_{{ comp.id }}" class="form-select percentuale-select ms-3">
-                                                <option value="0">0%</option>
-                                                <option value="25">25%</option>
-                                                <option value="50">50%</option>
-                                                <option value="75">75%</option>
-                                                <option value="100">100%</option>
+                                                {% set current_percent = dip_competenze_percentuali.get(comp.id, 0) if not is_new else 0 %}
+                                                <option value="0" {% if current_percent == 0 %}selected{% endif %}>0%</option>
+                                                <option value="25" {% if current_percent == 25 %}selected{% endif %}>25%</option>
+                                                <option value="50" {% if current_percent == 50 %}selected{% endif %}>50%</option>
+                                                <option value="75" {% if current_percent == 75 %}selected{% endif %}>75%</option>
+                                                <option value="100" {% if current_percent == 100 %}selected{% endif %}>100%</option>
                                             </select>
                                         </div>
                                     {% endfor %}
@@ -182,6 +180,10 @@
                         <button type="submit" name="action" value="prev" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Indietro
                         </button>
+                    {% elif not is_new and step == 1 %}
+                         <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Annulla
+                        </a>
                     {% endif %}
                     
                     {% if step < 5 %}
@@ -190,7 +192,7 @@
                         </button>
                     {% else %}
                         <button type="submit" name="action" value="next" class="btn btn-success">
-                            <i class="fas fa-save"></i> Salva
+                            <i class="fas fa-save"></i> Salva {% if not is_new %}Aggiornamenti{% endif %}
                         </button>
                     {% endif %}
                 </div>
@@ -291,23 +293,20 @@
 }
 </style>
 <script>
-// Evidenzia la riga selezionata quando la checkbox è attiva
-function updateCompetenzaSelection() {
-    document.querySelectorAll('.competenza-item').forEach(function(item) {
-        var checkbox = item.querySelector('.competenza-check-input');
-        if (checkbox && checkbox.checked) {
-            item.classList.add('selected');
-        } else {
-            item.classList.remove('selected');
-        }
-    });
-}
-
+// Eventuale script per evidenziare .competenza-item.selected dinamicamente al check della checkbox
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.competenza-check-input').forEach(function(checkbox) {
-        checkbox.addEventListener('change', updateCompetenzaSelection);
+        checkbox.addEventListener('change', function() {
+            const item = this.closest('.competenza-item');
+            if (item) {
+                if (this.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            }
+        });
     });
-    updateCompetenzaSelection();
 });
 </script>
 {% endblock %}
