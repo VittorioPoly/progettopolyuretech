@@ -214,53 +214,31 @@ Modulo7ViewForm = Modulo6ViewForm
 # Form per Modulo 8: Gestione dipendenti e competenze
 # ======================================================
 
-class DipendenteStep1Form(FlaskForm):
-    """Form per il primo step: dati personali"""
-    nome = StringField('Nome', validators=[DataRequired(), Length(max=100)])
-    cognome = StringField('Cognome', validators=[DataRequired(), Length(max=100)])
-    data_nascita = DateField('Data di Nascita', validators=[DataRequired()], format='%Y-%m-%d')
-    luogo_nascita = SelectField('Luogo di Nascita', validators=[DataRequired()], choices=[])
-    luogo_nascita_altro = StringField('Altro Luogo di Nascita', validators=[Optional(), Length(max=100)])
-    provincia_nascita = SelectField('Provincia di Nascita', validators=[DataRequired()], choices=[])
-    provincia_nascita_altro = StringField('Altra Provincia di Nascita', validators=[Optional(), Length(max=100)])
-    codice_fiscale = StringField('Codice Fiscale', validators=[Optional(), Length(min=16, max=16)])
-    email = StringField('Email', validators=[Optional(), Email(), Length(max=120)])
-    telefono = StringField('Telefono', validators=[Optional(), Length(max=20)])
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.luogo_nascita.choices = [(c['nome'], c['nome']) for c in COMUNI_ITALIANI]
-        self.luogo_nascita.choices.append(('altro', 'Altro...'))
-        self.luogo_nascita.choices.insert(0, ('', 'Seleziona un comune...'))
-        self.provincia_nascita.choices = [(p['sigla'], f"{p['sigla']} - {p['nome']}") for p in PROVINCE_ITALIANE]
-        self.provincia_nascita.choices.append(('altro', 'Altro...'))
-        self.provincia_nascita.choices.insert(0, ('', 'Seleziona una provincia...'))
-
-class DipendenteStep2Form(FlaskForm):
-    """Form per il secondo step: dati lavorativi"""
-    matricola = StringField('N° Matricola', validators=[DataRequired(), Length(max=20)])
-    reparto = StringField('Reparto', validators=[Optional(), Length(max=100)])
-    ruolo = StringField('Ruolo', validators=[Optional(), Length(max=100)])
-    data_assunzione_somministrazione = DateField('Data Assunzione in Somministrazione', validators=[Optional()])
-    agenzia_somministrazione = StringField('Agenzia Somministrazione', validators=[Optional(), Length(max=100)])
-    data_assunzione_indeterminato = DateField('Data Assunzione Tempo Indeterminato', validators=[Optional()])
-    legge_104 = SelectField('Legge 104', choices=[('no', 'No'), ('si', 'Si')], validators=[DataRequired()])
-    donatore_avis = SelectField('Donatore Avis', choices=[('no', 'No'), ('si', 'Si')], validators=[DataRequired()])
-
-class DipendenteStep3Form(FlaskForm):
-    """Form per il terzo step: residenza"""
-    indirizzo_residenza = StringField('Indirizzo', validators=[DataRequired(), Length(max=200)])
-    citta_residenza = StringField('Città', validators=[DataRequired(), Length(max=100)])
-    provincia_residenza = StringField('Provincia', validators=[DataRequired(), Length(max=2)])
-    cap_residenza = StringField('CAP', validators=[DataRequired(), Length(max=5)])
-
-class DipendenteStep4Form(FlaskForm):
-    """Form per il quarto step: competenze"""
-    competenze = SelectField('Competenze', coerce=int, validators=[Optional()], render_kw={"multiple": "multiple"})
-
-class DipendenteStep5Form(FlaskForm):
-    """Form per il quinto step: vestiario"""
-    vestiario = SelectField('Vestiario', coerce=int, validators=[Optional()], render_kw={"multiple": "multiple"})
+class DipendenteForm(FlaskForm):
+    nome = StringField('Nome', validators=[DataRequired()])
+    cognome = StringField('Cognome', validators=[DataRequired()])
+    data_nascita = DateField('Data di Nascita', validators=[DataRequired()])
+    luogo_nascita = StringField('Luogo di Nascita', validators=[DataRequired()])
+    provincia_nascita = StringField('Provincia di Nascita', validators=[DataRequired()])
+    codice_fiscale = StringField('Codice Fiscale', validators=[DataRequired()])
+    email = StringField('Email', validators=[Optional(), Email()])
+    telefono = StringField('Telefono', validators=[Optional()])
+    
+    matricola = StringField('Matricola', validators=[Optional()])
+    reparto = StringField('Reparto', validators=[Optional()])
+    ruolo = StringField('Ruolo', validators=[Optional()])
+    data_assunzione_somministrazione = DateField('Data Assunzione Somministrazione', validators=[Optional()])
+    agenzia_somministrazione = StringField('Agenzia Somministrazione', validators=[Optional()])
+    data_assunzione_indeterminato = DateField('Data Assunzione Indeterminato', validators=[Optional()])
+    legge_104 = BooleanField('Legge 104')
+    donatore_avis = BooleanField('Donatore AVIS')
+    
+    indirizzo_residenza = StringField('Indirizzo', validators=[DataRequired()])
+    citta_residenza = StringField('Città', validators=[DataRequired()])
+    provincia_residenza = StringField('Provincia', validators=[DataRequired()])
+    cap_residenza = StringField('CAP', validators=[DataRequired()])
+    
+    submit = SubmitField('Salva')
 
 
 class CompetenzaForm(FlaskForm):
@@ -388,3 +366,50 @@ class PartecipazioneCorsoForm(FlaskForm):
     ], coerce=int)
     note = TextAreaField('Note')
     submit = SubmitField('Salva')
+
+class DipendenteStep1Form(FlaskForm):
+    """Form per il primo step di creazione dipendente - Dati Personali"""
+    nome = StringField('Nome', validators=[DataRequired()])
+    cognome = StringField('Cognome', validators=[DataRequired()])
+    data_nascita = DateField('Data di Nascita', validators=[DataRequired()])
+    luogo_nascita = StringField('Luogo di Nascita', validators=[DataRequired()])
+    provincia_nascita = StringField('Provincia di Nascita', validators=[DataRequired()])
+    codice_fiscale = StringField('Codice Fiscale', validators=[DataRequired()])
+    email = StringField('Email', validators=[Optional(), Email()])
+    telefono = StringField('Telefono', validators=[Optional()])
+    submit = SubmitField('Avanti')
+    prev = SubmitField('Indietro')
+
+class DipendenteStep2Form(FlaskForm):
+    """Form per il secondo step di creazione dipendente - Dati Lavorativi"""
+    matricola = StringField('Matricola', validators=[Optional()])
+    reparto = StringField('Reparto', validators=[Optional()])
+    ruolo = StringField('Ruolo', validators=[Optional()])
+    data_assunzione_somministrazione = DateField('Data Assunzione Somministrazione', validators=[Optional()])
+    agenzia_somministrazione = StringField('Agenzia Somministrazione', validators=[Optional()])
+    data_assunzione_indeterminato = DateField('Data Assunzione Indeterminato', validators=[Optional()])
+    legge_104 = SelectField('Legge 104', choices=[('si', 'Sì'), ('no', 'No')], validators=[DataRequired()])
+    donatore_avis = SelectField('Donatore AVIS', choices=[('si', 'Sì'), ('no', 'No')], validators=[DataRequired()])
+    submit = SubmitField('Avanti')
+    prev = SubmitField('Indietro')
+
+class DipendenteStep3Form(FlaskForm):
+    """Form per il terzo step di creazione dipendente - Dati Residenza"""
+    indirizzo_residenza = StringField('Indirizzo', validators=[DataRequired()])
+    citta_residenza = StringField('Città', validators=[DataRequired()])
+    provincia_residenza = StringField('Provincia', validators=[DataRequired()])
+    cap_residenza = StringField('CAP', validators=[DataRequired()])
+    submit = SubmitField('Avanti')
+    prev = SubmitField('Indietro')
+
+class DipendenteStep4Form(FlaskForm):
+    """Form per il quarto step di creazione dipendente - Competenze"""
+    competenze = SelectMultipleField('Competenze', coerce=int, validators=[Optional()])
+    submit = SubmitField('Avanti')
+    prev = SubmitField('Indietro')
+
+class DipendenteStep5Form(FlaskForm):
+    """Form per il quinto step di creazione dipendente - Vestiario"""
+    vestiario = SelectMultipleField('Vestiario', coerce=int, validators=[Optional()])
+    submit = SubmitField('Completa')
+    prev = SubmitField('Indietro')

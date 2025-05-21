@@ -1,68 +1,171 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="module-view">
-  <h2>Modifica Dipendente</h2>
-  
-  <form method="POST" class="mt-4">
-    {{ form.csrf_token }}
-    
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="nome" class="form-label">Nome *</label>
-        {{ form.nome(class="form-control", required=true) }}
-      </div>
-      
-      <div class="col-md-6 mb-3">
-        <label for="cognome" class="form-label">Cognome *</label>
-        {{ form.cognome(class="form-control", required=true) }}
-      </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Modifica Dipendente</h2>
+        <div>
+            <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna al profilo
+            </a>
+        </div>
     </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="email" class="form-label">Email</label>
-        {{ form.email(class="form-control", type="email") }}
-      </div>
-      
-      <div class="col-md-6 mb-3">
-        <label for="telefono" class="form-label">Telefono</label>
-        {{ form.telefono(class="form-control") }}
-      </div>
-    </div>
+    <form method="POST" class="needs-validation" novalidate>
+        {{ form.csrf_token }}
+        
+        <!-- Dati Personali -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-user"></i> Dati Personali</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.nome.label(class="form-label") }}
+                        {{ form.nome(class="form-control") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.cognome.label(class="form-label") }}
+                        {{ form.cognome(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.data_nascita.label(class="form-label") }}
+                        {{ form.data_nascita(class="form-control", type="date") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.luogo_nascita.label(class="form-label") }}
+                        {{ form.luogo_nascita(class="form-control") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.provincia_nascita.label(class="form-label") }}
+                        {{ form.provincia_nascita(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.codice_fiscale.label(class="form-label") }}
+                        {{ form.codice_fiscale(class="form-control") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", type="email") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.telefono.label(class="form-label") }}
+                        {{ form.telefono(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="data_assunzione" class="form-label">Data Assunzione *</label>
-        {{ form.data_assunzione(class="form-control", type="date", required=true) }}
-      </div>
-      
-      <div class="col-md-6 mb-3">
-        <label for="reparto" class="form-label">Reparto</label>
-        {{ form.reparto(class="form-control") }}
-      </div>
-    </div>
+        <!-- Dati Lavorativi -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-briefcase"></i> Dati Lavorativi</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.matricola.label(class="form-label") }}
+                        {{ form.matricola(class="form-control") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.reparto.label(class="form-label") }}
+                        {{ form.reparto(class="form-control") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.ruolo.label(class="form-label") }}
+                        {{ form.ruolo(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.data_assunzione_somministrazione.label(class="form-label") }}
+                        {{ form.data_assunzione_somministrazione(class="form-control", type="date") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.agenzia_somministrazione.label(class="form-label") }}
+                        {{ form.agenzia_somministrazione(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.data_assunzione_indeterminato.label(class="form-label") }}
+                        {{ form.data_assunzione_indeterminato(class="form-control", type="date") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check mt-4">
+                            {{ form.legge_104(class="form-check-input") }}
+                            {{ form.legge_104.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check mt-4">
+                            {{ form.donatore_avis(class="form-check-input") }}
+                            {{ form.donatore_avis.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="ruolo" class="form-label">Ruolo</label>
-        {{ form.ruolo(class="form-control") }}
-      </div>
-      
-      <div class="col-md-6 mb-3">
-        <label for="competenze" class="form-label">Competenze</label>
-        {{ form.competenze(class="form-select", multiple=true) }}
-      </div>
-    </div>
+        <!-- Dati Residenza -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-home"></i> Dati Residenza</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.indirizzo_residenza.label(class="form-label") }}
+                        {{ form.indirizzo_residenza(class="form-control") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.citta_residenza.label(class="form-label") }}
+                        {{ form.citta_residenza(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.provincia_residenza.label(class="form-label") }}
+                        {{ form.provincia_residenza(class="form-control") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.cap_residenza.label(class="form-label") }}
+                        {{ form.cap_residenza(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="mb-3">
-      <label for="note" class="form-label">Note</label>
-      {{ form.note(class="form-control", rows=3) }}
-    </div>
-
-    <div class="mt-4">
-      <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">Annulla</a>
-      <button type="submit" class="btn btn-primary">Salva Modifiche</button>
-    </div>
-  </form>
+        <div class="d-flex justify-content-between">
+            <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annulla
+            </a>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
 </div>
+
+{% block scripts %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %}
+
 {% endblock %} 

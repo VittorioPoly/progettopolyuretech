@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Sicurezza - {{ dip.nome }} {{ dip.cognome }}</h2>
+        <div>
+            <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna al profilo
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Corsi Attivi -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0"><i class="fas fa-exclamation-triangle"></i> Corsi da Completare</h5>
+                </div>
+                <div class="card-body">
+                    {% set corsi_da_completare = dip.corsi_sicurezza|rejectattr('is_completato')|list %}
+                    {% if corsi_da_completare %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Corso</th>
+                                        <th>Scadenza</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for corso in corsi_da_completare %}
+                                        <tr>
+                                            <td>{{ corso.titolo }}</td>
+                                            <td>
+                                                {% if corso.data_scadenza %}
+                                                    {% if corso.data_scadenza < now %}
+                                                        <span class="text-danger">{{ corso.data_scadenza.strftime('%d-%m-%Y') }}</span>
+                                                    {% else %}
+                                                        {{ corso.data_scadenza.strftime('%d-%m-%Y') }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-success" onclick="completaCorsoSicurezza({{ corso.id }})">
+                                                    <i class="fas fa-check"></i> Completa
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nessun corso da completare</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Corsi Completati -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-check-circle"></i> Corsi Completati</h5>
+                </div>
+                <div class="card-body">
+                    {% set corsi_completati = dip.corsi_sicurezza|selectattr('is_completato')|list %}
+                    {% if corsi_completati %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Corso</th>
+                                        <th>Data Completamento</th>
+                                        <th>Scadenza</th>
+                                        <th>Stato</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for corso in corsi_completati %}
+                                        <tr>
+                                            <td>{{ corso.titolo }}</td>
+                                            <td>{{ corso.data_completamento.strftime('%d-%m-%Y') }}</td>
+                                            <td>
+                                                {% if corso.data_scadenza %}
+                                                    {% if corso.data_scadenza < now %}
+                                                        <span class="text-danger">{{ corso.data_scadenza.strftime('%d-%m-%Y') }}</span>
+                                                    {% else %}
+                                                        {{ corso.data_scadenza.strftime('%d-%m-%Y') }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if corso.data_scadenza and corso.data_scadenza < now %}
+                                                    <span class="badge bg-danger">Scaduto</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Valido</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nessun corso completato</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Nuovi Corsi Disponibili -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-list"></i> Corsi Disponibili</h5>
+                </div>
+                <div class="card-body">
+                    {% set corsi_disponibili = corsi_sicurezza|rejectattr('id', 'in', dip.corsi_sicurezza|map(attribute='id')|list) %}
+                    {% if corsi_disponibili %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Titolo</th>
+                                        <th>Descrizione</th>
+                                        <th>Durata</th>
+                                        <th>Scadenza</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for corso in corsi_disponibili %}
+                                        <tr>
+                                            <td>{{ corso.titolo }}</td>
+                                            <td>{{ corso.descrizione }}</td>
+                                            <td>{{ corso.durata_ore }} ore</td>
+                                            <td>
+                                                {% if corso.data_scadenza %}
+                                                    {{ corso.data_scadenza.strftime('%d-%m-%Y') }}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <form action="{{ url_for('modulo8.assegna_corso_sicurezza', dipendente_id=dip.id, corso_id=corso.id) }}" method="POST" style="display: inline;">
+                                                    <button type="submit" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-plus"></i> Assegna
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nessun nuovo corso disponibile</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+function completaCorsoSicurezza(corso_id) {
+    if (confirm('Confermi il completamento del corso?')) {
+        fetch(`/modulo8/corso-sicurezza/${corso_id}/completa`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Si è verificato un errore');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
+
+{% endblock %} 

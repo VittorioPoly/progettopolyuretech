@@ -2,175 +2,214 @@
 {% block content %}
 <div class="module-view">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Profilo Dipendente</h2>
+        <h2>Profilo Dipendente: {{ dip.nome }} {{ dip.cognome }}</h2>
         <div>
-            <a href="{{ url_for('modulo8.modifica_dipendente', id=dip.id) }}" class="btn btn-primary">
-                <i class="fas fa-edit"></i> Modifica
-            </a>
-            <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Torna alla lista
+            <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla Lista
             </a>
         </div>
     </div>
 
     <div class="row">
-        <!-- Dati Personali -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-user"></i> Dati Personali</h5>
+        <!-- Colonna Sinistra -->
+        <div class="col-lg-6">
+
+            <!-- Dati Personali -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-user me-2"></i>Dati Personali</h5>
+                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=1) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit me-1"></i> Gestisci
+                    </a>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Nome:</strong> {{ dip.nome }}</p>
-                            <p><strong>Cognome:</strong> {{ dip.cognome }}</p>
-                            <p><strong>Data di Nascita:</strong> {{ dip.data_nascita.strftime('%d-%m-%Y') }}</p>
-                            <p><strong>Luogo di Nascita:</strong> {{ dip.luogo_nascita }}</p>
-                            <p><strong>Provincia di Nascita:</strong> {{ dip.provincia_nascita }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Codice Fiscale:</strong> {{ dip.codice_fiscale }}</p>
-                            <p><strong>Email:</strong> {{ dip.email }}</p>
-                            <p><strong>Telefono:</strong> {{ dip.telefono }}</p>
-                            <p><strong>Legge 104:</strong> {{ 'Sì' if dip.legge_104 else 'No' }}</p>
-                            <p><strong>Donatore AVIS:</strong> {{ 'Sì' if dip.donatore_avis else 'No' }}</p>
-                        </div>
-                    </div>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Nome:</dt><dd class="col-sm-7">{{ dip.nome }}</dd>
+                        <dt class="col-sm-5">Cognome:</dt><dd class="col-sm-7">{{ dip.cognome }}</dd>
+                        <dt class="col-sm-5">Data di Nascita:</dt><dd class="col-sm-7">{{ dip.data_nascita.strftime('%d-%m-%Y') if dip.data_nascita else 'N/D' }}</dd>
+                        <dt class="col-sm-5">Luogo di Nascita:</dt><dd class="col-sm-7">{{ dip.luogo_nascita or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Provincia di Nascita:</dt><dd class="col-sm-7">{{ dip.provincia_nascita or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Codice Fiscale:</dt><dd class="col-sm-7">{{ dip.codice_fiscale or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Email:</dt><dd class="col-sm-7">{{ dip.email or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Telefono:</dt><dd class="col-sm-7">{{ dip.telefono or 'N/D' }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Dati Lavorativi -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-briefcase me-2"></i>Dati Lavorativi</h5>
+                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=2) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit me-1"></i> Gestisci
+                    </a>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Matricola:</dt><dd class="col-sm-7">{{ dip.matricola or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Reparto:</dt><dd class="col-sm-7">{{ dip.reparto or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Ruolo:</dt><dd class="col-sm-7">{{ dip.ruolo or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Data Ass. Somministrazione:</dt><dd class="col-sm-7">{{ dip.data_assunzione_somministrazione.strftime('%d-%m-%Y') if dip.data_assunzione_somministrazione else 'N/D' }}</dd>
+                        <dt class="col-sm-5">Agenzia Somministrazione:</dt><dd class="col-sm-7">{{ dip.agenzia_somministrazione or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Data Ass. Indeterminato:</dt><dd class="col-sm-7">{{ dip.data_assunzione_indeterminato.strftime('%d-%m-%Y') if dip.data_assunzione_indeterminato else 'N/D' }}</dd>
+                        <dt class="col-sm-5">Legge 104:</dt><dd class="col-sm-7">{{ 'Sì' if dip.legge_104 else 'No' }}</dd>
+                        <dt class="col-sm-5">Donatore AVIS:</dt><dd class="col-sm-7">{{ 'Sì' if dip.donatore_avis else 'No' }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Dati Residenza -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-home me-2"></i>Dati Residenza</h5>
+                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=3) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit me-1"></i> Gestisci
+                    </a>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Indirizzo:</dt><dd class="col-sm-7">{{ dip.indirizzo_residenza or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Città:</dt><dd class="col-sm-7">{{ dip.citta_residenza or 'N/D' }}</dd>
+                        <dt class="col-sm-5">Provincia:</dt><dd class="col-sm-7">{{ dip.provincia_residenza or 'N/D' }}</dd>
+                        <dt class="col-sm-5">CAP:</dt><dd class="col-sm-7">{{ dip.cap_residenza or 'N/D' }}</dd>
+                    </dl>
                 </div>
             </div>
         </div>
 
-        <!-- Dati Lavorativi -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-briefcase"></i> Dati Lavorativi</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Matricola:</strong> {{ dip.matricola }}</p>
-                            <p><strong>Reparto:</strong> {{ dip.reparto }}</p>
-                            <p><strong>Ruolo:</strong> {{ dip.ruolo }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Data Assunzione Somministrazione:</strong> 
-                                {{ dip.data_assunzione_somministrazione.strftime('%d-%m-%Y') if dip.data_assunzione_somministrazione else '—' }}</p>
-                            <p><strong>Agenzia Somministrazione:</strong> {{ dip.agenzia_somministrazione or '—' }}</p>
-                            <p><strong>Data Assunzione Indeterminato:</strong> 
-                                {{ dip.data_assunzione_indeterminato.strftime('%d-%m-%Y') if dip.data_assunzione_indeterminato else '—' }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dati Residenza -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-home"></i> Dati Residenza</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Indirizzo:</strong> {{ dip.indirizzo_residenza }}</p>
-                    <p><strong>Città:</strong> {{ dip.citta_residenza }}</p>
-                    <p><strong>Provincia:</strong> {{ dip.provincia_residenza }}</p>
-                    <p><strong>CAP:</strong> {{ dip.cap_residenza }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Competenze -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="card-title mb-0"><i class="fas fa-tools"></i> Competenze</h5>
+        <!-- Colonna Destra -->
+        <div class="col-lg-6">
+            <!-- Competenze -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-tasks me-2"></i>Competenze</h5>
+                    <a href="{{ url_for('modulo8.modifica_step', id=dip.id, step=4) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit me-1"></i> Gestisci
+                    </a>
                 </div>
                 <div class="card-body">
                     {% if dip.competenze %}
-                        <div class="row">
-                            {% for competenza in dip.competenze %}
-                                <div class="col-12 mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="badge bg-primary">{{ competenza.nome }}</span>
-                                        <span class="text-muted small">{{ competenza.percentuale }}%</span>
-                                    </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar bg-primary" 
-                                             role="progressbar" 
-                                             style="width: {{ competenza.percentuale }}%;" 
-                                             aria-valuenow="{{ competenza.percentuale }}" 
-                                             aria-valuemin="0" 
-                                             aria-valuemax="100">
-                                        </div>
-                                    </div>
-                                </div>
+                        <ul class="list-group list-group-flush">
+                            {% for dc in dip.competenze %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ dc.competenza.nome }}
+                                <span class="badge bg-primary rounded-pill">{{ dc.percentuale }}%</span>
+                            </li>
                             {% endfor %}
-                        </div>
+                        </ul>
                     {% else %}
-                        <p class="text-muted">Nessuna competenza registrata</p>
+                        <p class="text-muted mb-0">Nessuna competenza specificata.</p>
                     {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Vestiario -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-tshirt"></i> Vestiario</h5>
+            <!-- Vestiario -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-orange text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-tshirt me-2"></i>Vestiario</h5>
+                     <a href="{{ url_for('modulo8.dip_vestiario', id=dip.id) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit me-1"></i> Gestisci
+                    </a>
                 </div>
                 <div class="card-body">
-                    {% if dip.vestiario %}
-                        <div class="row">
-                            {% for item in dip.vestiario %}
-                                <div class="col-md-6 mb-2">
-                                    <span class="badge bg-secondary">{{ item.nome }} ({{ item.taglia }})</span>
-                                </div>
+                    {% if dip.vestizione %} {# Assumendo che la relazione si chiami 'vestizione' #}
+                        <ul class="list-group list-group-flush">
+                            {% for item in dip.vestizione %}
+                            <li class="list-group-item">
+                                {{ item.vestiario_item.nome }} 
+                                {% if item.vestiario_item.taglia %}({{ item.vestiario_item.taglia }}){% endif %}
+                                - Quantità: {{ item.quantita }}
+                                {% if item.data_consegna %} - Consegnato il: {{ item.data_consegna.strftime('%d-%m-%Y') }}{% endif %}
+                            </li>
                             {% endfor %}
-                        </div>
+                        </ul>
                     {% else %}
-                        <p class="text-muted">Nessun capo di vestiario assegnato</p>
+                        <p class="text-muted mb-0">Nessun capo di vestiario assegnato.</p>
                     {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Timbrature Recenti -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-clock"></i> Ultime Timbrature</h5>
+            <!-- Timbrature -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-teal text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-user-clock me-2"></i>Timbrature</h5>
+                    <a href="{{ url_for('modulo8.dip_timbrature', id=dip.id) }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-search me-1"></i> Visualizza
+                    </a>
                 </div>
                 <div class="card-body">
-                    {% if dip.timbrature %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Data</th>
-                                        <th>Tipo</th>
-                                        <th>Ora</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for timbratura in dip.timbrature[-5:]|reverse %}
-                                        <tr>
-                                            <td>{{ timbratura.timestamp.strftime('%d-%m-%Y') }}</td>
-                                            <td>{{ timbratura.tipo }}</td>
-                                            <td>{{ timbratura.timestamp.strftime('%H:%M') }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted">Nessuna timbratura registrata</p>
-                    {% endif %}
+                    {# Qui potresti mostrare un riepilogo o un messaggio, es: #}
+                    <p class="text-muted mb-0">Visualizza lo storico completo delle timbrature.</p>
+                    {# Oppure le ultime N timbrature se hai i dati disponibili qui #}
                 </div>
             </div>
+
+            <!-- Formazione -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-graduation-cap me-2"></i>Formazione</h5>
+                    <a href="{{ url_for('modulo8.formazione_dipendente', id=dip.id) }}" class="btn btn-dark btn-sm">
+                        <i class="fas fa-external-link-alt me-1"></i> Gestisci
+                    </a>
+                </div>
+                <div class="card-body">
+                     {# Qui potresti mostrare un riepilogo dei corsi o un messaggio #}
+                    <p class="text-muted mb-0">Gestisci i corsi di formazione del dipendente.</p>
+                </div>
+            </div>
+            
+            <!-- Sicurezza (Esempio, se esiste) -->
+            {# 
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-shield-alt me-2"></i>Sicurezza</h5>
+                    <a href="#" class="btn btn-light btn-sm"> {# SOSTITUIRE # con url_for corretto #}
+                        <i class="fas fa-edit me-1"></i> Gestisci
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-0">Gestisci le informazioni relative alla sicurezza.</p>
+                </div>
+            </div>
+            #}
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .card-header h5 {
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    .card-body dl dt {
+        font-weight: 500;
+        color: #555;
+    }
+    .card-body dl dd {
+        color: #333;
+    }
+    .bg-purple {
+        background-color: #6f42c1 !important; /* Bootstrap purple */
+    }
+    .bg-orange {
+        background-color: #fd7e14 !important; /* Bootstrap orange */
+    }
+    .bg-teal {
+        background-color: #20c997 !important; /* Bootstrap teal */
+    }
+    .list-group-item {
+        border-left: 0;
+        border-right: 0;
+    }
+    .list-group-item:first-child {
+        border-top: 0;
+    }
+    .list-group-item:last-child {
+        border-bottom: 0;
+    }
+</style>
 {% endblock %}

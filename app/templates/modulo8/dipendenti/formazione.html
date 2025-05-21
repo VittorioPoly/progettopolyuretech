@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Formazione - {{ dip.nome }} {{ dip.cognome }}</h2>
+        <div>
+            <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna al profilo
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Corsi in Corso -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0"><i class="fas fa-clock"></i> Corsi in Corso</h5>
+                </div>
+                <div class="card-body">
+                    {% set corsi_in_corso = dip.partecipazioni_corsi|selectattr('stato', 'equalto', 'in_corso')|list %}
+                    {% if corsi_in_corso %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Corso</th>
+                                        <th>Data Inizio</th>
+                                        <th>Durata</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for part in corsi_in_corso %}
+                                        <tr>
+                                            <td>{{ part.corso.titolo }}</td>
+                                            <td>{{ part.corso.data_inizio.strftime('%d-%m-%Y') }}</td>
+                                            <td>{{ part.corso.durata_ore }} ore</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-success" onclick="completaCorso({{ part.id }})">
+                                                    <i class="fas fa-check"></i> Completa
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nessun corso in corso</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Corsi Completati -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-check-circle"></i> Corsi Completati</h5>
+                </div>
+                <div class="card-body">
+                    {% set corsi_completati = dip.partecipazioni_corsi|selectattr('stato', 'equalto', 'completato')|list %}
+                    {% if corsi_completati %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Corso</th>
+                                        <th>Data Completamento</th>
+                                        <th>Valutazione</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for part in corsi_completati %}
+                                        <tr>
+                                            <td>{{ part.corso.titolo }}</td>
+                                            <td>{{ part.data_completamento.strftime('%d-%m-%Y') }}</td>
+                                            <td>
+                                                {% if part.valutazione %}
+                                                    {% for i in range(part.valutazione) %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% endfor %}
+                                                    {% for i in range(5 - part.valutazione) %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nessun corso completato</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Corsi Disponibili -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-list"></i> Corsi Disponibili</h5>
+                </div>
+                <div class="card-body">
+                    {% set corsi_disponibili = corsi|rejectattr('id', 'in', dip.partecipazioni_corsi|map(attribute='corso.id')|list) %}
+                    {% if corsi_disponibili %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Titolo</th>
+                                        <th>Tipo</th>
+                                        <th>Durata</th>
+                                        <th>Data Inizio</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for corso in corsi_disponibili %}
+                                        <tr>
+                                            <td>{{ corso.titolo }}</td>
+                                            <td>
+                                                {% if corso.is_obbligatorio %}
+                                                    <span class="badge bg-danger">Obbligatorio</span>
+                                                {% else %}
+                                                    <span class="badge bg-info">Opzionale</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ corso.durata_ore }} ore</td>
+                                            <td>{{ corso.data_inizio.strftime('%d-%m-%Y') }}</td>
+                                            <td>
+                                                <form action="{{ url_for('modulo8.iscrivi_corso', dipendente_id=dip.id, corso_id=corso.id) }}" method="POST" style="display: inline;">
+                                                    <button type="submit" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-plus"></i> Iscrivi
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nessun corso disponibile</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+function completaCorso(partecipazione_id) {
+    // Mostra un modal per la valutazione
+    var valutazione = prompt('Inserisci una valutazione da 1 a 5:');
+    if (valutazione !== null) {
+        // Invia la richiesta al server
+        fetch(`/modulo8/partecipazione/${partecipazione_id}/completa`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                valutazione: parseInt(valutazione)
+            })
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Si è verificato un errore');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
+
+{% endblock %} 

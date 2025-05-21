@@ -304,6 +304,9 @@ class Dipendente(db.Model):
                               secondary='prelievi_vestiario', 
                               backref='dipendenti')
     performance = db.relationship('Performance', back_populates='dipendente', cascade='all, delete-orphan')
+    partecipazioni_corsi = db.relationship('PartecipazioneCorso', backref='dipendente', lazy=True)
+    corsi_sicurezza = db.relationship('CorsoSicurezza', secondary='dipendente_corso_sicurezza',
+                                    backref=db.backref('dipendenti', lazy=True))
 
     @property
     def data_assunzione_date(self):
@@ -461,36 +464,42 @@ class CourseCompletion(db.Model):
     dipendente = db.relationship('Dipendente')
 
 class CorsoFormazione(db.Model):
-    __tablename__ = 'corsi_formazione'
-    
+    __tablename__ = 'corso_formazione'
     id = db.Column(db.Integer, primary_key=True)
     titolo = db.Column(db.String(100), nullable=False)
     descrizione = db.Column(db.Text)
     durata_ore = db.Column(db.Integer)
-    data_inizio = db.Column(db.DateTime)
-    data_fine = db.Column(db.DateTime)
-    data_scadenza = db.Column(db.DateTime)  # nuova colonna per la scadenza
+    data_inizio = db.Column(db.Date)
     is_obbligatorio = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     archiviato = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relazioni
-    created_by = db.relationship('User', backref='corsi_creati')
-    partecipanti = db.relationship('PartecipazioneCorso', back_populates='corso', cascade='all, delete-orphan')
+    partecipazioni = db.relationship('PartecipazioneCorso', backref='corso', lazy=True)
 
 class PartecipazioneCorso(db.Model):
-    __tablename__ = 'partecipazioni_corsi'
-    
+    __tablename__ = 'partecipazione_corso'
     id = db.Column(db.Integer, primary_key=True)
     dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
-    corso_id = db.Column(db.Integer, db.ForeignKey('corsi_formazione.id'), nullable=False)
+    corso_id = db.Column(db.Integer, db.ForeignKey('corso_formazione.id'), nullable=False)
     stato = db.Column(db.String(20), default='da_iniziare')  # da_iniziare, in_corso, completato
+    data_iscrizione = db.Column(db.DateTime, default=datetime.utcnow)
     data_completamento = db.Column(db.DateTime)
-    valutazione = db.Column(db.Integer)  # 1-5
-    note = db.Column(db.Text)
+    valutazione = db.Column(db.Integer)  # 1-5 stelle
+
+class CorsoSicurezza(db.Model):
+    __tablename__ = 'corso_sicurezza'
+    id = db.Column(db.Integer, primary_key=True)
+    titolo = db.Column(db.String(100), nullable=False)
+    descrizione = db.Column(db.Text)
+    durata_ore = db.Column(db.Integer)
+    data_scadenza = db.Column(db.Date)
+    is_completato = db.Column(db.Boolean, default=False)
+    data_completamento = db.Column(db.DateTime)
+    archiviato = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relazioni
-    dipendente = db.relationship('Dipendente', backref='partecipazioni_corsi')
-    corso = db.relationship('CorsoFormazione', back_populates='partecipanti')
+
+# Tabella di associazione per dipendenti e corsi di sicurezza
+dipendente_corso_sicurezza = db.Table('dipendente_corso_sicurezza',
+    db.Column('dipendente_id', db.Integer, db.ForeignKey('dipendente.id'), primary_key=True),
+    db.Column('corso_id', db.Integer, db.ForeignKey('corso_sicurezza.id'), primary_key=True)
+)

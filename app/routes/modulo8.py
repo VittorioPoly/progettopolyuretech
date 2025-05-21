@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
 from app import db
-from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso
+from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso, CorsoSicurezza
 from app.utils import admin_required
 from datetime import datetime
 from calendar import monthrange
@@ -93,10 +93,11 @@ def nuovo_dipendente():
         form = DipendenteStep4Form()
         # Precompila le competenze
         form.competenze.choices = [(c.id, c.nome) for c in Competenza.query.order_by(Competenza.nome).all()]
+        competenze_lista = Competenza.query.order_by(Competenza.nome).all()
     elif step == 5:
         form = DipendenteStep5Form()
-        # Precompila il vestiario
-        form.vestiario.choices = [(v.id, v.nome) for v in VestiarioItem.query.order_by(VestiarioItem.nome).all()]
+        # Precompila il vestiario con nome e taglia
+        form.vestiario.choices = [(v.id, f"{v.nome} ({v.taglia})" if v.taglia else v.nome) for v in VestiarioItem.query.order_by(VestiarioItem.nome).all()]
     else:
         return redirect(url_for('modulo8.dipendenti'))
     
@@ -140,11 +141,13 @@ def nuovo_dipendente():
                     'cap_residenza': form.cap_residenza.data
                 })
             elif step == 4:
-                # Assicuriamoci che le competenze siano una lista
-                competenze = form.competenze.data
-                if not isinstance(competenze, list):
-                    competenze = [competenze] if competenze else []
+                # Nuova gestione: salva competenze e percentuali
+                competenze = request.form.getlist('competenze')
+                percentuali = {}
+                for comp_id in competenze:
+                    percentuali[comp_id] = request.form.get(f'percentuale_{comp_id}', '0')
                 session['dipendente_data']['competenze'] = competenze
+                session['dipendente_data']['competenze_percentuali'] = percentuali
             elif step == 5:
                 # Assicuriamoci che il vestiario sia una lista
                 vestiario = form.vestiario.data
@@ -236,10 +239,14 @@ def nuovo_dipendente():
         elif step == 5:
             form.vestiario.data = session['dipendente_data'].get('vestiario', [])
     
-    return render_template('modulo8/dipendenti/modifica_step.html', 
-                         form=form, 
-                         step=step, 
-                         is_new=True)
+    competenze_lista = Competenza.query.order_by(Competenza.nome).all()
+    return render_template(
+        'modulo8/dipendenti/modifica_step.html',
+        form=form,
+        step=step,
+        is_new=True,
+        competenze_lista=competenze_lista
+    )
 
 @modulo8.route('/dipendenti/<int:id>')
 @login_required
@@ -603,138 +610,28 @@ def prelievo_vestiario():
     flash(f'Prelievo di {qta}× {item.nome} registrato per {dip.nome}.', 'success')
     return redirect(url_for('modulo8.vestiario'))
 
-@modulo8.route('/dipendenti/modifica/<int:id>', methods=['GET', 'POST'])
+@modulo8.route('/modulo8/dipendenti/<int:id>/modifica', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def modifica_dipendente(id):
-    dipendente = Dipendente.query.get_or_404(id)
-    step = int(request.args.get('step', 1))
-    
-    if step == 1:
-        form = DipendenteStep1Form(obj=dipendente)
-    elif step == 2:
-        form = DipendenteStep2Form(obj=dipendente)
-    elif step == 3:
-        form = DipendenteStep3Form(obj=dipendente)
-    elif step == 4:
-        form = DipendenteStep4Form(obj=dipendente)
-        # Precompila le competenze
-        form.competenze.choices = [(c.id, c.nome) for c in Competenza.query.order_by(Competenza.nome).all()]
-        # Precompila le percentuali
-        competenze_percentuali = {dc.competenza_id: dc.percentuale for dc in dipendente.competenze_associate}
-        form.competenze.data = list(competenze_percentuali.keys())
-    elif step == 5:
-        form = DipendenteStep5Form(obj=dipendente)
-        # Precompila il vestiario
-        form.vestiario.choices = [(v.id, v.nome) for v in VestiarioItem.query.order_by(VestiarioItem.nome).all()]
-        form.vestiario.data = [v.id for v in dipendente.vestiario]
-    else:
-        return redirect(url_for('modulo8.dipendenti'))
+    dip = Dipendente.query.get_or_404(id)
+    form = DipendenteStep1Form(obj=dip)
     
     if form.validate_on_submit():
-        action = request.form.get('action')
+        dip.nome = form.nome.data
+        dip.cognome = form.cognome.data
+        dip.data_nascita = form.data_nascita.data
+        dip.luogo_nascita = form.luogo_nascita.data
+        dip.provincia_nascita = form.provincia_nascita.data
+        dip.codice_fiscale = form.codice_fiscale.data
+        dip.email = form.email.data
+        dip.telefono = form.telefono.data
         
-        if action == 'prev':
-            return redirect(url_for('modulo8.modifica_dipendente', id=id, step=step-1))
-        elif action == 'next':
-            # Aggiorna i dati del dipendente
-            if step == 1:
-                dipendente.nome = form.nome.data
-                dipendente.cognome = form.cognome.data
-                dipendente.data_nascita = form.data_nascita.data
-                dipendente.luogo_nascita = form.luogo_nascita.data
-                dipendente.provincia_nascita = form.provincia_nascita.data
-                dipendente.codice_fiscale = form.codice_fiscale.data
-                dipendente.email = form.email.data
-                dipendente.telefono = form.telefono.data
-            elif step == 2:
-                dipendente.matricola = form.matricola.data
-                dipendente.reparto = form.reparto.data
-                dipendente.ruolo = form.ruolo.data
-                dipendente.data_assunzione_somministrazione = form.data_assunzione_somministrazione.data
-                dipendente.agenzia_somministrazione = form.agenzia_somministrazione.data
-                dipendente.data_assunzione_indeterminato = form.data_assunzione_indeterminato.data
-                dipendente.legge_104 = form.legge_104.data == 'si'
-                dipendente.donatore_avis = form.donatore_avis.data == 'si'
-            elif step == 3:
-                dipendente.indirizzo_residenza = form.indirizzo_residenza.data
-                dipendente.citta_residenza = form.citta_residenza.data
-                dipendente.provincia_residenza = form.provincia_residenza.data
-                dipendente.cap_residenza = form.cap_residenza.data
-            elif step == 4:
-                # Rimuovi tutte le competenze esistenti
-                DipendenteCompetenza.query.filter_by(dipendente_id=dipendente.id).delete()
-                
-                # Aggiungi le nuove competenze con le relative percentuali
-                for competenza_id in form.competenze.data:
-                    percentuale = int(request.form.get(f'percentuale_{competenza_id}', 0))
-                    dc = DipendenteCompetenza(
-                        dipendente_id=dipendente.id,
-                        competenza_id=competenza_id,
-                        percentuale=percentuale
-                    )
-                    db.session.add(dc)
-            elif step == 5:
-                # Aggiorna il vestiario
-                dipendente.vestiario = []
-                for vestiario_id in form.vestiario.data:
-                    vestiario = VestiarioItem.query.get(vestiario_id)
-                    if vestiario:
-                        dipendente.vestiario.append(vestiario)
-            
-            db.session.commit()
-            return redirect(url_for('modulo8.modifica_dipendente', id=id, step=step+1))
-        elif action == 'submit':
-            # Aggiorna i dati del dipendente
-            if step == 1:
-                dipendente.nome = form.nome.data
-                dipendente.cognome = form.cognome.data
-                dipendente.data_nascita = form.data_nascita.data
-                dipendente.luogo_nascita = form.luogo_nascita.data
-                dipendente.provincia_nascita = form.provincia_nascita.data
-                dipendente.codice_fiscale = form.codice_fiscale.data
-                dipendente.email = form.email.data
-                dipendente.telefono = form.telefono.data
-            elif step == 2:
-                dipendente.matricola = form.matricola.data
-                dipendente.reparto = form.reparto.data
-                dipendente.ruolo = form.ruolo.data
-                dipendente.data_assunzione_somministrazione = form.data_assunzione_somministrazione.data
-                dipendente.agenzia_somministrazione = form.agenzia_somministrazione.data
-                dipendente.data_assunzione_indeterminato = form.data_assunzione_indeterminato.data
-                dipendente.legge_104 = form.legge_104.data == 'si'
-                dipendente.donatore_avis = form.donatore_avis.data == 'si'
-            elif step == 3:
-                dipendente.indirizzo_residenza = form.indirizzo_residenza.data
-                dipendente.citta_residenza = form.citta_residenza.data
-                dipendente.provincia_residenza = form.provincia_residenza.data
-                dipendente.cap_residenza = form.cap_residenza.data
-            elif step == 4:
-                # Rimuovi tutte le competenze esistenti
-                DipendenteCompetenza.query.filter_by(dipendente_id=dipendente.id).delete()
-                
-                # Aggiungi le nuove competenze con le relative percentuali
-                for competenza_id in form.competenze.data:
-                    percentuale = int(request.form.get(f'percentuale_{competenza_id}', 0))
-                    dc = DipendenteCompetenza(
-                        dipendente_id=dipendente.id,
-                        competenza_id=competenza_id,
-                        percentuale=percentuale
-                    )
-                    db.session.add(dc)
-            elif step == 5:
-                # Aggiorna il vestiario
-                dipendente.vestiario = []
-                for vestiario_id in form.vestiario.data:
-                    vestiario = VestiarioItem.query.get(vestiario_id)
-                    if vestiario:
-                        dipendente.vestiario.append(vestiario)
-            
-            db.session.commit()
-            flash('Dipendente modificato con successo!', 'success')
-            return redirect(url_for('modulo8.dipendenti'))
+        db.session.commit()
+        flash('Dipendente aggiornato con successo', 'success')
+        return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
     
-    return render_template('modulo8/dipendenti/modifica_step.html', form=form, dipendente=dipendente, step=step)
+    return render_template('modulo8/dipendenti/modifica_step.html', form=form, dip=dip, step=1)
 
 @modulo8.route('/dipendenti/elimina/<int:id>', methods=['POST'])
 @login_required
@@ -977,3 +874,158 @@ def elimina_partecipanti(id):
     else:
         flash('Nessun partecipante selezionato', 'warning')
     return redirect(url_for('modulo8.dettaglio_corso', id=id))
+
+@modulo8.route('/dipendenti/<int:id>/modifica-campo', methods=['POST'])
+@login_required
+@admin_required
+def modifica_campo_dipendente(id):
+    dip = Dipendente.query.get_or_404(id)
+    field_name = request.form.get('field_name')
+    field_value = request.form.get('field_value')
+    
+    # Lista dei campi modificabili
+    allowed_fields = [
+        'nome', 'cognome', 'data_nascita', 'luogo_nascita', 'provincia_nascita',
+        'codice_fiscale', 'email', 'telefono', 'legge_104', 'donatore_avis',
+        'matricola', 'reparto', 'ruolo', 'data_assunzione_somministrazione',
+        'agenzia_somministrazione', 'data_assunzione_indeterminato',
+        'indirizzo_residenza', 'citta_residenza', 'provincia_residenza', 'cap_residenza'
+    ]
+    
+    if field_name not in allowed_fields:
+        flash('Campo non valido', 'danger')
+        return redirect(url_for('modulo8.profilo_dipendente', id=id))
+    
+    # Gestione campi speciali
+    if field_name in ['data_nascita', 'data_assunzione_somministrazione', 'data_assunzione_indeterminato']:
+        if field_value:
+            field_value = datetime.strptime(field_value, '%Y-%m-%d').date()
+        else:
+            field_value = None
+    elif field_name in ['legge_104', 'donatore_avis']:
+        field_value = field_value == 'true'
+    
+    # Aggiorna il campo
+    setattr(dip, field_name, field_value)
+    db.session.commit()
+    
+    flash('Campo aggiornato con successo', 'success')
+    return redirect(url_for('modulo8.profilo_dipendente', id=id))
+
+@modulo8.route('/dipendenti/<int:id>/modifica-percentuale-competenza', methods=['POST'])
+@login_required
+@admin_required
+def modifica_percentuale_competenza(id):
+    dip = Dipendente.query.get_or_404(id)
+    competenza_id = request.form.get('competenza_id', type=int)
+    percentuale = request.form.get('percentuale', type=int)
+    
+    if not competenza_id or not isinstance(percentuale, int) or percentuale < 0 or percentuale > 100:
+        flash('Dati non validi', 'danger')
+        return redirect(url_for('modulo8.profilo_dipendente', id=id))
+    
+    # Trova l'associazione dipendente-competenza
+    dip_comp = DipendenteCompetenza.query.filter_by(
+        dipendente_id=id,
+        competenza_id=competenza_id
+    ).first()
+    
+    if not dip_comp:
+        flash('Competenza non trovata', 'danger')
+        return redirect(url_for('modulo8.profilo_dipendente', id=id))
+    
+    # Aggiorna la percentuale
+    dip_comp.percentuale = percentuale
+    db.session.commit()
+    
+    flash('Percentuale competenza aggiornata con successo', 'success')
+    return redirect(url_for('modulo8.profilo_dipendente', id=id))
+
+@modulo8.route('/dipendenti/<int:id>/formazione')
+@login_required
+@admin_required
+def formazione_dipendente(id):
+    dip = Dipendente.query.get_or_404(id)
+    corsi = CorsoFormazione.query.filter_by(archiviato=False).all()
+    return render_template('modulo8/dipendenti/formazione.html', dip=dip, corsi=corsi)
+
+@modulo8.route('/dipendenti/<int:id>/sicurezza')
+@login_required
+@admin_required
+def sicurezza_dipendente(id):
+    dip = Dipendente.query.get_or_404(id)
+    corsi_sicurezza = CorsoSicurezza.query.filter_by(archiviato=False).all()
+    return render_template('modulo8/dipendenti/sicurezza.html', 
+                         dip=dip, 
+                         corsi_sicurezza=corsi_sicurezza,
+                         now=datetime.utcnow())
+
+@modulo8.route('/partecipazione/<int:id>/completa', methods=['POST'])
+@login_required
+@admin_required
+def completa_partecipazione(id):
+    partecipazione = PartecipazioneCorso.query.get_or_404(id)
+    data = request.get_json()
+    valutazione = data.get('valutazione')
+    
+    if not isinstance(valutazione, int) or valutazione < 1 or valutazione > 5:
+        return jsonify({'error': 'Valutazione non valida'}), 400
+    
+    partecipazione.stato = 'completato'
+    partecipazione.data_completamento = datetime.utcnow()
+    partecipazione.valutazione = valutazione
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@modulo8.route('/corso-sicurezza/<int:id>/completa', methods=['POST'])
+@login_required
+@admin_required
+def completa_corso_sicurezza(id):
+    corso = CorsoSicurezza.query.get_or_404(id)
+    corso.is_completato = True
+    corso.data_completamento = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@modulo8.route('/dipendenti/<int:dipendente_id>/iscrivi-corso/<int:corso_id>', methods=['POST'])
+@login_required
+@admin_required
+def iscrivi_corso(dipendente_id, corso_id):
+    dip = Dipendente.query.get_or_404(dipendente_id)
+    corso = CorsoFormazione.query.get_or_404(corso_id)
+    
+    # Verifica se il dipendente è già iscritto
+    if PartecipazioneCorso.query.filter_by(dipendente_id=dipendente_id, corso_id=corso_id).first():
+        flash('Il dipendente è già iscritto a questo corso', 'warning')
+        return redirect(url_for('modulo8.formazione_dipendente', id=dipendente_id))
+    
+    partecipazione = PartecipazioneCorso(
+        dipendente_id=dipendente_id,
+        corso_id=corso_id,
+        stato='da_iniziare'
+    )
+    db.session.add(partecipazione)
+    db.session.commit()
+    
+    flash('Dipendente iscritto al corso con successo', 'success')
+    return redirect(url_for('modulo8.formazione_dipendente', id=dipendente_id))
+
+@modulo8.route('/dipendenti/<int:dipendente_id>/assegna-corso-sicurezza/<int:corso_id>', methods=['POST'])
+@login_required
+@admin_required
+def assegna_corso_sicurezza(dipendente_id, corso_id):
+    dip = Dipendente.query.get_or_404(dipendente_id)
+    corso = CorsoSicurezza.query.get_or_404(corso_id)
+    
+    # Verifica se il corso è già assegnato
+    if corso in dip.corsi_sicurezza:
+        flash('Il corso è già assegnato a questo dipendente', 'warning')
+        return redirect(url_for('modulo8.sicurezza_dipendente', id=dipendente_id))
+    
+    dip.corsi_sicurezza.append(corso)
+    db.session.commit()
+    
+    flash('Corso di sicurezza assegnato con successo', 'success')
+    return redirect(url_for('modulo8.sicurezza_dipendente', id=dipendente_id))
