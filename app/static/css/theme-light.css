@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #007bff;
+    --primary-color: #e05a00d7;
     --secondary-color: #6c757d;
     --bg-color: #ffffff;
     --text-color: #212529;
@@ -11,6 +11,15 @@
     --input-border: #ced4da;
     --footer-bg: #f8f9fa;
     --footer-text: #6c757d;
+    --bs-primary-rgb: 0, 0, 0; /* Nero, card visualizza profilo dipendente */
+    --bs-success-rgb: 1, 150, 20; /* Verde, card dati lavorativi */
+    --bs-info-rgb: 0, 0, 255; /* Blu, card dati Residenza */
+    --bs-purple-rgb: 128, 0, 128; /* Viola, card dati Competenze */
+    --bs-orange-rgb: 255, 165, 0; /* Arancione, card dati Vestiario */
+    --bs-teal-rgb: 180, 180, 180; /* Grigio, card Timbrature */
+    --bs-warning-rgb: 255, 255, 0; /* Giallo, card dati Formazione */
+    --bs-danger-rgb: 255, 0, 0; /* Rosso, card dati Sicurezza */   
+    --bs-btn-bg: #ffffff; /* Colore di sfondo del bottone */
 }
 
 body {
@@ -82,4 +91,32 @@ body {
     font-size: 2.5rem;
     margin-bottom: 15px;
     color: var(--primary-color);
+}
+
+.bg-purple {
+    background-color: rgba(var(--bs-purple-rgb), 1) !important; /* Viola */
+}
+
+.bg-orange {
+    background-color: rgba(var(--bs-orange-rgb), 1) !important; /* Arancione */
+}
+
+.bg-teal {
+    background-color: rgba(var(--bs-teal-rgb), 1) !important; /* Grigio */
+}
+
+.btn-dark {
+    background-color: #ffffff !important; /* Colore bianco */
+    color: #000000; /* Colore del testo */
+}
+
+.btn-danger {
+    background-color: var(--bs-danger-rgb); /* Colore rosso */
+    color: #ff0000; /* Colore del testo */
+    border: none; /* Rimuovi il bordo */
+}
+
+.btn-danger:hover {
+    background-color: rgb(255, 0, 0) !important; /* Colore grigio al passaggio del mouse */
+    color: #000000; /* Colore del testo nero al passaggio del mouse */
 }

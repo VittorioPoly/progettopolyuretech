@@ -1,15 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="module-view">
-  <h2>Gestione Dipendenti</h2>
+  <h2>Dipendenti</h2>
   
-  <div class="mb-4">
+  <div class="d-flex justify-content-end gap-4 mb-4">
     <a href="{{ url_for('modulo8.nuovo_dipendente') }}" class="btn btn-primary">
       <i class="fas fa-plus"></i> Nuovo Dipendente
     </a>
     <a href="{{ url_for('modulo8.storico_dipendenti') }}" class="btn btn-secondary">
       <i class="fas fa-history"></i> Storico Dipendenti
     </a>
+    <a href="{{ url_for('modulo8.dashboard') }}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left me-1"></i> Torna alla Dashboard Dipendenti
+  </a>
   </div>
 
   <!-- Barra di ricerca -->
@@ -68,9 +71,9 @@
         <td>{{ dip.email or '—' }}</td>
         <td>
           {% if dip.data_assunzione_indeterminato %}
-            {{ dip.data_assunzione_indeterminato.strftime('%d-%m-%Y') }}
+            {{ dip.data_assunzione_indeterminato.strftime('%d/%m/%Y') }}
           {% elif dip.data_assunzione_somministrazione %}
-            {{ dip.data_assunzione_somministrazione.strftime('%d-%m-%Y') }}
+            {{ dip.data_assunzione_somministrazione.strftime('%d/%m/%Y') }}
           {% else %}
             —
           {% endif %}
@@ -79,7 +82,7 @@
         <td>{{ dip.reparto or '—' }}</td>
         <td>{{ dip.ruolo or '—' }}</td>
         <td>
-          <div class="btn-group">
+          <div class="d-flex gap-2 flex-wrap">
             <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-sm btn-info">
               <i class="fas fa-eye"></i> Visualizza
             </a>

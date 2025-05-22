@@ -83,6 +83,11 @@ def dipendenti():
 def nuovo_dipendente():
     step = int(request.args.get('step', 1))
     
+    # Inizializza le variabili comuni
+    inventory = None
+    prelievi = []
+    competenze_lista = None
+    
     if step == 1:
         form = DipendenteStep1Form()
     elif step == 2:
@@ -96,11 +101,24 @@ def nuovo_dipendente():
         competenze_lista = Competenza.query.order_by(Competenza.nome).all()
     elif step == 5:
         form = DipendenteStep5Form()
-        # Precompila il vestiario con nome e taglia
-        form.vestiario.choices = [(v.id, f"{v.nome} ({v.taglia})" if v.taglia else v.nome) for v in VestiarioItem.query.order_by(VestiarioItem.nome).all()]
-    else:
-        return redirect(url_for('modulo8.dipendenti'))
-    
+        inventory = VestiarioItem.query.order_by(VestiarioItem.nome).all()
+        form.vestiario.choices = [(v.id, f"{v.nome} ({v.taglia})" if v.taglia else v.nome) for v in inventory]
+
+        # Gestione aggiunta prelievo
+        if request.method == 'POST' and 'aggiungi_prelievo' in request.form:
+            item_id = int(request.form.get('item_id'))
+            quantita = int(request.form.get('quantita'))
+            # Recupera o crea la lista prelievi in sessione
+            prelievi = session['dipendente_data'].get('prelievi_vestiario', [])
+            prelievi.append({'item_id': item_id, 'quantita': quantita})
+            session['dipendente_data']['prelievi_vestiario'] = prelievi
+            flash('Prelievo aggiunto in lista (verrà registrato alla creazione del dipendente)', 'success')
+            return redirect(url_for('modulo8.nuovo_dipendente', step=5))
+
+        # Prelievi già aggiunti (per mostrare la tabella)
+        prelievi = session['dipendente_data'].get('prelievi_vestiario', []) if 'dipendente_data' in session else []
+
+    # Gestione dei pulsanti avanti/indietro e salvataggio dati
     if form.validate_on_submit():
         action = request.form.get('action')
         
@@ -141,7 +159,6 @@ def nuovo_dipendente():
                     'cap_residenza': form.cap_residenza.data
                 })
             elif step == 4:
-                # Nuova gestione: salva competenze e percentuali
                 competenze = request.form.getlist('competenze')
                 percentuali = {}
                 for comp_id in competenze:
@@ -149,66 +166,68 @@ def nuovo_dipendente():
                 session['dipendente_data']['competenze'] = competenze
                 session['dipendente_data']['competenze_percentuali'] = percentuali
             elif step == 5:
-                # Assicuriamoci che il vestiario sia una lista
-                vestiario = form.vestiario.data
-                if not isinstance(vestiario, list):
-                    vestiario = [vestiario] if vestiario else []
-                session['dipendente_data']['vestiario'] = vestiario
-                
-                # Crea il dipendente con tutti i dati raccolti
-                dip = Dipendente(
-                    nome=session['dipendente_data']['nome'],
-                    cognome=session['dipendente_data']['cognome'],
-                    data_nascita=datetime.fromisoformat(session['dipendente_data']['data_nascita']),
-                    luogo_nascita=session['dipendente_data']['luogo_nascita'],
-                    provincia_nascita=session['dipendente_data']['provincia_nascita'],
-                    codice_fiscale=session['dipendente_data']['codice_fiscale'],
-                    email=session['dipendente_data']['email'],
-                    telefono=session['dipendente_data']['telefono'],
-                    matricola=session['dipendente_data']['matricola'],
-                    reparto=session['dipendente_data']['reparto'],
-                    ruolo=session['dipendente_data']['ruolo'],
-                    data_assunzione_somministrazione=datetime.fromisoformat(session['dipendente_data']['data_assunzione_somministrazione']) if session['dipendente_data'].get('data_assunzione_somministrazione') else None,
-                    agenzia_somministrazione=session['dipendente_data']['agenzia_somministrazione'],
-                    data_assunzione_indeterminato=datetime.fromisoformat(session['dipendente_data']['data_assunzione_indeterminato']) if session['dipendente_data'].get('data_assunzione_indeterminato') else None,
-                    legge_104=session['dipendente_data']['legge_104'],
-                    donatore_avis=session['dipendente_data']['donatore_avis'],
-                    indirizzo_residenza=session['dipendente_data']['indirizzo_residenza'],
-                    citta_residenza=session['dipendente_data']['citta_residenza'],
-                    provincia_residenza=session['dipendente_data']['provincia_residenza'],
-                    cap_residenza=session['dipendente_data']['cap_residenza'],
-                    created_by_id=current_user.id
-                )
-                
-                # Aggiungi le competenze
-                competenze = session['dipendente_data'].get('competenze', [])
-                if not isinstance(competenze, list):
-                    competenze = [competenze] if competenze else []
-                for competenza_id in competenze:
-                    competenza = Competenza.query.get(competenza_id)
-                    if competenza:
-                        dip.competenze.append(competenza)
-                
-                # Aggiungi il vestiario
-                vestiario = session['dipendente_data'].get('vestiario', [])
-                if not isinstance(vestiario, list):
-                    vestiario = [vestiario] if vestiario else []
-                for vestiario_id in vestiario:
-                    vestiario_item = VestiarioItem.query.get(vestiario_id)
-                    if vestiario_item:
-                        dip.vestiario.append(vestiario_item)
-                
-                db.session.add(dip)
-                db.session.commit()
-                
-                # Pulisci la sessione
-                session.pop('dipendente_data', None)
-                
-                flash('Dipendente creato con successo!', 'success')
-                return redirect(url_for('modulo8.dipendenti'))
+                # Gestione salvataggio finale
+                try:
+                    # Crea il dipendente con tutti i dati raccolti
+                    dip = Dipendente(
+                        nome=session['dipendente_data']['nome'],
+                        cognome=session['dipendente_data']['cognome'],
+                        data_nascita=datetime.fromisoformat(session['dipendente_data']['data_nascita']),
+                        luogo_nascita=session['dipendente_data']['luogo_nascita'],
+                        provincia_nascita=session['dipendente_data']['provincia_nascita'],
+                        codice_fiscale=session['dipendente_data']['codice_fiscale'],
+                        email=session['dipendente_data']['email'],
+                        telefono=session['dipendente_data']['telefono'],
+                        matricola=session['dipendente_data']['matricola'],
+                        reparto=session['dipendente_data']['reparto'],
+                        ruolo=session['dipendente_data']['ruolo'],
+                        data_assunzione_somministrazione=datetime.fromisoformat(session['dipendente_data']['data_assunzione_somministrazione']) if session['dipendente_data'].get('data_assunzione_somministrazione') else None,
+                        agenzia_somministrazione=session['dipendente_data']['agenzia_somministrazione'],
+                        data_assunzione_indeterminato=datetime.fromisoformat(session['dipendente_data']['data_assunzione_indeterminato']) if session['dipendente_data'].get('data_assunzione_indeterminato') else None,
+                        legge_104=session['dipendente_data']['legge_104'],
+                        donatore_avis=session['dipendente_data']['donatore_avis'],
+                        indirizzo_residenza=session['dipendente_data']['indirizzo_residenza'],
+                        citta_residenza=session['dipendente_data']['citta_residenza'],
+                        provincia_residenza=session['dipendente_data']['provincia_residenza'],
+                        cap_residenza=session['dipendente_data']['cap_residenza'],
+                        created_by_id=current_user.id
+                    )
+                    
+                    # Aggiungi le competenze
+                    competenze = session['dipendente_data'].get('competenze', [])
+                    if not isinstance(competenze, list):
+                        competenze = [competenze] if competenze else []
+                    for competenza_id in competenze:
+                        competenza = Competenza.query.get(competenza_id)
+                        if competenza:
+                            dip.competenze.append(competenza)
+                    
+                    db.session.add(dip)
+                    db.session.commit()
+                    
+                    # Registra i prelievi e scala la quantità
+                    prelievi = session['dipendente_data'].get('prelievi_vestiario', [])
+                    for p in prelievi:
+                        prelievo = PrelievoVestiario(dipendente_id=dip.id, item_id=p['item_id'], quantita=p['quantita'])
+                        db.session.add(prelievo)
+                        # Scala la quantità dal magazzino
+                        item = VestiarioItem.query.get(p['item_id'])
+                        if item:
+                            item.quantita = max(0, item.quantita - p['quantita'])
+                    db.session.commit()
+                    
+                    # Pulisci la sessione
+                    session.pop('dipendente_data', None)
+                    
+                    flash('Dipendente creato con successo!', 'success')
+                    return redirect(url_for('modulo8.dipendenti'))
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f'Errore durante la creazione del dipendente: {str(e)}', 'danger')
+                    return redirect(url_for('modulo8.nuovo_dipendente', step=5))
             
             return redirect(url_for('modulo8.nuovo_dipendente', step=step+1))
-    
+
     # Precompila il form con i dati della sessione se presenti
     if request.method == 'GET' and 'dipendente_data' in session:
         if step == 1:
@@ -239,14 +258,16 @@ def nuovo_dipendente():
         elif step == 5:
             form.vestiario.data = session['dipendente_data'].get('vestiario', [])
     
-    competenze_lista = Competenza.query.order_by(Competenza.nome).all()
     return render_template(
         'modulo8/dipendenti/modifica_step.html',
         form=form,
         step=step,
-        is_new=True,
-        competenze_lista=competenze_lista,
-        dip=None
+        is_new=False, # Stiamo modificando, non creando
+        dip=None,      # Passa l'oggetto dipendente al template
+        competenze_lista=competenze_lista, # Per lo step 4
+        dip_competenze_percentuali={}, # Per pre-compilare le percentuali step 4
+        inventory=inventory, # Per lo step 5, lista capi vestiario
+        prelievi=prelievi
     )
 
 @modulo8.route('/dipendenti/<int:id>')
@@ -255,6 +276,82 @@ def nuovo_dipendente():
 def profilo_dipendente(id):
     dip = Dipendente.query.get_or_404(id)
     return render_template('modulo8/profilo_dipendente.html',dip=dip,now=datetime.utcnow())
+
+@modulo8.route('/dipendenti/<int:id>/modifica_personali', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_personali(id):
+    dip = Dipendente.query.get_or_404(id)
+    form = DipendenteStep1Form(obj=dip)
+    if form.validate_on_submit():
+        form.populate_obj(dip)
+        db.session.commit()
+        flash('Dati personali aggiornati', 'success')
+        return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
+    return render_template('modulo8/dipendenti/modifica_personali.html', form=form, dip=dip)
+
+@modulo8.route('/dipendenti/<int:id>/modifica_lavorativi', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_lavorativi(id):
+    dip = Dipendente.query.get_or_404(id)
+    form = DipendenteStep2Form(obj=dip)
+    if form.validate_on_submit():
+        form.populate_obj(dip)
+        dip.legge_104 = (form.legge_104.data == 'si')
+        dip.donatore_avis = (form.donatore_avis.data == 'si')
+        db.session.commit()
+        flash('Dati lavorativi aggiornati', 'success')
+        return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
+    return render_template('modulo8/dipendenti/modifica_lavorativi.html', form=form, dip=dip)
+
+@modulo8.route('/dipendenti/<int:id>/modifica_residenza', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_residenza(id):
+    dip = Dipendente.query.get_or_404(id)
+    form = DipendenteStep3Form(obj=dip)
+    if form.validate_on_submit():
+        form.populate_obj(dip)
+        db.session.commit()
+        flash('Dati residenza aggiornati', 'success')
+        return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
+    return render_template('modulo8/dipendenti/modifica_residenza.html', form=form, dip=dip)
+
+@modulo8.route('/dipendenti/<int:id>/modifica_competenze', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_competenze(id):
+    dip = Dipendente.query.get_or_404(id)
+    form = DipendenteStep4Form()
+    form.competenze.choices = [(c.id, c.nome) for c in Competenza.query.order_by(Competenza.nome).all()]
+    if request.method == 'GET':
+        form.competenze.data = [c.id for c in dip.competenze]
+    if form.validate_on_submit():
+        DipendenteCompetenza.query.filter_by(dipendente_id=dip.id).delete()
+        for comp_id in form.competenze.data:
+            nuova = DipendenteCompetenza(dipendente_id=dip.id, competenza_id=comp_id, percentuale=0)
+            db.session.add(nuova)
+        db.session.commit()
+        flash('Competenze aggiornate', 'success')
+        return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
+    return render_template('modulo8/dipendenti/modifica_competenze.html', form=form, dip=dip)
+
+@modulo8.route('/dipendenti/<int:id>/modifica_vestiario', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_vestiario(id):
+    dip = Dipendente.query.get_or_404(id)
+    inventory = VestiarioItem.query.order_by(VestiarioItem.nome).all()
+    if request.method == 'POST':
+        item_id = int(request.form.get('item_id'))
+        quantita = int(request.form.get('quantita'))
+        prelievo = PrelievoVestiario(dipendente_id=dip.id, item_id=item_id, quantita=quantita)
+        db.session.add(prelievo)
+        db.session.commit()
+        flash('Prelievo vestiario registrato', 'success')
+        return redirect(url_for('modulo8.profilo_dipendente', id=dip.id))
+    return render_template('modulo8/dipendenti/modifica_vestiario.html', dip=dip, inventory=inventory)
 
 # subpages: performance, timbrature, vestiario per singolo dipendente
 @modulo8.route('/dipendenti/<int:id>/performance')
@@ -618,6 +715,7 @@ def modifica_dipendente_step(id):
     dip = Dipendente.query.get_or_404(id)
     step = int(request.args.get('step', 1))
 
+    prelievi = []  # Inizializzo sempre la variabile
     # Determina il form corretto in base allo step
     if step == 1:
         form = DipendenteStep1Form(obj=dip)
@@ -637,7 +735,8 @@ def modifica_dipendente_step(id):
             # Potremmo passare un dizionario di percentuali al template
     elif step == 5:
         form = DipendenteStep5Form() # Il vestiario richiede una logica speciale per il pre-compilamento
-        form.vestiario.choices = [(v.id, f"{v.nome} ({v.taglia})" if v.taglia else v.nome) for v in VestiarioItem.query.order_by(VestiarioItem.nome).all()]
+        inventory = VestiarioItem.query.order_by(VestiarioItem.nome).all()
+        form.vestiario.choices = [(v.id, f"{v.nome} ({v.taglia})" if v.taglia else v.nome) for v in inventory]
         if request.method == 'GET':
             selected_vestiario_ids = [vi.id for vi in dip.vestiario] # Assumendo che dip.vestiario sia una lista di VestiarioItem
             form.vestiario.data = selected_vestiario_ids
@@ -672,8 +771,8 @@ def modifica_dipendente_step(id):
                 dip.data_assunzione_somministrazione = form.data_assunzione_somministrazione.data
                 dip.agenzia_somministrazione = form.agenzia_somministrazione.data
                 dip.data_assunzione_indeterminato = form.data_assunzione_indeterminato.data
-                dip.legge_104 = form.legge_104.data == 'si'
-                dip.donatore_avis = form.donatore_avis.data == 'si'
+                dip.legge_104 = (form.legge_104.data == 'si')
+                dip.donatore_avis = (form.donatore_avis.data == 'si')
             elif step == 3:
                 dip.indirizzo_residenza = form.indirizzo_residenza.data
                 dip.citta_residenza = form.citta_residenza.data
@@ -729,6 +828,12 @@ def modifica_dipendente_step(id):
         for dc_assoc in dip.competenze_associate: 
             dip_competenze_percentuali[dc_assoc.competenza_id] = dc_assoc.percentuale
 
+    inventory = None
+    if step == 5:
+        inventory = VestiarioItem.query.order_by(VestiarioItem.nome).all()
+        # Se vuoi mostrare prelievi già effettuati dal dipendente:
+        prelievi = dip.prelievi_vestiario if dip else []
+
     return render_template(
         'modulo8/dipendenti/modifica_step.html',
         form=form,
@@ -736,7 +841,9 @@ def modifica_dipendente_step(id):
         is_new=False, # Stiamo modificando, non creando
         dip=dip,      # Passa l'oggetto dipendente al template
         competenze_lista=competenze_lista, # Per lo step 4
-        dip_competenze_percentuali=dip_competenze_percentuali # Per pre-compilare le percentuali step 4
+        dip_competenze_percentuali=dip_competenze_percentuali, # Per pre-compilare le percentuali step 4
+        inventory=inventory, # Per lo step 5, lista capi vestiario
+        prelievi=prelievi
     )
 
 @modulo8.route('/dipendenti/elimina/<int:id>', methods=['POST'])

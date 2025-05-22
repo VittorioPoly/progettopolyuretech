@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <h2>Modifica Dati Residenza: {{ dip.nome }} {{ dip.cognome }}</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                {{ form.indirizzo_residenza.label(class="form-label") }}
+                {{ form.indirizzo_residenza(class="form-control") }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.citta_residenza.label(class="form-label") }}
+                {{ form.citta_residenza(class="form-control") }}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.provincia_residenza.label(class="form-label") }}
+                {{ form.provincia_residenza(class="form-control") }}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.cap_residenza.label(class="form-label") }}
+                {{ form.cap_residenza(class="form-control") }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Salva</button>
+        <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary mt-3">Annulla</a>
+    </form>
+</div>
+{% endblock %} 

@@ -2,8 +2,12 @@
 
 {% block content %}
 <div class="dashboard-container">
+    <div class="d-flex justify-content-end mb-3">
+        <a href="/" class="btn btn-secondary">
+            <i class="fas fa-home me-1"></i> Torna alla Dashboard Principale
+        </a>
+    </div>
     <div class="dashboard-header">
-        <p class="dashboard-subtitle">Gestione completa delle risorse umane</p>
     </div>
     
     <div class="row g-4">
@@ -107,15 +111,13 @@
 
 <style>
 .dashboard-container {
-    padding: 2rem;
+    padding: 2rem 2rem 0.1rem 2rem; /* top right bottom left */
     background: #f8f9fa;
     min-height: 100vh;
 }
 
 .dashboard-header {
     text-align: center;
-    margin-bottom: 3rem;
-    padding: 2rem 0;
 }
 
 .dashboard-title {

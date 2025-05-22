@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <h2>Modifica Competenze: {{ dip.nome }} {{ dip.cognome }}</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.competenze.label(class="form-label") }}
+            {{ form.competenze(class="form-select", multiple=True, size=10) }}
+            <small class="form-text text-muted">Tieni premuto Ctrl (o Cmd su Mac) per selezionare più competenze</small>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Salva</button>
+        <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary mt-3">Annulla</a>
+    </form>
+</div>
+{% endblock %} 

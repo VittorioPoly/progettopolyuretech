@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <h2>Modifica Dati Lavorativi: {{ dip.nome }} {{ dip.cognome }}</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.matricola.label(class="form-label") }}
+                {{ form.matricola(class="form-control") }}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.reparto.label(class="form-label") }}
+                {{ form.reparto(class="form-control") }}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.ruolo.label(class="form-label") }}
+                {{ form.ruolo(class="form-control") }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.data_assunzione_somministrazione.label(class="form-label") }}
+                {{ form.data_assunzione_somministrazione(class="form-control", type="date") }}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.agenzia_somministrazione.label(class="form-label") }}
+                {{ form.agenzia_somministrazione(class="form-control") }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.data_assunzione_indeterminato.label(class="form-label") }}
+                {{ form.data_assunzione_indeterminato(class="form-control", type="date") }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.legge_104.label(class="form-label") }}
+                {{ form.legge_104(class="form-select") }}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.donatore_avis.label(class="form-label") }}
+                {{ form.donatore_avis(class="form-select") }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Salva</button>
+        <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary mt-3">Annulla</a>
+    </form>
+</div>
+{% endblock %} 

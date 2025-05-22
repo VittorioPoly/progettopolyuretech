@@ -25,7 +25,11 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST" action="{% if is_new %}{{ url_for('modulo8.nuovo_dipendente', step=step) }}{% else %}{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=step) }}{% endif %}">
+        {% if is_new %}
+            <form method="POST" action="{{ url_for('modulo8.nuovo_dipendente', step=step, is_new=True) }}">
+        {% else %}
+            <form method="POST" action="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=step) }}">
+        {% endif %}
                 {{ form.hidden_tag() }}
                 
                 {% if step == 1 %}
@@ -167,10 +171,64 @@
                 {% elif step == 5 %}
                     <h4>Vestiario</h4>
                     <div class="row">
-                        <div class="col-md-12">
-                            {{ form.vestiario.label(class="form-label") }}
-                            {{ form.vestiario(class="form-select", multiple=True, size=10) }}
-                            <small class="form-text text-muted">Tieni premuto Ctrl (o Cmd su Mac) per selezionare più capi</small>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="item_id" class="form-label">Tipo di vestiario</label>
+                                <select class="form-select" id="item_id" name="item_id" required>
+                                    <option value="" disabled selected>Seleziona...</option>
+                                    {% for item in inventory %}
+                                        <option value="{{ item.id }}">{{ item.nome }}{% if item.taglia %} ({{ item.taglia }}){% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="quantita" class="form-label">Quantità da prelevare</label>
+                                <input type="number" class="form-control" id="quantita" name="quantita" min="1" required>
+                            </div>
+                            <button type="submit" name="aggiungi_prelievo" class="btn btn-primary">Aggiungi Prelievo</button>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Prelievi Effettuati</h5>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Articolo</th>
+                                        <th>Taglia</th>
+                                        <th>Quantità</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if is_new %}
+                                        {% for p in prelievi %}
+                                            {% set item = (inventory | selectattr('id', 'equalto', p.item_id) | list).0 %}
+                                            <tr>
+                                                <td>{{ item.nome }}</td>
+                                                <td>{{ item.taglia or '—' }}</td>
+                                                <td>{{ p.quantita }}</td>
+                                                <td>—</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">Nessun prelievo registrato.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% elif dip %}
+                                        {% for p in dip.prelievi_vestiario %}
+                                            <tr>
+                                                <td>{{ p.item.nome }}</td>
+                                                <td>{{ p.item.taglia or '—' }}</td>
+                                                <td>{{ p.quantita }}</td>
+                                                <td>{{ p.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">Nessun prelievo registrato.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% endif %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 {% endif %}

@@ -18,7 +18,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-user me-2"></i>Dati Personali</h5>
-                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=1) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_personali', id=dip.id) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -40,7 +40,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-briefcase me-2"></i>Dati Lavorativi</h5>
-                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=2) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_lavorativi', id=dip.id) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -62,7 +62,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-home me-2"></i>Dati Residenza</h5>
-                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=3) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_residenza', id=dip.id) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -83,7 +83,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-tasks me-2"></i>Competenze</h5>
-                    <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=4) }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('modulo8.modifica_competenze', id=dip.id) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -107,7 +107,7 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-orange text-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0"><i class="fas fa-tshirt me-2"></i>Vestiario</h5>
-                     <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id, step=5) }}" class="btn btn-light btn-sm">
+                     <a href="{{ url_for('modulo8.modifica_vestiario', id=dip.id) }}" class="btn btn-light btn-sm">
                         <i class="fas fa-edit me-1"></i> Gestisci
                     </a>
                 </div>
@@ -181,19 +181,10 @@
     }
     .card-body dl dt {
         font-weight: 500;
-        color: #555;
+        color: #eb6c6c;
     }
     .card-body dl dd {
         color: #333;
-    }
-    .bg-purple {
-        background-color: #6f42c1 !important; /* Bootstrap purple */
-    }
-    .bg-orange {
-        background-color: #fd7e14 !important; /* Bootstrap orange */
-    }
-    .bg-teal {
-        background-color: #20c997 !important; /* Bootstrap teal */
     }
     .list-group-item {
         border-left: 0;

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <h2>Modifica Vestiario: {{ dip.nome }} {{ dip.cognome }}</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            <label for="item_id" class="form-label">Tipo di vestiario</label>
+            <select class="form-select" id="item_id" name="item_id" required>
+                <option value="" disabled selected>Seleziona...</option>
+                {% for item in inventory %}
+                    <option value="{{ item.id }}">{{ item.nome }}{% if item.taglia %} ({{ item.taglia }}){% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="quantita" class="form-label">Quantità da prelevare</label>
+            <input type="number" class="form-control" id="quantita" name="quantita" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Salva</button>
+        <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary mt-3">Annulla</a>
+    </form>
+</div>
+{% endblock %} 

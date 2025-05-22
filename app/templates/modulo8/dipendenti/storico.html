@@ -30,7 +30,13 @@
         <td>{{ dip.email or '—' }}</td>
         <td>{{ dip.reparto or '—' }}</td>
         <td>{{ dip.ruolo or '—' }}</td>
-        <td>{{ dip.data_assunzione.strftime('%d/%m/%Y') }}</td>
+        <td>
+          {% if dip.data_assunzione_indeterminato %}
+            {{ dip.data_assunzione_indeterminato.strftime('%d/%m/%Y') }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
         <td>{{ dip.data_cessazione.strftime('%d/%m/%Y') }}</td>
         <td>
           <div class="btn-group">
