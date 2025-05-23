@@ -18,12 +18,14 @@ class User(UserMixin, db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120))
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), default='operatore')  # 'operatore' o 'admin'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
+    is_admin = db.Column(db.Boolean, default=False)
+    modules = db.Column(db.String(255), default='')  # Lista di moduli accessibili separati da virgola
     
     # Relazioni
     modulo1_entries = db.relationship('Modulo1Entry', 
@@ -50,6 +52,12 @@ class User(UserMixin, db.Model):
     def is_operatore(self):
         """Verifica se l'utente è un operatore"""
         return self.role == 'operatore'
+    
+    def has_module_access(self, module_id):
+        """Verifica se l'utente ha accesso al modulo specificato"""
+        if self.is_admin:
+            return True
+        return str(module_id) in self.modules.split(',')
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -386,6 +394,7 @@ class PrelievoVestiario(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey('inventory.id'), nullable=False)
     quantita = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    data_prelievo = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     dipendente = db.relationship('Dipendente', backref='prelievi_vestiario')
     item = db.relationship('Inventory')

@@ -1,16 +1,81 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="module-view">
-    <h2>Modifica Competenze: {{ dip.nome }} {{ dip.cognome }}</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <div class="mb-3">
-            {{ form.competenze.label(class="form-label") }}
-            {{ form.competenze(class="form-select", multiple=True, size=10) }}
-            <small class="form-text text-muted">Tieni premuto Ctrl (o Cmd su Mac) per selezionare più competenze</small>
+    <h2>Modifica Competenze</h2>
+    
+    <form method="POST" class="needs-validation" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {{ form.csrf_token }}
+        
+        <div class="row">
+            <div class="col-12">
+                {% set aree = {} %}
+                {% for comp in competenze %}
+                    {% if comp.area not in aree %}
+                        {% set _ = aree.update({comp.area: []}) %}
+                    {% endif %}
+                    {% set _ = aree[comp.area].append(comp) %}
+                {% endfor %}
+                
+                {% for area, comps in aree.items() %}
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">{{ area or 'Non Specificata' }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25%">Competenza</th>
+                                            <th style="width: 25%">Livello</th>
+                                            <th style="width: 25%">Percentuale</th>
+                                            <th style="width: 25%">Seleziona</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for comp in comps %}
+                                            <tr>
+                                                <td>{{ comp.nome }}</td>
+                                                <td>{{ comp.livello or '—' }}</td>
+                                                <td>
+                                                    <input type="number" 
+                                                           name="percentuali" 
+                                                           class="form-control" 
+                                                           min="0" 
+                                                           max="100" 
+                                                           value="{{ dip.competenze|selectattr('id', 'eq', comp.id)|map(attribute='percentuale')|first|default(0) }}"
+                                                           {% if not form.competenze.data or comp.id not in form.competenze.data %}disabled{% endif %}>
+                                                </td>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" 
+                                                               name="competenze" 
+                                                               value="{{ comp.id }}" 
+                                                               class="form-check-input"
+                                                               {% if form.competenze.data and comp.id in form.competenze.data %}checked{% endif %}
+                                                               onchange="this.parentElement.parentElement.parentElement.querySelector('input[type=number]').disabled = !this.checked">
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-        <button type="submit" class="btn btn-success mt-3">Salva</button>
-        <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary mt-3">Annulla</a>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Indietro
+            </a>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Salva
+            </button>
+        </div>
     </form>
 </div>
 {% endblock %} 

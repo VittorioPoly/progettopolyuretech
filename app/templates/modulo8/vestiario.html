@@ -1,63 +1,106 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="module-vestiario">
-  <h2>Gestione Vestiario</h2>
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestione Vestiario</h2>
+        <div>
+            <a href="{{ url_for('modulo8.aggiungi_item_vestiario') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nuovo Item
+            </a>
+            <a href="{{ url_for('modulo8.lista_prelievi_vestiario') }}" class="btn btn-info ms-2">
+                <i class="fas fa-list"></i> Lista Prelievi
+            </a>
+            <a href="{{ url_for('modulo8.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+            </a>
+        </div>
+    </div>
 
-  <!-- Sezione Inventario -->
-  <section class="mb-5">
-    <h3>Inventario Articoli</h3>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Articolo</th>
-          <th>Taglia</th>
-          <th>Quantità Disponibile</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in inventory %}
-        <tr>
-          <td>{{ item.id }}</td>
-          <td>{{ item.nome }}</td>
-          <td>{{ item.taglia or '—' }}</td>
-          <td>{{ item.quantita }}</td>
-        </tr>
+    <div class="row">
+        {% for nome, items in inventory|groupby('nome') %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ nome }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Taglia</th>
+                                    <th>Quantità Disponibile</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td>{{ item.taglia }}</td>
+                                    <td>{{ item.quantita }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" 
+                                                    class="btn btn-primary btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#prelievoModal{{ item.id }}">
+                                                <i class="fas fa-hand-holding"></i> Prelievo
+                                            </button>
+                                            <a href="{{ url_for('modulo8.modifica_item_vestiario', id=item.id) }}" 
+                                               class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit"></i> Modifica
+                                            </a>
+                                        </div>
+
+                                        <!-- Modal Prelievo -->
+                                        <div class="modal fade" id="prelievoModal{{ item.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Prelievo {{ item.nome }} - {{ item.taglia }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="{{ url_for('modulo8.prelievo_vestiario') }}" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Dipendente</label>
+                                                                <select name="dipendente_id" class="form-select" required>
+                                                                    <option value="">Seleziona dipendente...</option>
+                                                                    {% for dip in dipendenti %}
+                                                                    <option value="{{ dip.id }}">{{ dip.nome }} {{ dip.cognome }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Quantità</label>
+                                                                <input type="number" 
+                                                                       name="quantita" 
+                                                                       class="form-control" 
+                                                                       min="1" 
+                                                                       max="{{ item.quantita }}" 
+                                                                       required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                                                            <button type="submit" class="btn btn-primary">Conferma Prelievo</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endfor %}
-      </tbody>
-    </table>
-  </section>
-
-  <!-- Sezione Prelievo -->
-  <section>
-    <h3>Registra Prelievo</h3>
-    <form action="{{ url_for('modulo8.prelievo_vestiario') }}" method="post" class="form-inline">
-      <div class="form-group mb-2 mr-2">
-        <label for="dipendente_id" class="sr-only">Dipendente</label>
-        <select class="form-control" id="dipendente_id" name="dipendente_id" required>
-          <option value="">-- Seleziona Dipendente --</option>
-          {% for d in dipendenti %}
-          <option value="{{ d.id }}">{{ d.nome }} {{ d.cognome }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-group mb-2 mr-2">
-        <label for="item_id" class="sr-only">Articolo</label>
-        <select class="form-control" id="item_id" name="item_id" required>
-          <option value="">-- Seleziona Articolo --</option>
-          {% for item in inventory %}
-          <option value="{{ item.id }}">{{ item.nome }}{% if item.taglia %} ({{ item.taglia }}){% endif %}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-group mb-2 mr-2">
-        <label for="quantita" class="sr-only">Quantità</label>
-        <input type="number" class="form-control" id="quantita" name="quantita" min="1" value="1" required>
-      </div>
-      <button type="submit" class="btn btn-success mb-2">Registra</button>
-    </form>
-  </section>
-
-  <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary mt-4">← Torna a Gestione Dipendenti</a>
+    </div>
 </div>
 {% endblock %}

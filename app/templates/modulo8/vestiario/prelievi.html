@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Prelievi Vestiario</h2>
+        <a href="{{ url_for('modulo8.vestiario') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna al Vestiario
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Dipendente</th>
+                            <th>Item</th>
+                            <th>Taglia</th>
+                            <th>Quantità</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prelievo in prelievi %}
+                        <tr>
+                            <td>{{ prelievo.timestamp.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ prelievo.dipendente.nome }} {{ prelievo.dipendente.cognome }}</td>
+                            <td>{{ prelievo.item.nome }}</td>
+                            <td>{{ prelievo.item.taglia }}</td>
+                            <td>{{ prelievo.quantita }}</td>
+                            <td>
+                                <form action="{{ url_for('modulo8.elimina_prelievo', id=prelievo.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo prelievo?')">
+                                        <i class="fas fa-trash"></i> Elimina
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nessun prelievo registrato</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

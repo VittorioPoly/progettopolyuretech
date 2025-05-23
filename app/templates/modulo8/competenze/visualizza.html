@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dettagli Competenza</h2>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('modulo8.competenze') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Torna alla Lista
+      </a>
+      <a href="{{ url_for('modulo8.modifica_competenza', id=competenza.id) }}" class="btn btn-warning">
+        <i class="fas fa-edit"></i> Modifica
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Informazioni Competenza</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <tr>
+              <th>Nome:</th>
+              <td>{{ competenza.nome }}</td>
+            </tr>
+            <tr>
+              <th>Area:</th>
+              <td>{{ competenza.area or 'Non Specificata' }}</td>
+            </tr>
+            <tr>
+              <th>Livello:</th>
+              <td>{{ competenza.livello or 'Non Specificato' }}</td>
+            </tr>
+            <tr>
+              <th>Descrizione:</th>
+              <td>{{ competenza.descrizione or 'Non specificata' }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Dipendenti con questa Competenza</h5>
+        </div>
+        <div class="card-body">
+          {% if dipendenti %}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Cognome</th>
+                    <th>Reparto</th>
+                    <th>Ruolo</th>
+                    <th>Percentuale</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for dip in dipendenti %}
+                    <tr>
+                      <td>{{ dip.nome }}</td>
+                      <td>{{ dip.cognome }}</td>
+                      <td>{{ dip.reparto or '—' }}</td>
+                      <td>{{ dip.ruolo or '—' }}</td>
+                      <td>
+                        {% set dip_comp = dipendente_competenze.get(dip.id) %}
+                        {{ dip_comp.percentuale if dip_comp else '—' }}%
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted">Nessun dipendente ha questa competenza.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

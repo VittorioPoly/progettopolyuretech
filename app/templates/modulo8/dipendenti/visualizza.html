@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dettagli Dipendente</h2>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('modulo8.dipendenti') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Torna alla Lista
+      </a>
+      <a href="{{ url_for('modulo8.modifica_dipendente', id=dipendente.id) }}" class="btn btn-warning">
+        <i class="fas fa-edit"></i> Modifica
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Informazioni Personali</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <tr>
+              <th>Nome:</th>
+              <td>{{ dipendente.nome }}</td>
+            </tr>
+            <tr>
+              <th>Cognome:</th>
+              <td>{{ dipendente.cognome }}</td>
+            </tr>
+            <tr>
+              <th>Data di Nascita:</th>
+              <td>{{ dipendente.data_nascita.strftime('%d/%m/%Y') if dipendente.data_nascita else '—' }}</td>
+            </tr>
+            <tr>
+              <th>Codice Fiscale:</th>
+              <td>{{ dipendente.codice_fiscale or '—' }}</td>
+            </tr>
+            <tr>
+              <th>Email:</th>
+              <td>{{ dipendente.email or '—' }}</td>
+            </tr>
+            <tr>
+              <th>Telefono:</th>
+              <td>{{ dipendente.telefono or '—' }}</td>
+            </tr>
+            <tr>
+              <th>Indirizzo:</th>
+              <td>{{ dipendente.indirizzo or '—' }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Informazioni Lavorative</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <tr>
+              <th>Data Assunzione:</th>
+              <td>{{ dipendente.data_assunzione.strftime('%d/%m/%Y') if dipendente.data_assunzione else '—' }}</td>
+            </tr>
+            <tr>
+              <th>Data Cessazione:</th>
+              <td>{{ dipendente.data_cessazione.strftime('%d/%m/%Y') if dipendente.data_cessazione else '—' }}</td>
+            </tr>
+            <tr>
+              <th>Reparto:</th>
+              <td>{{ dipendente.reparto or '—' }}</td>
+            </tr>
+            <tr>
+              <th>Ruolo:</th>
+              <td>{{ dipendente.ruolo or '—' }}</td>
+            </tr>
+            <tr>
+              <th>Tipo Contratto:</th>
+              <td>{{ dipendente.tipo_contratto or '—' }}</td>
+            </tr>
+            <tr>
+              <th>Stato:</th>
+              <td>{{ dipendente.stato or '—' }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Competenze</h5>
+        </div>
+        <div class="card-body">
+          {% if dipendente.competenze %}
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Area</th>
+                    <th>Competenza</th>
+                    <th>Livello</th>
+                    <th>Percentuale</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for comp in dipendente.competenze %}
+                    <tr>
+                      <td>{{ comp.area or 'Non Specificata' }}</td>
+                      <td>{{ comp.nome }}</td>
+                      <td>{{ comp.livello or '—' }}</td>
+                      <td>
+                        {% set dip_comp = dipendente_competenze.get(comp.id) %}
+                        {{ dip_comp.percentuale if dip_comp else '—' }}%
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted">Nessuna competenza assegnata.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Istruzione ed Esperienze</h5>
+        </div>
+        <div class="card-body">
+          <h6>Istruzione</h6>
+          <p>{{ dipendente.istruzione or 'Non specificata' }}</p>
+          
+          <h6>Esperienze</h6>
+          <p>{{ dipendente.esperienze or 'Non specificate' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if dipendente.note %}
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Note</h5>
+        </div>
+        <div class="card-body">
+          <p>{{ dipendente.note }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if dipendente.documenti %}
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Documenti</h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group">
+            {% for doc in dipendente.documenti %}
+              <a href="{{ url_for('modulo8.download_documento', id=doc.id) }}" class="list-group-item list-group-item-action">
+                <i class="fas fa-file"></i> {{ doc.nome }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %} 

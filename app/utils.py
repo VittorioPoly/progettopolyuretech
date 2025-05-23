@@ -28,8 +28,8 @@ def admin_required(f):
     """Decoratore per limitare l'accesso agli amministratori"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin():
-            abort(403)  # Accesso negato
+        if not current_user.is_admin:
+            abort(403)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -38,6 +38,17 @@ def allowed_file(filename, allowed_extensions):
     """Controlla se il file ha un'estensione permessa"""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+
+def check_module_access(module_id):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.has_module_access(module_id):
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 
 # ======================================================

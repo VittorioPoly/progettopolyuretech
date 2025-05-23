@@ -3,152 +3,144 @@
 <div class="module-view">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Formazione - {{ dip.nome }} {{ dip.cognome }}</h2>
-        <div>
-            <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Torna al profilo
-            </a>
+        <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna al Profilo
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Corsi Disponibili</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Titolo</th>
+                            <th>Data Inizio</th>
+                            <th>Data Fine</th>
+                            <th>Durata (ore)</th>
+                            <th>Scadenza</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for corso in corsi %}
+                        <tr>
+                            <td>{{ corso.titolo }}</td>
+                            <td>{{ corso.giorno_inizio.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ corso.giorno_fine.strftime('%d/%m/%Y') if corso.giorno_fine else '-' }}</td>
+                            <td>{{ corso.durata_ore }}</td>
+                            <td>{{ corso.scadenza_relativa or '-' }}</td>
+                            <td>
+                                <form action="{{ url_for('modulo8.iscrivi_corso', dipendente_id=dip.id, corso_id=corso.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus"></i> Iscrivi
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nessun corso disponibile</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Corsi in Corso -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="card-title mb-0"><i class="fas fa-clock"></i> Corsi in Corso</h5>
-                </div>
-                <div class="card-body">
-                    {% set corsi_in_corso = dip.partecipazioni_corsi|selectattr('stato', 'equalto', 'in_corso')|list %}
-                    {% if corsi_in_corso %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Corso</th>
-                                        <th>Data Inizio</th>
-                                        <th>Durata</th>
-                                        <th>Azioni</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for part in corsi_in_corso %}
-                                        <tr>
-                                            <td>{{ part.corso.titolo }}</td>
-                                            <td>{{ part.corso.data_inizio.strftime('%d-%m-%Y') }}</td>
-                                            <td>{{ part.corso.durata_ore }} ore</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-success" onclick="completaCorso({{ part.id }})">
-                                                    <i class="fas fa-check"></i> Completa
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted">Nessun corso in corso</p>
-                    {% endif %}
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Corsi Iscritti</h5>
         </div>
-
-        <!-- Corsi Completati -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-check-circle"></i> Corsi Completati</h5>
-                </div>
-                <div class="card-body">
-                    {% set corsi_completati = dip.partecipazioni_corsi|selectattr('stato', 'equalto', 'completato')|list %}
-                    {% if corsi_completati %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Corso</th>
-                                        <th>Data Completamento</th>
-                                        <th>Valutazione</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for part in corsi_completati %}
-                                        <tr>
-                                            <td>{{ part.corso.titolo }}</td>
-                                            <td>{{ part.data_completamento.strftime('%d-%m-%Y') }}</td>
-                                            <td>
-                                                {% if part.valutazione %}
-                                                    {% for i in range(part.valutazione) %}
-                                                        <i class="fas fa-star text-warning"></i>
-                                                    {% endfor %}
-                                                    {% for i in range(5 - part.valutazione) %}
-                                                        <i class="far fa-star text-warning"></i>
-                                                    {% endfor %}
-                                                {% else %}
-                                                    —
-                                                {% endif %}
-                                            </td>
-                                        </tr>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Titolo</th>
+                            <th>Data Iscrizione</th>
+                            <th>Stato</th>
+                            <th>Valutazione</th>
+                            <th>Data Completamento</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for part in dip.partecipazioni_corsi %}
+                        <tr>
+                            <td>{{ part.corso.titolo }}</td>
+                            <td>{{ part.data_iscrizione.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <span class="badge {% if part.stato == 'completato' %}bg-success{% elif part.stato == 'in_corso' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ part.stato|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if part.valutazione %}
+                                <div class="text-warning">
+                                    {% for i in range(part.valutazione) %}
+                                    <i class="fas fa-star"></i>
                                     {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted">Nessun corso completato</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+                                </div>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ part.data_completamento.strftime('%d/%m/%Y') if part.data_completamento else '-' }}</td>
+                            <td>
+                                {% if part.stato != 'completato' %}
+                                <button type="button" 
+                                        class="btn btn-success btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#completaModal{{ part.id }}">
+                                    <i class="fas fa-check"></i> Completa
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
 
-        <!-- Corsi Disponibili -->
-        <div class="col-12 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-list"></i> Corsi Disponibili</h5>
-                </div>
-                <div class="card-body">
-                    {% set corsi_disponibili = corsi|rejectattr('id', 'in', dip.partecipazioni_corsi|map(attribute='corso.id')|list) %}
-                    {% if corsi_disponibili %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Titolo</th>
-                                        <th>Tipo</th>
-                                        <th>Durata</th>
-                                        <th>Data Inizio</th>
-                                        <th>Azioni</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for corso in corsi_disponibili %}
-                                        <tr>
-                                            <td>{{ corso.titolo }}</td>
-                                            <td>
-                                                {% if corso.is_obbligatorio %}
-                                                    <span class="badge bg-danger">Obbligatorio</span>
-                                                {% else %}
-                                                    <span class="badge bg-info">Opzionale</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ corso.durata_ore }} ore</td>
-                                            <td>{{ corso.data_inizio.strftime('%d-%m-%Y') }}</td>
-                                            <td>
-                                                <form action="{{ url_for('modulo8.iscrivi_corso', dipendente_id=dip.id, corso_id=corso.id) }}" method="POST" style="display: inline;">
-                                                    <button type="submit" class="btn btn-sm btn-primary">
-                                                        <i class="fas fa-plus"></i> Iscrivi
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <!-- Modal Completa Corso -->
+                        {% if part.stato != 'completato' %}
+                        <div class="modal fade" id="completaModal{{ part.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Completa Corso</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="completaForm{{ part.id }}">
+                                            <div class="mb-3">
+                                                <label class="form-label">Valutazione</label>
+                                                <div class="rating">
+                                                    {% for i in range(5) %}
+                                                    <i class="far fa-star" data-rating="{{ i + 1 }}"></i>
+                                                    {% endfor %}
+                                                </div>
+                                                <input type="hidden" name="valutazione" id="valutazione{{ part.id }}" required>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                                        <button type="button" class="btn btn-success" onclick="completaCorso({{ part.id }})">Completa</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    {% else %}
-                        <p class="text-muted">Nessun corso disponibile</p>
-                    {% endif %}
-                </div>
+                        {% endif %}
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nessun corso iscritto</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -156,29 +148,63 @@
 
 {% block scripts %}
 <script>
-function completaCorso(partecipazione_id) {
-    // Mostra un modal per la valutazione
-    var valutazione = prompt('Inserisci una valutazione da 1 a 5:');
-    if (valutazione !== null) {
-        // Invia la richiesta al server
-        fetch(`/modulo8/partecipazione/${partecipazione_id}/completa`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                valutazione: parseInt(valutazione)
-            })
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                alert('Si è verificato un errore');
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestione stelle valutazione
+    document.querySelectorAll('.rating').forEach(rating => {
+        const stars = rating.querySelectorAll('.fa-star');
+        stars.forEach(star => {
+            star.addEventListener('mouseover', function() {
+                const rating = this.dataset.rating;
+                stars.forEach((s, i) => {
+                    s.className = i < rating ? 'fas fa-star' : 'far fa-star';
+                });
+            });
         });
+        rating.addEventListener('mouseleave', function() {
+            const currentRating = this.querySelector('input[type="hidden"]').value;
+            stars.forEach((s, i) => {
+                s.className = i < currentRating ? 'fas fa-star' : 'far fa-star';
+            });
+        });
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = this.dataset.rating;
+                this.closest('.rating').querySelector('input[type="hidden"]').value = rating;
+            });
+        });
+    });
+});
+
+function completaCorso(partecipazioneId) {
+    const form = document.getElementById('completaForm' + partecipazioneId);
+    const valutazione = document.getElementById('valutazione' + partecipazioneId).value;
+    
+    if (!valutazione) {
+        alert('Seleziona una valutazione');
+        return;
     }
+    
+    fetch(`/modulo8/partecipazione/${partecipazioneId}/completa`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ valutazione: parseInt(valutazione) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Errore durante il completamento del corso');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Errore durante il completamento del corso');
+    });
 }
 </script>
 {% endblock %}
-
 {% endblock %} 

@@ -1,50 +1,44 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="module-view">
     <h2>Modifica Item Vestiario</h2>
     
-    <form method="POST" class="mt-4">
+    <form method="POST" class="needs-validation" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {{ form.csrf_token }}
-        <div class="mb-3">
-            {{ form.nome.label(class="form-label") }}
-            {{ form.nome(class="form-control") }}
-            {% if form.nome.errors %}
-            <div class="invalid-feedback d-block">
-                {% for error in form.nome.errors %}
-                {{ error }}
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
         
-        <div class="mb-3">
-            {{ form.taglia.label(class="form-label") }}
-            {{ form.taglia(class="form-control") }}
-            {% if form.taglia.errors %}
-            <div class="invalid-feedback d-block">
-                {% for error in form.taglia.errors %}
-                {{ error }}
-                {% endfor %}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.nome.label(class="form-label") }}
+                {{ form.nome(class="form-control") }}
+                {% if form.nome.errors %}
+                    <div class="invalid-feedback">{{ form.nome.errors[0] }}</div>
+                {% endif %}
             </div>
-            {% endif %}
-        </div>
-        
-        <div class="mb-3">
-            {{ form.quantita.label(class="form-label") }}
-            {{ form.quantita(class="form-control") }}
-            {% if form.quantita.errors %}
-            <div class="invalid-feedback d-block">
-                {% for error in form.quantita.errors %}
-                {{ error }}
-                {% endfor %}
+            <div class="col-md-3 mb-3">
+                {{ form.taglia.label(class="form-label") }}
+                {{ form.taglia(class="form-control") }}
+                {% if form.taglia.errors %}
+                    <div class="invalid-feedback">{{ form.taglia.errors[0] }}</div>
+                {% endif %}
             </div>
-            {% endif %}
+            <div class="col-md-3 mb-3">
+                {{ form.quantita.label(class="form-label") }}
+                {{ form.quantita(class="form-control") }}
+                {% if form.quantita.errors %}
+                    <div class="invalid-feedback">{{ form.quantita.errors[0] }}</div>
+                {% endif %}
+            </div>
         </div>
-        
-        <div class="mt-4">
-            <button type="submit" class="btn btn-primary">Salva Modifiche</button>
-            <a href="{{ url_for('modulo8.gestione_vestiario') }}" class="btn btn-secondary">Annulla</a>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ url_for('modulo8.vestiario') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Annulla
+            </a>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Salva
+            </button>
         </div>
     </form>
 </div>

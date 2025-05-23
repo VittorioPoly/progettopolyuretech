@@ -1,53 +1,62 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="module-view">
-  <h2>Dettagli Competenza</h2>
-  
-  <div class="competenza-details">
-    <dl class="row">
-      <dt class="col-sm-3">Nome</dt>
-      <dd class="col-sm-9">{{ competenza.nome }}</dd>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Dettagli Competenza: {{ competenza.nome }}</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('modulo8.competenze') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla Lista
+            </a>
+            <a href="{{ url_for('modulo8.modifica_competenza', id=competenza.id) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Modifica
+            </a>
+        </div>
+    </div>
 
-      <dt class="col-sm-3">Descrizione</dt>
-      <dd class="col-sm-9">{{ competenza.descrizione or '—' }}</dd>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Informazioni</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nome:</strong> {{ competenza.nome }}</p>
+                    <p><strong>Area:</strong> {{ competenza.area or 'Non specificata' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Livello:</strong> {{ competenza.livello or 'Non specificato' }}</p>
+                    <p><strong>Descrizione:</strong> {{ competenza.descrizione or 'Nessuna descrizione' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-      <dt class="col-sm-3">Livello</dt>
-      <dd class="col-sm-9">{{ competenza.livello or '—' }}</dd>
-
-      <dt class="col-sm-3">Area</dt>
-      <dd class="col-sm-9">{{ competenza.area or '—' }}</dd>
-    </dl>
-  </div>
-
-  <h3 class="mt-4">Dipendenti con questa competenza</h3>
-  {% if dipendenti %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Cognome</th>
-        <th>Reparto</th>
-        <th>Ruolo</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for d in dipendenti %}
-      <tr>
-        <td>{{ d.nome }}</td>
-        <td>{{ d.cognome }}</td>
-        <td>{{ d.reparto or '—' }}</td>
-        <td>{{ d.ruolo or '—' }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p>Nessun dipendente ha questa competenza.</p>
-  {% endif %}
-
-  <div class="mt-4">
-    <a href="{{ url_for('modulo8.competenze') }}" class="btn btn-secondary">← Torna a Gestione Competenze</a>
-    <a href="{{ url_for('modulo8.modifica_competenza', id=competenza.id) }}" class="btn btn-primary">Modifica Competenza</a>
-  </div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Dipendenti con questa competenza</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Cognome</th>
+                            <th>Percentuale</th>
+                            <th>Reparto</th>
+                            <th>Ruolo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dip in dipendenti %}
+                            <tr>
+                                <td>{{ dip.nome }}</td>
+                                <td>{{ dip.cognome }}</td>
+                                <td>{{ dip.competenze|selectattr('id', 'eq', competenza.id)|map(attribute='percentuale')|first|default(0) }}%</td>
+                                <td>{{ dip.reparto or '—' }}</td>
+                                <td>{{ dip.ruolo or '—' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %} 

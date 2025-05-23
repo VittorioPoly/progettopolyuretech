@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SubmitField
-from wtforms import SelectField, FloatField, DateField, MultipleFileField, HiddenField
-from wtforms import IntegerField, DateTimeField, SelectMultipleField
+from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SubmitField, FieldList
+from wtforms import SelectField, FloatField, DateField, MultipleFileField, HiddenField, IntegerField
+from wtforms import SelectMultipleField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange, ValidationError
 from datetime import datetime
 from app.models import User, Cliente, Fornitore, Competenza, Dipendente
@@ -243,27 +243,29 @@ class DipendenteForm(FlaskForm):
 
 class CompetenzaForm(FlaskForm):
     """Form per aggiungere/modificare competenze"""
-    nome = StringField('Nome', validators=[DataRequired(), Length(max=100)])
-    descrizione = TextAreaField('Descrizione', validators=[Optional(), Length(max=500)])
+    id = HiddenField('ID')
+    nome = StringField('Nome', validators=[DataRequired()])
+    descrizione = TextAreaField('Descrizione')
     livello = SelectField('Livello', choices=[
+        ('', 'Seleziona livello'),
         ('base', 'Base'),
         ('intermedio', 'Intermedio'),
-        ('avanzato', 'Avanzato')
-    ], validators=[DataRequired()])
-    area = SelectField('Area', choices=[
-        ('tecnica', 'Tecnica'),
-        ('soft_skill', 'Soft Skill'),
-        ('sicurezza', 'Sicurezza'),
-        ('qualita', 'Qualità'),
-        ('altro', 'Altro')
-    ], validators=[DataRequired()])
+        ('avanzato', 'Avanzato'),
+        ('esperto', 'Esperto')
+    ])
+    area = StringField('Area')
     submit = SubmitField('Salva')
     
     def validate_nome(self, nome):
         """Verifica che il nome competenza non esista già"""
         comp = Competenza.query.filter_by(nome=nome.data).first()
-        if comp is not None and (not hasattr(self, 'id') or comp.id != self.id.data):
-            raise ValidationError('Competenza già esistente con questo nome.')
+        if comp is not None:
+            # Se stiamo creando una nuova competenza (id è None)
+            if not self.id.data:
+                raise ValidationError('Competenza già esistente con questo nome.')
+            # Se stiamo modificando una competenza esistente
+            elif comp.id != int(self.id.data):
+                raise ValidationError('Competenza già esistente con questo nome.')
 
 
 class AssegnaCompetenzaForm(FlaskForm):
@@ -404,9 +406,11 @@ class DipendenteStep3Form(FlaskForm):
 
 class DipendenteStep4Form(FlaskForm):
     """Form per il quarto step di creazione dipendente - Competenze"""
-    competenze = SelectMultipleField('Competenze', coerce=int, validators=[Optional()])
-    submit = SubmitField('Avanti')
-    prev = SubmitField('Indietro')
+    competenze = SelectMultipleField('Competenze', coerce=int, validators=[DataRequired()])
+    percentuali = FieldList(IntegerField('Percentuale', validators=[NumberRange(min=0, max=100)]))
+    submit = SubmitField('Salva')
+    previous = SubmitField('Indietro')
+    next = SubmitField('Avanti')
 
 class DipendenteStep5Form(FlaskForm):
     """Form per il quinto step di creazione dipendente - Vestiario"""

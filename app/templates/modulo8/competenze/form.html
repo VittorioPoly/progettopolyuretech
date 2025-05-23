@@ -1,54 +1,94 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="module-list">
+<div class="module-view">
   <h2>Gestione Competenze</h2>
-  <a href="{{ url_for('modulo8.nuova_competenza') }}" class="btn btn-primary btn-add-competenza">+ Nuova Competenza</a>
-  <table class="table table-striped table-competenze">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nome Competenza</th>
-        <th>Descrizione</th>
-        <th>Azioni</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in competenze %}
-      <tr>
-        <td>{{ c.id }}</td>
-        <td>{{ c.nome }}</td>
-        <td>{{ c.descrizione }}</td>
-        <td>
-          <a href="{{ url_for('modulo8.modifica_competenza', id=c.id) }}" class="btn btn-sm btn-primary btn-action">Modifica</a>
-          <a href="{{ url_for('modulo8.visualizza_competenza', id=c.id) }}" class="btn btn-sm btn-info btn-action">Visualizza</a>
-          <button type="button" class="btn btn-sm btn-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal{{ c.id }}">
-            <i class="fas fa-trash"></i> Elimina
-          </button>
-          
-          <!-- Modal di conferma eliminazione -->
-          <div class="modal fade" id="deleteModal{{ c.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ c.id }}" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="deleteModalLabel{{ c.id }}">Conferma eliminazione</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  Sei sicuro di voler eliminare la competenza "{{ c.nome }}"?
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                  <form action="{{ url_for('modulo8.elimina_competenza', id=c.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Elimina</button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  
+  <div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="{{ url_for('modulo8.nuova_competenza') }}" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Nuova Competenza
+    </a>
+    <a href="{{ url_for('modulo8.dashboard') }}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+    </a>
+  </div>
+
+  <style>
+    .table-competenze th,
+    .table-competenze td {
+      width: 25%;
+    }
+    .table-competenze td:last-child {
+      width: 25%;
+      white-space: nowrap;
+    }
+  </style>
+
+  {% set aree = competenze|map(attribute='area')|unique|list %}
+  {% for area in aree %}
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ area or 'Non Specificata' }}</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-competenze">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Descrizione</th>
+                <th>Livello</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for comp in competenze if comp.area == area %}
+                <tr>
+                  <td>{{ comp.nome }}</td>
+                  <td>{{ comp.descrizione or '—' }}</td>
+                  <td>{{ comp.livello or '—' }}</td>
+                  <td>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <a href="{{ url_for('modulo8.visualizza_competenza', id=comp.id) }}" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye"></i> Visualizza
+                      </a>
+                      <a href="{{ url_for('modulo8.modifica_competenza', id=comp.id) }}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit"></i> Modifica
+                      </a>
+                      <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ comp.id }}">
+                        <i class="fas fa-trash"></i> Elimina
+                      </button>
+                    </div>
+
+                    <!-- Modal per eliminazione -->
+                    <div class="modal fade" id="deleteModal{{ comp.id }}" tabindex="-1">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Elimina Competenza</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
+                          <div class="modal-body">
+                            <p>Sei sicuro di voler eliminare la competenza "{{ comp.nome }}"?</p>
+                            <p class="text-danger">Questa azione eliminerà tutti i riferimenti a questa competenza e non può essere annullata.</p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                            <form action="{{ url_for('modulo8.elimina_competenza', id=comp.id) }}" method="POST" style="display: inline;">
+                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                              <button type="submit" class="btn btn-danger">Elimina</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
 </div>
 {% endblock %}
