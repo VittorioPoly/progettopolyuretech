@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso, CorsoSicurezza
 from app.utils import admin_required, check_module_access
-from datetime import datetime
+from datetime import datetime, timedelta
 from calendar import monthrange
 from app.forms import (
     DipendenteStep1Form, DipendenteStep2Form, DipendenteStep3Form,
@@ -14,6 +14,7 @@ from wtforms import StringField, IntegerField
 from wtforms.validators import DataRequired, NumberRange
 from werkzeug.utils import secure_filename
 import os
+from sqlalchemy import func
 
 modulo8 = Blueprint('modulo8', __name__, url_prefix='/modulo8')
 
@@ -708,7 +709,30 @@ def elimina_competenza(id):
 @login_required
 @admin_required
 def formazione():
-    return render_template('modulo8/formazione.html', title="Gestione Formazione")
+    # Calcola le statistiche
+    corsi_attivi = CorsoFormazione.query.filter_by(archiviato=False).count()
+    corsi_completati = PartecipazioneCorso.query.filter_by(stato='completato').count()
+    partecipanti_totali = PartecipazioneCorso.query.distinct(PartecipazioneCorso.dipendente_id).count()
+    
+    oggi = datetime.utcnow()
+    corsi_scadenza = CorsoFormazione.query.filter(
+        CorsoFormazione.giorno_fine < oggi + timedelta(days=30),
+        CorsoFormazione.archiviato == False
+    ).count()
+    
+    corsi_obbligatori = CorsoFormazione.query.filter_by(is_obbligatorio=True, archiviato=False).count()
+    
+    media_valutazioni = db.session.query(
+        func.avg(PartecipazioneCorso.valutazione)
+    ).filter(PartecipazioneCorso.valutazione.isnot(None)).scalar() or 0
+    
+    return render_template('modulo8/formazione.html',
+                         corsi_attivi=corsi_attivi,
+                         corsi_completati=corsi_completati,
+                         partecipanti_totali=partecipanti_totali,
+                         corsi_scadenza=corsi_scadenza,
+                         corsi_obbligatori=corsi_obbligatori,
+                         media_valutazioni=round(media_valutazioni, 1))
 
 @modulo8.route('/sicurezza')
 @login_required
@@ -961,9 +985,13 @@ def sicurezza_dipendente(id):
 
 @modulo8.route('/partecipazione/<int:id>/completa', methods=['POST'])
 @login_required
-@admin_required
 def completa_partecipazione(id):
     partecipazione = PartecipazioneCorso.query.get_or_404(id)
+    
+    # Verifica che l'utente sia admin o il dipendente stesso
+    if not current_user.is_admin and partecipazione.dipendente_id != current_user.id:
+        return jsonify({'error': 'Non autorizzato'}), 403
+    
     data = request.get_json()
     valutazione = data.get('valutazione')
     
@@ -1052,3 +1080,41 @@ def elimina_prelievo(id):
     
     flash('Prelievo eliminato con successo', 'success')
     return redirect(url_for('modulo8.lista_prelievi_vestiario'))
+
+@modulo8.route('/formazione/corsi/partecipanti')
+@login_required
+@admin_required
+def lista_partecipanti():
+    partecipazioni = PartecipazioneCorso.query.order_by(PartecipazioneCorso.data_iscrizione.desc()).all()
+    return render_template('modulo8/corsi/partecipanti.html', partecipazioni=partecipazioni)
+
+@modulo8.route('/formazione/corsi/scadenza')
+@login_required
+@admin_required
+def corsi_scadenza():
+    oggi = datetime.utcnow()
+    corsi = CorsoFormazione.query.filter(
+        CorsoFormazione.giorno_fine < oggi + timedelta(days=30),
+        CorsoFormazione.archiviato == False
+    ).order_by(CorsoFormazione.giorno_fine.asc()).all()
+    return render_template('modulo8/corsi/scadenza.html', corsi=corsi)
+
+@modulo8.route('/formazione/corsi/obbligatori')
+@login_required
+@admin_required
+def corsi_obbligatori():
+    corsi = CorsoFormazione.query.filter_by(is_obbligatorio=True, archiviato=False).all()
+    return render_template('modulo8/corsi/obbligatori.html', corsi=corsi)
+
+@modulo8.route('/formazione/report-valutazioni')
+@login_required
+@admin_required
+def report_valutazioni():
+    # Calcola la media delle valutazioni per corso
+    corsi = db.session.query(
+        CorsoFormazione,
+        func.avg(PartecipazioneCorso.valutazione).label('media_valutazione'),
+        func.count(PartecipazioneCorso.id).label('num_partecipanti')
+    ).join(PartecipazioneCorso).group_by(CorsoFormazione.id).all()
+    
+    return render_template('modulo8/corsi/report_valutazioni.html', corsi=corsi)

@@ -4,53 +4,101 @@
 <div class="dashboard-container">
     <div class="dashboard-header">
         <h1 class="dashboard-title">Gestione Formazione</h1>
-        <p class="dashboard-subtitle">Gestisci i corsi di formazione e lo stato dei dipendenti</p>
+        <p class="dashboard-subtitle">Monitora e gestisci i corsi di formazione</p>
     </div>
-    
+
     <div class="row g-4">
-        <!-- Corsi di Formazione -->
+        <!-- Corsi Attivi -->
         <div class="col-md-6 col-lg-4">
             <div class="dashboard-card primary-gradient">
                 <div class="card-icon">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Corsi di Formazione</h3>
-                    <p>Gestisci i corsi di formazione disponibili</p>
+                    <h3>Corsi Attivi</h3>
+                    <p class="display-4">{{ corsi_attivi }}</p>
                     <a href="{{ url_for('modulo8.lista_corsi') }}" class="card-link">
-                        Accedi <i class="fas fa-arrow-right"></i>
+                        Gestisci Corsi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Stato Formazione -->
+        <!-- Corsi Completati -->
         <div class="col-md-6 col-lg-4">
             <div class="dashboard-card success-gradient">
                 <div class="card-icon">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Stato Formazione</h3>
-                    <p>Visualizza lo stato di completamento dei corsi</p>
-                    <a href="#" class="card-link">
-                        Accedi <i class="fas fa-arrow-right"></i>
+                    <h3>Corsi Completati</h3>
+                    <p class="display-4">{{ corsi_completati }}</p>
+                    <a href="{{ url_for('modulo8.lista_corsi', show_completed=true) }}" class="card-link">
+                        Visualizza <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Report Formazione -->
+        <!-- Partecipanti Totali -->
         <div class="col-md-6 col-lg-4">
             <div class="dashboard-card warning-gradient">
                 <div class="card-icon">
-                    <i class="fas fa-file-alt"></i>
+                    <i class="fas fa-users"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Report Formazione</h3>
-                    <p>Genera report sulla formazione dei dipendenti</p>
-                    <a href="#" class="card-link">
-                        Accedi <i class="fas fa-arrow-right"></i>
+                    <h3>Partecipanti Totali</h3>
+                    <p class="display-4">{{ partecipanti_totali }}</p>
+                    <a href="{{ url_for('modulo8.lista_partecipanti') }}" class="card-link">
+                        Gestisci Partecipanti <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Corsi in Scadenza -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card danger-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Corsi in Scadenza</h3>
+                    <p class="display-4">{{ corsi_scadenza }}</p>
+                    <a href="{{ url_for('modulo8.corsi_scadenza') }}" class="card-link">
+                        Visualizza <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Corsi Obbligatori -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card info-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Corsi Obbligatori</h3>
+                    <p class="display-4">{{ corsi_obbligatori }}</p>
+                    <a href="{{ url_for('modulo8.corsi_obbligatori') }}" class="card-link">
+                        Gestisci <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Media Valutazioni -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card secondary-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Media Valutazioni</h3>
+                    <p class="display-4">{{ media_valutazioni }}</p>
+                    <a href="{{ url_for('modulo8.report_valutazioni') }}" class="card-link">
+                        Report <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -62,20 +110,20 @@
 .dashboard-container {
     padding: 2rem;
     background: #f8f9fa;
-    min-height: 100vh;
+    min-height: 80vh;
 }
 
 .dashboard-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 0.5rem;
     padding: 2rem 0;
 }
 
 .dashboard-title {
-    font-size: 2.5rem;
+    font-size: 2.0rem;
     color: #2c3e50;
     margin-bottom: 0.5rem;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .dashboard-subtitle {
@@ -86,7 +134,7 @@
 .dashboard-card {
     position: relative;
     border-radius: 15px;
-    padding: 2rem;
+    padding: 1rem;
     height: 100%;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -111,10 +159,10 @@
     font-weight: 600;
 }
 
-.card-content p {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin-bottom: 1.5rem;
+.card-content .display-4 {
+    font-size: 2.5rem;
+    margin: 0 0 1.5rem 0;
+    font-weight: 700;
 }
 
 .card-link {
@@ -147,6 +195,18 @@
 
 .warning-gradient {
     background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.danger-gradient {
+    background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+}
+
+.info-gradient {
+    background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.secondary-gradient {
+    background: linear-gradient(135deg, #858796 0%, #60616f 100%);
 }
 </style>
 {% endblock %} 

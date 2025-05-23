@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Partecipanti ai Corsi</h2>
+        <a href="{{ url_for('modulo8.formazione') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna alla Formazione
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Dipendente</th>
+                            <th>Corso</th>
+                            <th>Data Iscrizione</th>
+                            <th>Stato</th>
+                            <th>Valutazione</th>
+                            <th>Data Completamento</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for part in partecipazioni %}
+                        <tr>
+                            <td>{{ part.dipendente.nome }} {{ part.dipendente.cognome }}</td>
+                            <td>{{ part.corso.titolo }}</td>
+                            <td>{{ part.data_iscrizione.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <span class="badge {% if part.stato == 'completato' %}bg-success{% elif part.stato == 'in_corso' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ part.stato|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if part.valutazione %}
+                                <div class="text-warning">
+                                    {% for i in range(part.valutazione) %}
+                                    <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ part.data_completamento.strftime('%d/%m/%Y') if part.data_completamento else '-' }}</td>
+                            <td>
+                                <a href="{{ url_for('modulo8.modifica_partecipante', id=part.id) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Modifica
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nessuna partecipazione registrata</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

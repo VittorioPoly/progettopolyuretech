@@ -26,7 +26,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for corso in corsi %}
+                        {% set corsi_iscritti = dip.partecipazioni_corsi|map(attribute='corso.id')|list %}
+                        {% for corso in corsi if corso.id not in corsi_iscritti %}
                         <tr>
                             <td>{{ corso.titolo }}</td>
                             <td>{{ corso.giorno_inizio.strftime('%d/%m/%Y') }}</td>
@@ -82,7 +83,7 @@
                             </td>
                             <td>
                                 {% if part.valutazione %}
-                                <div class="text-warning">
+                                <div class="text-primary">
                                     {% for i in range(part.valutazione) %}
                                     <i class="fas fa-star"></i>
                                     {% endfor %}
@@ -117,12 +118,14 @@
                                         <form id="completaForm{{ part.id }}">
                                             <div class="mb-3">
                                                 <label class="form-label">Valutazione</label>
-                                                <div class="rating">
-                                                    {% for i in range(5) %}
-                                                    <i class="far fa-star" data-rating="{{ i + 1 }}"></i>
-                                                    {% endfor %}
-                                                </div>
-                                                <input type="hidden" name="valutazione" id="valutazione{{ part.id }}" required>
+                                                <select class="form-select" id="valutazione{{ part.id }}" name="valutazione">
+                                                    <option value="0">Seleziona una valutazione</option>
+                                                    <option value="1">1 stella</option>
+                                                    <option value="2">2 stelle</option>
+                                                    <option value="3">3 stelle</option>
+                                                    <option value="4">4 stelle</option>
+                                                    <option value="5">5 stelle</option>
+                                                </select>
                                             </div>
                                         </form>
                                     </div>
@@ -148,38 +151,10 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Gestione stelle valutazione
-    document.querySelectorAll('.rating').forEach(rating => {
-        const stars = rating.querySelectorAll('.fa-star');
-        stars.forEach(star => {
-            star.addEventListener('mouseover', function() {
-                const rating = this.dataset.rating;
-                stars.forEach((s, i) => {
-                    s.className = i < rating ? 'fas fa-star' : 'far fa-star';
-                });
-            });
-        });
-        rating.addEventListener('mouseleave', function() {
-            const currentRating = this.querySelector('input[type="hidden"]').value;
-            stars.forEach((s, i) => {
-                s.className = i < currentRating ? 'fas fa-star' : 'far fa-star';
-            });
-        });
-        stars.forEach(star => {
-            star.addEventListener('click', function() {
-                const rating = this.dataset.rating;
-                this.closest('.rating').querySelector('input[type="hidden"]').value = rating;
-            });
-        });
-    });
-});
-
 function completaCorso(partecipazioneId) {
-    const form = document.getElementById('completaForm' + partecipazioneId);
     const valutazione = document.getElementById('valutazione' + partecipazioneId).value;
     
-    if (!valutazione) {
+    if (valutazione === '0') {
         alert('Seleziona una valutazione');
         return;
     }
@@ -192,7 +167,12 @@ function completaCorso(partecipazioneId) {
         },
         body: JSON.stringify({ valutazione: parseInt(valutazione) })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Errore nella risposta del server');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             window.location.reload();
