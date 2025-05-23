@@ -51,14 +51,70 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>Matricola</th>
-        <th>Nome</th>
-        <th>Cognome</th>
-        <th>Email</th>
-        <th>Data Assunzione</th>
-        <th>Data Cessazione</th>
-        <th>Reparto</th>
-        <th>Ruolo</th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='matricola', sort_order='asc' if sort_by != 'matricola' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Matricola
+            {% if sort_by == 'matricola' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='nome', sort_order='asc' if sort_by != 'nome' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Nome
+            {% if sort_by == 'nome' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='cognome', sort_order='asc' if sort_by != 'cognome' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Cognome
+            {% if sort_by == 'cognome' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='email', sort_order='asc' if sort_by != 'email' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Email
+            {% if sort_by == 'email' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='data_assunzione_indeterminato', sort_order='asc' if sort_by != 'data_assunzione_indeterminato' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Data Assunzione
+            {% if sort_by == 'data_assunzione_indeterminato' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='data_cessazione', sort_order='asc' if sort_by != 'data_cessazione' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Data Cessazione
+            {% if sort_by == 'data_cessazione' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='reparto', sort_order='asc' if sort_by != 'reparto' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Reparto
+            {% if sort_by == 'reparto' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('modulo8.dipendenti', sort_by='ruolo', sort_order='asc' if sort_by != 'ruolo' or sort_order == 'desc' else 'desc', search=search, reparto=reparto, ruolo=ruolo) }}" class="text-decoration-none text-dark">
+            Ruolo
+            {% if sort_by == 'ruolo' %}
+              <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}"></i>
+            {% endif %}
+          </a>
+        </th>
         <th>Azioni</th>
       </tr>
     </thead>
@@ -85,9 +141,6 @@
           <div class="d-flex gap-2 flex-wrap">
             <a href="{{ url_for('modulo8.profilo_dipendente', id=dip.id) }}" class="btn btn-sm btn-info">
               <i class="fas fa-eye"></i> Visualizza
-            </a>
-            <a href="{{ url_for('modulo8.modifica_dipendente_step', id=dip.id) }}" class="btn btn-sm btn-primary">
-              <i class="fas fa-edit"></i> Modifica
             </a>
             <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#archiveModal{{ dip.id }}">
               <i class="fas fa-archive"></i> Archivia

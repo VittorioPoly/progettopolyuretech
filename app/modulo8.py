@@ -2,19 +2,12 @@
 def nuovo_dipendente_step():
     step = int(request.args.get('step', 1))
     
-    if step == 1:
-        form = DipendenteStep1Form()
-    elif step == 2:
-        form = DipendenteStep2Form()
-    elif step == 3:
-        form = DipendenteStep3Form()
-    elif step == 4:
-        form = DipendenteStep4Form()
-    elif step == 5:
-        form = DipendenteStep5Form()
-    else:
+    if step < 1 or step > 5:
         return redirect(url_for('modulo8.dipendenti'))
     
+    form_classes = [DipendenteStep1Form, DipendenteStep2Form, DipendenteStep3Form, DipendenteStep4Form, DipendenteStep5Form]
+    form = form_classes[step - 1]()
+
     if form.validate_on_submit():
         action = request.form.get('action')
         
@@ -33,33 +26,33 @@ def nuovo_dipendente_step():
             
             # Crea il nuovo dipendente
             dipendente = Dipendente(
-                nome=dipendente_data['nome'],
-                cognome=dipendente_data['cognome'],
-                anno_nascita=dipendente_data['anno_nascita'],
-                luogo_nascita=dipendente_data['luogo_nascita'],
-                provincia_nascita=dipendente_data['provincia_nascita'],
-                codice_fiscale=dipendente_data['codice_fiscale'],
-                email=dipendente_data['email'],
-                telefono=dipendente_data['telefono'],
-                matricola=dipendente_data['matricola'],
-                reparto=dipendente_data['reparto'],
-                ruolo=dipendente_data['ruolo'],
-                data_assunzione_somministrazione=dipendente_data['data_assunzione_somministrazione'],
-                agenzia_somministrazione=dipendente_data['agenzia_somministrazione'],
-                data_assunzione_indeterminato=dipendente_data['data_assunzione_indeterminato'],
-                legge_104=dipendente_data['legge_104'],
-                donatore_avis=dipendente_data['donatore_avis'],
-                indirizzo_residenza=dipendente_data['indirizzo_residenza'],
-                citta_residenza=dipendente_data['citta_residenza'],
-                provincia_residenza=dipendente_data['provincia_residenza'],
-                cap_residenza=dipendente_data['cap_residenza']
+                nome=dipendente_data.get('nome'),
+                cognome=dipendente_data.get('cognome'),
+                anno_nascita=dipendente_data.get('anno_nascita'),
+                luogo_nascita=dipendente_data.get('luogo_nascita'),
+                provincia_nascita=dipendente_data.get('provincia_nascita'),
+                codice_fiscale=dipendente_data.get('codice_fiscale'),
+                email=dipendente_data.get('email'),
+                telefono=dipendente_data.get('telefono'),
+                matricola=dipendente_data.get('matricola'),
+                reparto=dipendente_data.get('reparto'),
+                ruolo=dipendente_data.get('ruolo'),
+                data_assunzione_somministrazione=dipendente_data.get('data_assunzione_somministrazione'),
+                agenzia_somministrazione=dipendente_data.get('agenzia_somministrazione'),
+                data_assunzione_indeterminato=dipendente_data.get('data_assunzione_indeterminato'),
+                legge_104=dipendente_data.get('legge_104'),
+                donatore_avis=dipendente_data.get('donatore_avis'),
+                indirizzo_residenza=dipendente_data.get('indirizzo_residenza'),
+                citta_residenza=dipendente_data.get('citta_residenza'),
+                provincia_residenza=dipendente_data.get('provincia_residenza'),
+                cap_residenza=dipendente_data.get('cap_residenza')
             )
             
             db.session.add(dipendente)
             db.session.commit()
             
             # Aggiungi le competenze
-            for competenza_id in dipendente_data['competenze']:
+            for competenza_id in dipendente_data.get('competenze', []):
                 dipendente_competenza = DipendenteCompetenza(
                     dipendente_id=dipendente.id,
                     competenza_id=competenza_id
@@ -67,7 +60,7 @@ def nuovo_dipendente_step():
                 db.session.add(dipendente_competenza)
             
             # Aggiungi il vestiario
-            for vestiario_id in dipendente_data['vestiario']:
+            for vestiario_id in dipendente_data.get('vestiario', []):
                 prelievo = PrelievoVestiario(
                     dipendente_id=dipendente.id,
                     vestiario_id=vestiario_id,

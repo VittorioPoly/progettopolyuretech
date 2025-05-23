@@ -375,7 +375,7 @@ class DipendenteStep1Form(FlaskForm):
     luogo_nascita = StringField('Luogo di Nascita', validators=[DataRequired()])
     provincia_nascita = StringField('Provincia di Nascita', validators=[DataRequired()])
     codice_fiscale = StringField('Codice Fiscale', validators=[DataRequired()])
-    email = StringField('Email', validators=[Optional(), Email()])
+    email = StringField('Email', validators=[Optional()])
     telefono = StringField('Telefono', validators=[Optional()])
     submit = SubmitField('Avanti')
     prev = SubmitField('Indietro')

@@ -11,6 +11,7 @@
     </div>
 
     <form method="POST" class="needs-validation" novalidate>
+        {{ form.csrf_token }}
         {% if step == 1 %}
             <h3>Dati Personali</h3>
             <div class="row">
@@ -31,10 +32,10 @@
             </div>
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    {{ form.anno_nascita.label(class="form-label") }}
-                    {{ form.anno_nascita(class="form-control") }}
-                    {% if form.anno_nascita.errors %}
-                        <div class="invalid-feedback">{{ form.anno_nascita.errors[0] }}</div>
+                    {{ form.data_nascita.label(class="form-label") }}
+                    {{ form.data_nascita(class="form-control", type="date") }}
+                    {% if form.data_nascita.errors %}
+                        <div class="invalid-feedback">{{ form.data_nascita.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
@@ -217,7 +218,7 @@
                     Avanti <i class="fas fa-arrow-right"></i>
                 </button>
             {% else %}
-                <button type="submit" name="action" value="submit" class="btn btn-success">
+                <button type="submit" name="action" value="next" class="btn btn-success">
                     <i class="fas fa-save"></i> Salva
                 </button>
             {% endif %}

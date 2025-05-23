@@ -17,8 +17,12 @@
       <dt class="col-sm-3">Telefono</dt>
       <dd class="col-sm-9">{{ dip.telefono or '—' }}</dd>
 
-      <dt class="col-sm-3">Data Assunzione</dt>
-      <dd class="col-sm-9">{{ dip.data_assunzione.strftime('%d/%m/%Y') }}</dd>
+      <dt class="col-sm-3">Data Assunzione indeterminato</dt>
+      <dd class="col-sm-9">{{ dip.data_assunzione_indeterminato.strftime('%d/%m/%Y') }}</dd>
+
+      <dt class="col-sm-3">Data Assunzione somministrazione</dt>
+      <dd class="col-sm-9">  {% if dip.data_assunzione_somministrazione %}
+        {{ dip.data_assunzione_somministrazione.strftime('%d/%m/%Y') }}{% else %}{% endif %}</dd>
 
       <dt class="col-sm-3">Data Cessazione</dt>
       <dd class="col-sm-9">{{ dip.data_cessazione.strftime('%d/%m/%Y') }}</dd>
