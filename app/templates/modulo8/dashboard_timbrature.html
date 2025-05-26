@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Dashboard Presenze</h2>
+        <a href="{{ url_for('modulo8.dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Timbrature -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Timbrature</h5>
+                    <p class="card-text">Gestisci le tue timbrature giornaliere</p>
+                    <a href="{{ url_for('modulo8.timbrature') }}" class="btn btn-primary">
+                        <i class="fas fa-clock"></i> Vai alle Timbrature
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ferie -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Ferie</h5>
+                    <p class="card-text">Gestisci le tue ferie e permessi</p>
+                    <a href="{{ url_for('modulo8.ferie') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar-alt"></i> Vai alle Ferie
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permessi -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Permessi</h5>
+                    <p class="card-text">Gestisci i tuoi permessi</p>
+                    <a href="{{ url_for('modulo8.permessi') }}" class="btn btn-primary">
+                        <i class="fas fa-user-clock"></i> Vai ai Permessi
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendario Assenze -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Calendario Assenze</h5>
+                    <p class="card-text">Visualizza il calendario delle assenze</p>
+                    <a href="{{ url_for('modulo8.calendario_assenze') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar-week"></i> Vai al Calendario
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

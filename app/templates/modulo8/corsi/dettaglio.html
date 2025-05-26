@@ -114,6 +114,7 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form method="POST" action="{{ url_for('modulo8.elimina_partecipante', id=partecipazione.id) }}" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questo partecipante?')">
                                                     <i class="fas fa-trash"></i>
                                                 </button>

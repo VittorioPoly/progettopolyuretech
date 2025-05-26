@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestione Timbrature</h2>
+        <div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qrModal">
+                <i class="fas fa-qrcode"></i> Scannerizza QR
+            </button>
+            <a href="{{ url_for('modulo8.dashboard_timbrature') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Selezione Mese -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Mese</label>
+                    <select name="month" class="form-select" onchange="this.form.submit()">
+                        {% for m in range(1, 13) %}
+                        <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>
+                            {{ ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
+                                'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'][m-1] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Anno</label>
+                    <select name="year" class="form-select" onchange="this.form.submit()">
+                        {% for y in range(current_year-1, current_year+2) %}
+                        <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabella Timbrature -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Entrata</th>
+                            <th>Uscita</th>
+                            {% if current_user.is_admin %}
+                            <th>Azioni</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for giorno in giorni %}
+                        <tr>
+                            <td>{{ giorno.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% set entrata = timbrature.get(giorno, {}).get('entrata') %}
+                                {% if entrata %}
+                                {{ entrata.strftime('%H:%M') }}
+                                {% if current_user.is_admin %}
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="modificaTimbratura({{ entrata.id }}, 'entrata')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set uscita = timbrature.get(giorno, {}).get('uscita') %}
+                                {% if uscita %}
+                                {{ uscita.strftime('%H:%M') }}
+                                {% if current_user.is_admin %}
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="modificaTimbratura({{ uscita.id }}, 'uscita')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                            {% if current_user.is_admin %}
+                            <td>
+                                <button class="btn btn-sm btn-outline-success" 
+                                        onclick="aggiungiTimbratura('{{ giorno.strftime('%Y-%m-%d') }}', 'entrata')">
+                                    <i class="fas fa-plus"></i> Entrata
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="aggiungiTimbratura('{{ giorno.strftime('%Y-%m-%d') }}', 'uscita')">
+                                    <i class="fas fa-plus"></i> Uscita
+                                </button>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal QR Code -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scannerizza QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reader"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modifica Timbratura -->
+<div class="modal fade" id="modificaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifica Timbratura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="modificaForm">
+                    <input type="hidden" id="timbraturaId">
+                    <div class="mb-3">
+                        <label class="form-label">Orario</label>
+                        <input type="time" class="form-control" id="orario" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <textarea class="form-control" id="note"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" onclick="salvaModifica()">Salva</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Aggiungi Timbratura -->
+<div class="modal fade" id="aggiungiModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Aggiungi Timbratura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="aggiungiForm">
+                    <input type="hidden" id="data">
+                    <input type="hidden" id="tipo">
+                    <div class="mb-3">
+                        <label class="form-label">Orario</label>
+                        <input type="time" class="form-control" id="orarioNuovo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <textarea class="form-control" id="noteNuovo"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" onclick="salvaNuova()">Salva</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+let html5QrcodeScanner = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const qrModal = document.getElementById('qrModal');
+    qrModal.addEventListener('shown.bs.modal', function () {
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", { fps: 10, qrbox: 250 });
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+    });
+    
+    qrModal.addEventListener('hidden.bs.modal', function () {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+        }
+    });
+});
+
+function onScanSuccess(decodedText, decodedResult) {
+    // Invia la timbratura al server
+    fetch('/modulo8/timbrature/qrcode', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            qr_data: decodedText
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore durante la registrazione della timbratura');
+        }
+    });
+}
+
+function onScanFailure(error) {
+    console.warn(`Errore scansione QR: ${error}`);
+}
+
+function modificaTimbratura(id, tipo) {
+    document.getElementById('timbraturaId').value = id;
+    document.getElementById('tipo').value = tipo;
+    const modal = new bootstrap.Modal(document.getElementById('modificaModal'));
+    modal.show();
+}
+
+function aggiungiTimbratura(data, tipo) {
+    document.getElementById('data').value = data;
+    document.getElementById('tipo').value = tipo;
+    const modal = new bootstrap.Modal(document.getElementById('aggiungiModal'));
+    modal.show();
+}
+
+function salvaModifica() {
+    const id = document.getElementById('timbraturaId').value;
+    const orario = document.getElementById('orario').value;
+    const note = document.getElementById('note').value;
+    
+    fetch(`/modulo8/timbrature/${id}/modifica`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            orario: orario,
+            note: note
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore durante la modifica della timbratura');
+        }
+    });
+}
+
+function salvaNuova() {
+    const data = document.getElementById('data').value;
+    const tipo = document.getElementById('tipo').value;
+    const orario = document.getElementById('orarioNuovo').value;
+    const note = document.getElementById('noteNuovo').value;
+    
+    fetch('/modulo8/timbrature/nuova', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            data: data,
+            tipo: tipo,
+            orario: orario,
+            note: note
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore durante l\'aggiunta della timbratura');
+        }
+    });
+}
+</script>
+{% endblock %} 

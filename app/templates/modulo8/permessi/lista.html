@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestione Permessi</h2>
+        <div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#permessoModal">
+                <i class="fas fa-plus"></i> Nuovo Permesso
+            </button>
+            <a href="{{ url_for('modulo8.dashboard_timbrature') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Lista Permessi -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">I Miei Permessi</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Data Inizio</th>
+                            <th>Data Fine</th>
+                            <th>Ore</th>
+                            <th>Motivo</th>
+                            <th>Stato</th>
+                            {% if current_user.is_admin %}
+                            <th>Azioni</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for richiesta in richieste %}
+                        <tr>
+                            <td>{{ richiesta.data_inizio.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ richiesta.data_fine.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ richiesta.ore }}</td>
+                            <td>{{ richiesta.motivo }}</td>
+                            <td>
+                                <span class="badge bg-{{ {
+                                    'in_attesa': 'warning',
+                                    'approvata': 'success',
+                                    'rifiutata': 'danger'
+                                }[richiesta.stato] }}">
+                                    {{ richiesta.stato }}
+                                </span>
+                            </td>
+                            {% if current_user.is_admin %}
+                            <td>
+                                {% if richiesta.stato == 'in_attesa' %}
+                                <button class="btn btn-sm btn-success" onclick="gestisciPermesso({{ richiesta.id }}, 'approvata')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="gestisciPermesso({{ richiesta.id }}, 'rifiutata')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuovo Permesso -->
+<div class="modal fade" id="permessoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuovo Permesso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="permessoForm">
+                    <div class="mb-3">
+                        <label class="form-label">Data Inizio</label>
+                        <input type="date" class="form-control" name="data_inizio" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data Fine</label>
+                        <input type="date" class="form-control" name="data_fine" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ore</label>
+                        <input type="number" class="form-control" name="ore" required min="1" max="8" step="0.5">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <textarea class="form-control" name="motivo" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" onclick="inviaPermesso()">Invia</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function inviaPermesso() {
+    const form = document.getElementById('permessoForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/modulo8/permessi/nuova', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore durante l\'invio della richiesta');
+        }
+    });
+}
+
+function gestisciPermesso(id, stato) {
+    fetch(`/modulo8/permessi/${id}/gestisci`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            stato: stato
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore durante la gestione della richiesta');
+        }
+    });
+}
+</script>
+{% endblock %} 

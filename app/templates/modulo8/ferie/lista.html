@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestione Ferie e Permessi</h2>
+        <div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#richiestaModal">
+                <i class="fas fa-plus"></i> Nuova Richiesta
+            </button>
+            <a href="{{ url_for('modulo8.dashboard_timbrature') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Riepilogo Ferie -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Riepilogo Ferie</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6>Totale Ore</h6>
+                            <h3>{{ residuo.ore_totali }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6>Ore Utilizzate</h6>
+                            <h3>{{ residuo.ore_usate }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6>Ore Residue</h6>
+                            <h3>{{ residuo.ore_residue }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendario -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Calendario Assenze</h5>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Lista Richieste -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Le Mie Richieste</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Data Inizio</th>
+                            <th>Data Fine</th>
+                            <th>Ore</th>
+                            <th>Stato</th>
+                            <th>Note</th>
+                            {% if current_user.is_admin %}
+                            <th>Azioni</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for richiesta in richieste %}
+                        <tr>
+                            <td>{{ richiesta.tipo }}</td>
+                            <td>{{ richiesta.data_inizio.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ richiesta.data_fine.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ richiesta.ore }}</td>
+                            <td>
+                                <span class="badge bg-{{ {
+                                    'in_attesa': 'warning',
+                                    'approvata': 'success',
+                                    'rifiutata': 'danger'
+                                }[richiesta.stato] }}">
+                                    {{ richiesta.stato }}
+                                </span>
+                            </td>
+                            <td>{{ richiesta.note }}</td>
+                            {% if current_user.is_admin %}
+                            <td>
+                                {% if richiesta.stato == 'in_attesa' %}
+                                <button class="btn btn-sm btn-success" onclick="gestisciRichiesta({{ richiesta.id }}, 'approvata')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="gestisciRichiesta({{ richiesta.id }}, 'rifiutata')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuova Richiesta -->
+<div class="modal fade" id="richiestaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuova Richiesta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="richiestaForm">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-select" name="tipo" required>
+                            <option value="ferie">Ferie</option>
+                            <option value="malattia">Malattia</option>
+                            <option value="permesso">Permesso</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data Inizio</label>
+                        <input type="date" class="form-control" name="data_inizio" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data Fine</label>
+                        <input type="date" class="form-control" name="data_fine" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ore</label>
+                        <input type="number" class="form-control" name="ore" required min="1" max="8">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <textarea class="form-control" name="note"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" onclick="inviaRichiesta()">Invia</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'it',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: [
+            {% for richiesta in richieste %}
+            {
+                title: '{{ richiesta.tipo }} - {{ richiesta.ore }}h',
+                start: '{{ richiesta.data_inizio.strftime("%Y-%m-%d") }}',
+                end: '{{ richiesta.data_fine.strftime("%Y-%m-%d") }}',
+                color: '{{ {
+                    "ferie": "#28a745",
+                    "malattia": "#dc3545",
+                    "permesso": "#17a2b8"
+                }[richiesta.tipo] }}',
+                textColor: 'white'
+            },
+            {% endfor %}
+        ]
+    });
+    calendar.render();
+});
+
+function inviaRichiesta() {
+    const form = document.getElementById('richiestaForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/modulo8/ferie/nuova', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore durante l\'invio della richiesta');
+        }
+    });
+}
+
+function gestisciRichiesta(id, stato) {
+    fetch(`/modulo8/ferie/${id}/gestisci`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            stato: stato
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Errore durante la gestione della richiesta');
+        }
+    });
+}
+</script>
+{% endblock %} 

@@ -13,17 +13,29 @@
         </div>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Informazioni</h5>
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Nome:</strong> {{ competenza.nome }}</p>
-                    <p><strong>Area:</strong> {{ competenza.area or 'Non specificata' }}</p>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Informazioni</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nome:</strong> {{ competenza.nome }}</p>
+                            <p><strong>Area:</strong> {{ competenza.area or 'Non specificata' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Livello:</strong> {{ competenza.livello or 'Non specificato' }}</p>
+                            <p><strong>Descrizione:</strong> {{ competenza.descrizione or 'Nessuna descrizione' }}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <p><strong>Livello:</strong> {{ competenza.livello or 'Non specificato' }}</p>
-                    <p><strong>Descrizione:</strong> {{ competenza.descrizione or 'Nessuna descrizione' }}</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Statistiche</h5>
+                    <canvas id="percentualiChart"></canvas>
                 </div>
             </div>
         </div>
@@ -48,7 +60,10 @@
                             <tr>
                                 <td>{{ dip.nome }}</td>
                                 <td>{{ dip.cognome }}</td>
-                                <td>{{ dip.competenze|selectattr('id', 'eq', competenza.id)|map(attribute='percentuale')|first|default(0) }}%</td>
+                                <td>
+                                    {% set dc = dipendente_competenze.get(dip.id) %}
+                                    {{ dc.percentuale if dc else 0 }}%
+                                </td>
                                 <td>{{ dip.reparto or '—' }}</td>
                                 <td>{{ dip.ruolo or '—' }}</td>
                             </tr>
@@ -59,4 +74,68 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dati per il grafico
+const chartData = {
+    labels: [
+        {% for dip in dipendenti %}
+            '{{ dip.nome }} {{ dip.cognome }}'{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ],
+    percentuali: [
+        {% for dip in dipendenti %}
+            {% set dc = dipendente_competenze.get(dip.id) %}
+            {{ dc.percentuale if dc else 0 }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('percentualiChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Percentuale Competenza',
+                data: chartData.percentuali,
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Percentuale'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Dipendenti'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Distribuzione Percentuali Competenza'
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %} 

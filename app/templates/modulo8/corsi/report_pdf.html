@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Report Corso: {{ corso.titolo }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2cm;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2cm;
+        }
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5cm;
+        }
+        .stats {
+            margin-bottom: 2cm;
+        }
+        .stats table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .stats th, .stats td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .stats th {
+            background-color: #f5f5f5;
+        }
+        .participants {
+            margin-top: 2cm;
+        }
+        .participants table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .participants th, .participants td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .participants th {
+            background-color: #f5f5f5;
+        }
+        .stars {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Report Corso: {{ corso.titolo }}</h1>
+        <p>Data inizio: {{ corso.giorno_inizio.strftime('%d/%m/%Y') }}</p>
+        <p>Data fine: {{ corso.giorno_fine.strftime('%d/%m/%Y') }}</p>
+    </div>
+
+    <div class="stats">
+        <h2>Statistiche</h2>
+        <table>
+            <tr>
+                <th>Media Valutazioni</th>
+                <td>
+                    {{ "%.1f"|format(media_valutazioni) }}
+                    <span class="stars">
+                        {% for i in range(media_valutazioni|int) %}★{% endfor %}
+                        {% if media_valutazioni % 1 >= 0.5 %}½{% endif %}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <th>Numero Partecipanti</th>
+                <td>{{ partecipazioni|length }}</td>
+            </tr>
+            <tr>
+                <th>Distribuzione Valutazioni</th>
+                <td>
+                    {% for i in range(5, 0, -1) %}
+                        {{ i }}★: {{ distribuzione[i|string] }} 
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="participants">
+        <h2>Lista Partecipanti</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Cognome</th>
+                    <th>Stato</th>
+                    <th>Valutazione</th>
+                    <th>Data Completamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in partecipazioni %}
+                <tr>
+                    <td>{{ p.dipendente.nome }}</td>
+                    <td>{{ p.dipendente.cognome }}</td>
+                    <td>{{ p.stato }}</td>
+                    <td>
+                        {% if p.valutazione %}
+                            {{ p.valutazione }}
+                            <span class="stars">
+                                {% for i in range(p.valutazione) %}★{% endfor %}
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ p.data_completamento.strftime('%d/%m/%Y') if p.data_completamento else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html> 

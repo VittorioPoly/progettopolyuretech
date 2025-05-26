@@ -15,6 +15,7 @@
                     <thead>
                         <tr>
                             <th>Titolo</th>
+                            <th>Durata</th>
                             <th>Data Inizio</th>
                             <th>Data Fine</th>
                             <th>Giorni alla Scadenza</th>
@@ -24,13 +25,14 @@
                     </thead>
                     <tbody>
                         {% for corso in corsi %}
-                        <tr>
+                        {% set giorni = (corso.giorno_fine - now).days %}
+                        <tr class="{% if giorni <= 7 %}table-danger{% elif giorni <= 14 %}table-warning{% else %}table-info{% endif %}">
                             <td>{{ corso.titolo }}</td>
+                            <td>{{ corso.durata_ore }} ore</td>
                             <td>{{ corso.giorno_inizio.strftime('%d/%m/%Y') }}</td>
                             <td>{{ corso.giorno_fine.strftime('%d/%m/%Y') }}</td>
                             <td>
-                                {% set giorni = (corso.giorno_fine - now).days %}
-                                <span class="badge {% if giorni < 7 %}bg-danger{% elif giorni < 14 %}bg-warning{% else %}bg-info{% endif %}">
+                                <span class="badge {% if giorni <= 7 %}bg-danger{% elif giorni <= 14 %}bg-warning{% else %}bg-info{% endif %} text-dark">
                                     {{ giorni }} giorni
                                 </span>
                             </td>
@@ -43,7 +45,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center">Nessun corso in scadenza</td>
+                            <td colspan="7" class="text-center">Nessun corso in scadenza</td>
                         </tr>
                         {% endfor %}
                     </tbody>

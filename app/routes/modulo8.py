@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, send_file
 from flask_login import login_required, current_user
 from app import db
-from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso, CorsoSicurezza
+from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso, CorsoSicurezza, ResiduoFerie, RichiestaFerie, RichiestaPermesso
 from app.utils import admin_required, check_module_access
 from datetime import datetime, timedelta
 from calendar import monthrange
@@ -15,6 +15,12 @@ from wtforms.validators import DataRequired, NumberRange
 from werkzeug.utils import secure_filename
 import os
 from sqlalchemy import func
+import tempfile
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
 
 modulo8 = Blueprint('modulo8', __name__, url_prefix='/modulo8')
 
@@ -484,68 +490,145 @@ def modifica_competenza(id):
 def visualizza_competenza(id):
     competenza = Competenza.query.get_or_404(id)
     dipendenti = competenza.dipendenti.all()
+    
+    # Creo un dizionario con le percentuali per ogni dipendente
+    dipendente_competenze = {}
+    for dip in dipendenti:
+        dc = DipendenteCompetenza.query.filter_by(
+            dipendente_id=dip.id,
+            competenza_id=id
+        ).first()
+        if dc:
+            dipendente_competenze[dip.id] = dc
+    
     return render_template('modulo8/competenze/view.html',
                          title=f'Dettagli Competenza: {competenza.nome}',
                          competenza=competenza,
-                         dipendenti=dipendenti)
+                         dipendenti=dipendenti,
+                         dipendente_competenze=dipendente_competenze)
 
 # timbrature: endpoint per QR
+@modulo8.route('/timbrature')
+@login_required
+def timbrature():
+    month = request.args.get('month', type=int, default=datetime.now().month)
+    year = request.args.get('year', type=int, default=datetime.now().year)
+    
+    # Calcola il primo e l'ultimo giorno del mese
+    first_day = datetime(year, month, 1)
+    if month == 12:
+        last_day = datetime(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        last_day = datetime(year, month + 1, 1) - timedelta(days=1)
+    
+    # Ottieni tutte le timbrature del mese
+    timbrature = Timbratura.query.filter(
+        Timbratura.dipendente_id == current_user.id,
+        Timbratura.timestamp >= first_day,
+        Timbratura.timestamp <= last_day
+    ).order_by(Timbratura.timestamp).all()
+    
+    # Organizza le timbrature per giorno
+    timbrature_dict = {}
+    for t in timbrature:
+        giorno = t.timestamp.date()
+        if giorno not in timbrature_dict:
+            timbrature_dict[giorno] = {}
+        timbrature_dict[giorno][t.tipo] = t
+    
+    # Genera lista dei giorni del mese
+    giorni = []
+    current = first_day
+    while current <= last_day:
+        giorni.append(current.date())
+        current += timedelta(days=1)
+    
+    return render_template('modulo8/timbrature/lista.html',
+                         timbrature=timbrature_dict,
+                         giorni=giorni,
+                         current_month=month,
+                         current_year=year)
+
 @modulo8.route('/timbrature/qrcode', methods=['POST'])
-def timbratura_qr():
+@login_required
+def timbratura_qrcode():
     data = request.get_json()
-    dip_id = data.get('dipendente_id')
-    tipo = data.get('tipo')  # entrata1, uscita1...
-    tim = Timbratura(dipendente_id=dip_id, tipo=tipo)
-    db.session.add(tim); db.session.commit()
-    return jsonify(status='ok', timestamp=tim.timestamp.isoformat())
+    qr_data = data.get('qr_data')
+    
+    if not qr_data:
+        return jsonify({'success': False, 'error': 'Dati QR mancanti'})
+    
+    try:
+        # Verifica che il QR sia valido
+        # Qui dovresti implementare la logica di verifica del QR
+        # Per ora accettiamo qualsiasi QR
+        
+        # Registra la timbratura
+        timbratura = Timbratura(
+            dipendente_id=current_user.id,
+            tipo='entrata' if not Timbratura.query.filter_by(
+                dipendente_id=current_user.id,
+                timestamp=datetime.now().date()
+            ).first() else 'uscita',
+            timestamp=datetime.now()
+        )
+        db.session.add(timbratura)
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
-@modulo8.route('/timbrature/<int:dip_id>/mese/<int:year>/<int:month>')
+@modulo8.route('/timbrature/<int:id>/modifica', methods=['POST'])
 @login_required
-@admin_required
-def view_timbrature(dip_id, year, month):
-    dip = Dipendente.query.get_or_404(dip_id)
-    # genera matrice giorni x 4 tipi
-    return render_template('modulo8/timbrature/sheet.html', dip=dip, year=year, month=month)
+def modifica_timbratura(id):
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Non autorizzato'})
+    
+    data = request.get_json()
+    timbratura = Timbratura.query.get_or_404(id)
+    
+    try:
+        orario = datetime.strptime(data['orario'], '%H:%M').time()
+        timbratura.timestamp = datetime.combine(timbratura.timestamp.date(), orario)
+        timbratura.note = data.get('note', '')
+        timbratura.modificato_da = current_user.id
+        timbratura.data_modifica = datetime.now()
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
-@modulo8.route(
-    '/modulo8/timbrature/<int:dip_id>/mese/<int:anno>/<int:mese>',
-    endpoint='timbrature_mese'
-)
+@modulo8.route('/timbrature/nuova', methods=['POST'])
 @login_required
-@admin_required
-def timbrature_mese(dip_id, anno, mese):
-    # 1. Recupera il dipendente
-    dip = Dipendente.query.get_or_404(dip_id)
-
-    # 2. Costruisci la lista dei giorni del mese
-    _, num_giorni = monthrange(anno, mese)
-    giorni = list(range(1, num_giorni + 1))
-
-    # 3. Preleva tutte le timbrature di quel mese
-    inizio = datetime(anno, mese, 1)
-    fine  = datetime(anno, mese, num_giorni, 23, 59, 59)
-    timb = (Timbratura.query
-            .filter(Timbratura.dipendente_id == dip_id)
-            .filter(Timbratura.timestamp.between(inizio, fine))
-            .all())
-
-    # 4. Mappa: giorno -> { tipo: timestamp_formattato }
-    timbrature_map = {}
-    for t in timb:
-        g = t.timestamp.day
-        if g not in timbrature_map:
-            timbrature_map[g] = {}
-        timbrature_map[g][t.tipo] = t.timestamp.strftime('%H:%M')
-
-    return render_template(
-        'modulo8/timbrature_mese.html',
-        dip=dip,
-        anno=anno,
-        mese=mese,
-        giorni=giorni,
-        timbrature_map=timbrature_map,
-        now=datetime.utcnow()
-    )
+def nuova_timbratura():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Non autorizzato'})
+    
+    data = request.get_json()
+    
+    try:
+        data_timbratura = datetime.strptime(data['data'], '%Y-%m-%d').date()
+        orario = datetime.strptime(data['orario'], '%H:%M').time()
+        
+        timbratura = Timbratura(
+            dipendente_id=current_user.id,
+            tipo=data['tipo'],
+            timestamp=datetime.combine(data_timbratura, orario),
+            note=data.get('note', ''),
+            modificato_da=current_user.id,
+            data_modifica=datetime.now()
+        )
+        
+        db.session.add(timbratura)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 # gestione vestiario
 @modulo8.route('/vestiario')
@@ -726,13 +809,17 @@ def formazione():
         func.avg(PartecipazioneCorso.valutazione)
     ).filter(PartecipazioneCorso.valutazione.isnot(None)).scalar() or 0
     
+    # Recupera i corsi archiviati
+    corsi_archiviati = CorsoFormazione.query.filter_by(archiviato=True).all()
+    
     return render_template('modulo8/formazione.html',
                          corsi_attivi=corsi_attivi,
                          corsi_completati=corsi_completati,
                          partecipanti_totali=partecipanti_totali,
                          corsi_scadenza=corsi_scadenza,
                          corsi_obbligatori=corsi_obbligatori,
-                         media_valutazioni=round(media_valutazioni, 1))
+                         media_valutazioni=round(media_valutazioni, 1),
+                         corsi_archiviati=corsi_archiviati)
 
 @modulo8.route('/sicurezza')
 @login_required
@@ -746,7 +833,9 @@ def sicurezza():
 def lista_corsi():
     show_archived = request.args.get('show_archived', 'false') == 'true'
     query = CorsoFormazione.query
-    if not show_archived:
+    if show_archived:
+        query = query.filter_by(archiviato=True)
+    else:
         query = query.filter_by(archiviato=False)
     corsi = query.order_by(CorsoFormazione.giorno_inizio.desc()).all()
     return render_template('modulo8/corsi/lista.html', corsi=corsi, show_archived=show_archived)
@@ -816,8 +905,7 @@ def nuovo_partecipante(id):
                 dipendente_id=dip_id,
                 corso_id=id,
                 stato=form.stato.data,
-                valutazione=form.valutazione.data,
-                note=form.note.data
+                valutazione=form.valutazione.data
             )
             if form.stato.data == 'completato':
                 partecipazione.data_completamento = datetime.utcnow()
@@ -1092,12 +1180,12 @@ def lista_partecipanti():
 @login_required
 @admin_required
 def corsi_scadenza():
-    oggi = datetime.utcnow()
+    oggi = datetime.utcnow().date()
     corsi = CorsoFormazione.query.filter(
         CorsoFormazione.giorno_fine < oggi + timedelta(days=30),
         CorsoFormazione.archiviato == False
     ).order_by(CorsoFormazione.giorno_fine.asc()).all()
-    return render_template('modulo8/corsi/scadenza.html', corsi=corsi)
+    return render_template('modulo8/corsi/scadenza.html', corsi=corsi, now=oggi)
 
 @modulo8.route('/formazione/corsi/obbligatori')
 @login_required
@@ -1106,15 +1194,269 @@ def corsi_obbligatori():
     corsi = CorsoFormazione.query.filter_by(is_obbligatorio=True, archiviato=False).all()
     return render_template('modulo8/corsi/obbligatori.html', corsi=corsi)
 
-@modulo8.route('/formazione/report-valutazioni')
+@modulo8.route('/formazione/corsi/report-valutazioni')
 @login_required
 @admin_required
 def report_valutazioni():
-    # Calcola la media delle valutazioni per corso
-    corsi = db.session.query(
-        CorsoFormazione,
-        func.avg(PartecipazioneCorso.valutazione).label('media_valutazione'),
-        func.count(PartecipazioneCorso.id).label('num_partecipanti')
-    ).join(PartecipazioneCorso).group_by(CorsoFormazione.id).all()
-    
+    corsi = CorsoFormazione.query.all()
+    for corso in corsi:
+        valutazioni = [p.valutazione for p in corso.partecipazioni if p.valutazione is not None]
+        corso.media_valutazioni = sum(valutazioni) / len(valutazioni) if valutazioni else None
     return render_template('modulo8/corsi/report_valutazioni.html', corsi=corsi)
+
+@modulo8.route('/formazione/corsi/<int:id>/report-pdf')
+@login_required
+@admin_required
+def report_corso_pdf(id):
+    corso = CorsoFormazione.query.get_or_404(id)
+    partecipazioni = PartecipazioneCorso.query.filter_by(corso_id=id).all()
+    
+    # Calcola le statistiche
+    valutazioni = [p.valutazione for p in partecipazioni if p.valutazione is not None]
+    media_valutazioni = sum(valutazioni) / len(valutazioni) if valutazioni else 0
+    
+    distribuzione = {
+        '5': len([v for v in valutazioni if v == 5]),
+        '4': len([v for v in valutazioni if v == 4]),
+        '3': len([v for v in valutazioni if v == 3]),
+        '2': len([v for v in valutazioni if v == 2]),
+        '1': len([v for v in valutazioni if v == 1])
+    }
+    
+    # Crea il PDF
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+        doc = SimpleDocTemplate(tmp.name, pagesize=A4)
+        styles = getSampleStyleSheet()
+        elements = []
+        
+        # Titolo
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30
+        )
+        elements.append(Paragraph(f"Report Corso: {corso.titolo}", title_style))
+        
+        # Date
+        date_style = styles["Normal"]
+        elements.append(Paragraph(f"Data inizio: {corso.giorno_inizio.strftime('%d/%m/%Y')}", date_style))
+        elements.append(Paragraph(f"Data fine: {corso.giorno_fine.strftime('%d/%m/%Y')}", date_style))
+        elements.append(Spacer(1, 20))
+        
+        # Statistiche
+        elements.append(Paragraph("Statistiche", styles["Heading2"]))
+        stats_data = [
+            ["Media Valutazioni", f"{media_valutazioni:.1f}"],
+            ["Numero Partecipanti", str(len(partecipazioni))],
+            ["Distribuzione Valutazioni", 
+             " ".join([f"{i}★: {distribuzione[str(i)]}" for i in range(5, 0, -1)])]
+        ]
+        stats_table = Table(stats_data, colWidths=[6*cm, 6*cm])
+        stats_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(stats_table)
+        elements.append(Spacer(1, 20))
+        
+        # Lista Partecipanti
+        elements.append(Paragraph("Lista Partecipanti", styles["Heading2"]))
+        participants_data = [["Nome", "Cognome", "Stato", "Valutazione", "Data Completamento"]]
+        for p in partecipazioni:
+            valutazione = f"{p.valutazione}★" if p.valutazione else "-"
+            data_completamento = p.data_completamento.strftime('%d/%m/%Y') if p.data_completamento else "-"
+            participants_data.append([
+                p.dipendente.nome,
+                p.dipendente.cognome,
+                p.stato,
+                valutazione,
+                data_completamento
+            ])
+        
+        participants_table = Table(participants_data, colWidths=[3*cm, 3*cm, 3*cm, 3*cm, 3*cm])
+        participants_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(participants_table)
+        
+        # Genera il PDF
+        doc.build(elements)
+        
+        return send_file(
+            tmp.name,
+            as_attachment=True,
+            download_name=f'report_{corso.titolo}.pdf',
+            mimetype='application/pdf'
+        )
+
+@modulo8.route('/ferie')
+@login_required
+def ferie():
+    # Ottieni il residuo ferie dell'utente
+    residuo = ResiduoFerie.query.filter_by(dipendente_id=current_user.id).first()
+    if not residuo:
+        residuo = ResiduoFerie(
+            dipendente_id=current_user.id,
+            anno=datetime.now().year,
+            tipo='ferie',
+            ore_totali=0,
+            ore_usate=0,
+            ore_residue=0
+        )
+        db.session.add(residuo)
+        db.session.commit()
+    
+    # Ottieni tutte le richieste dell'utente
+    richieste = RichiestaFerie.query.filter_by(dipendente_id=current_user.id).order_by(RichiestaFerie.data_inizio.desc()).all()
+    
+    return render_template('modulo8/ferie/lista.html',
+                         residuo=residuo,
+                         richieste=richieste)
+
+@modulo8.route('/ferie/nuova', methods=['POST'])
+@login_required
+def nuova_richiesta_ferie():
+    data = request.get_json()
+    
+    try:
+        richiesta = RichiestaFerie(
+            dipendente_id=current_user.id,
+            tipo=data['tipo'],
+            data_inizio=datetime.strptime(data['data_inizio'], '%Y-%m-%d').date(),
+            data_fine=datetime.strptime(data['data_fine'], '%Y-%m-%d').date(),
+            ore=int(data['ore']),
+            note=data.get('note', ''),
+            stato='in_attesa'
+        )
+        
+        db.session.add(richiesta)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@modulo8.route('/ferie/<int:id>/gestisci', methods=['POST'])
+@login_required
+def gestisci_richiesta_ferie(id):
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Non autorizzato'})
+    
+    data = request.get_json()
+    richiesta = RichiestaFerie.query.get_or_404(id)
+    
+    try:
+        richiesta.stato = data['stato']
+        richiesta.gestita_da = current_user.id
+        richiesta.data_gestione = datetime.now()
+        
+        # Se approvata, aggiorna il residuo ferie
+        if data['stato'] == 'approvata':
+            residuo = ResiduoFerie.query.filter_by(dipendente_id=richiesta.dipendente_id).first()
+            if not residuo:
+                residuo = ResiduoFerie(
+                    dipendente_id=richiesta.dipendente_id,
+                    anno=datetime.now().year,
+                    tipo='ferie',
+                    ore_totali=0,
+                    ore_usate=0,
+                    ore_residue=0
+                )
+                db.session.add(residuo)
+            
+            residuo.ore_usate += richiesta.ore
+            residuo.ore_residue = residuo.ore_totali - residuo.ore_usate
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@modulo8.route('/timbrature/<int:id>/mese/<int:anno>/<int:mese>')
+def timbrature_mese(id, anno, mese):
+    from calendar import monthrange
+    from datetime import datetime, date
+    dipendente = Dipendente.query.get_or_404(id)
+    primo_giorno = date(anno, mese, 1)
+    ultimo_giorno = date(anno, mese, monthrange(anno, mese)[1])
+    timbrature = Timbratura.query.filter(
+        Timbratura.dipendente_id == id,
+        Timbratura.timestamp >= primo_giorno,
+        Timbratura.timestamp < ultimo_giorno.replace(day=ultimo_giorno.day) + timedelta(days=1)
+    ).order_by(Timbratura.timestamp).all()
+    # Organizza per giorno
+    giorni = {}
+    for t in timbrature:
+        giorno = t.timestamp.date()
+        if giorno not in giorni:
+            giorni[giorno] = []
+        giorni[giorno].append(t)
+    return render_template('modulo8/timbrature/lista.html', dipendente=dipendente, anno=anno, mese=mese, giorni=giorni)
+
+@modulo8.route('/dashboard-presenze')
+@login_required
+def dashboard_timbrature():
+    return render_template('modulo8/dashboard_timbrature.html')
+
+@modulo8.route('/permessi')
+@login_required
+def permessi():
+    richieste = RichiestaPermesso.query.filter_by(dipendente_id=current_user.id).order_by(RichiestaPermesso.data_richiesta.desc()).all()
+    return render_template('modulo8/permessi/lista.html', richieste=richieste)
+
+@modulo8.route('/permessi/nuova', methods=['POST'])
+@login_required
+def nuova_richiesta_permesso():
+    data = request.get_json()
+    try:
+        richiesta = RichiestaPermesso(
+            dipendente_id=current_user.id,
+            data_inizio=datetime.strptime(data['data_inizio'], '%Y-%m-%d').date(),
+            data_fine=datetime.strptime(data['data_fine'], '%Y-%m-%d').date(),
+            ore=float(data['ore']),
+            motivo=data['motivo'],
+            stato='in_attesa'
+        )
+        db.session.add(richiesta)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@modulo8.route('/permessi/<int:id>/gestisci', methods=['POST'])
+@login_required
+@admin_required
+def gestisci_richiesta_permesso(id):
+    data = request.get_json()
+    richiesta = RichiestaPermesso.query.get_or_404(id)
+    try:
+        richiesta.stato = data['stato']
+        richiesta.approvato_da = current_user.id
+        richiesta.data_approvazione = datetime.now()
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@modulo8.route('/calendario-assenze')
+@login_required
+def calendario_assenze():
+    # Recupera tutte le richieste di ferie e permessi approvati
+    ferie = RichiestaFerie.query.filter_by(stato='approvata').all()
+    permessi = RichiestaPermesso.query.filter_by(stato='approvata').all()
+    return render_template('modulo8/calendario_assenze.html', ferie=ferie, permessi=permessi)

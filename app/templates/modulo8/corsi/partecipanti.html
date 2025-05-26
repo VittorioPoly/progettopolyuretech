@@ -10,8 +10,35 @@
 
     <div class="card">
         <div class="card-body">
+            <!-- Filtri -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="filtroDipendente">Filtra per Dipendente</label>
+                        <input type="text" id="filtroDipendente" class="form-control" placeholder="Cerca dipendente...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="filtroCorso">Filtra per Corso</label>
+                        <input type="text" id="filtroCorso" class="form-control" placeholder="Cerca corso...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="filtroStato">Filtra per Stato</label>
+                        <select id="filtroStato" class="form-control">
+                            <option value="">Tutti gli stati</option>
+                            <option value="da_iniziare">Da Iniziare</option>
+                            <option value="in_corso">In Corso</option>
+                            <option value="completato">Completato</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover" id="tabellaPartecipanti">
                     <thead>
                         <tr>
                             <th>Dipendente</th>
@@ -36,7 +63,7 @@
                             </td>
                             <td>
                                 {% if part.valutazione %}
-                                <div class="text-warning">
+                                <div class="text-dark">
                                     {% for i in range(part.valutazione) %}
                                     <i class="fas fa-star"></i>
                                     {% endfor %}
@@ -63,4 +90,38 @@
         </div>
     </div>
 </div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filtroDipendente = document.getElementById('filtroDipendente');
+    const filtroCorso = document.getElementById('filtroCorso');
+    const filtroStato = document.getElementById('filtroStato');
+    const tabella = document.getElementById('tabellaPartecipanti');
+    const righe = tabella.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+    function applicaFiltri() {
+        const valoreDipendente = filtroDipendente.value.toLowerCase();
+        const valoreCorso = filtroCorso.value.toLowerCase();
+        const valoreStato = filtroStato.value.toLowerCase();
+
+        for (let riga of righe) {
+            const dipendente = riga.cells[0].textContent.toLowerCase();
+            const corso = riga.cells[1].textContent.toLowerCase();
+            const stato = riga.cells[3].textContent.toLowerCase();
+
+            const matchDipendente = dipendente.includes(valoreDipendente);
+            const matchCorso = corso.includes(valoreCorso);
+            const matchStato = !valoreStato || stato.includes(valoreStato);
+
+            riga.style.display = matchDipendente && matchCorso && matchStato ? '' : 'none';
+        }
+    }
+
+    filtroDipendente.addEventListener('input', applicaFiltri);
+    filtroCorso.addEventListener('input', applicaFiltri);
+    filtroStato.addEventListener('change', applicaFiltri);
+});
+</script>
+{% endblock %}
 {% endblock %} 

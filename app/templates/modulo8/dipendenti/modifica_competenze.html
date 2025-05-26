@@ -39,12 +39,18 @@
                                                 <td>{{ comp.nome }}</td>
                                                 <td>{{ comp.livello or '—' }}</td>
                                                 <td>
+                                                    {% set percentuale = 0 %}
+                                                    {% for dc in dip.dipendente_competenze %}
+                                                        {% if dc.competenza_id == comp.id %}
+                                                            {% set percentuale = dc.percentuale %}
+                                                        {% endif %}
+                                                    {% endfor %}
                                                     <input type="number" 
                                                            name="percentuali" 
                                                            class="form-control" 
                                                            min="0" 
                                                            max="100" 
-                                                           value="{{ dip.competenze|selectattr('id', 'eq', comp.id)|map(attribute='percentuale')|first|default(0) }}"
+                                                           value="{{ percentuale }}"
                                                            {% if not form.competenze.data or comp.id not in form.competenze.data %}disabled{% endif %}>
                                                 </td>
                                                 <td>

@@ -3,8 +3,14 @@
 {% block content %}
 <div class="dashboard-container">
     <div class="dashboard-header">
-        <h1 class="dashboard-title">Gestione Formazione</h1>
-        <p class="dashboard-subtitle">Monitora e gestisci i corsi di formazione</p>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="dashboard-title">Gestione Formazione</h1>
+            </div>
+            <a href="{{ url_for('modulo8.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna al Modulo 8
+            </a>
+        </div>
     </div>
 
     <div class="row g-4">
@@ -32,9 +38,9 @@
                 </div>
                 <div class="card-content">
                     <h3>Corsi Completati</h3>
-                    <p class="display-4">{{ corsi_completati }}</p>
-                    <a href="{{ url_for('modulo8.lista_corsi', show_completed=true) }}" class="card-link">
-                        Visualizza <i class="fas fa-arrow-right"></i>
+                    <p class="display-4">{{ corsi_archiviati|length }}</p>
+                    <a href="{{ url_for('modulo8.lista_corsi', show_archived='true') }}" class="card-link">
+                        Gestisci Corsi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -97,7 +103,7 @@
                 <div class="card-content">
                     <h3>Media Valutazioni</h3>
                     <p class="display-4">{{ media_valutazioni }}</p>
-                    <a href="{{ url_for('modulo8.report_valutazioni') }}" class="card-link">
+                    <a href="{{ url_for('modulo8.report_valutazioni', _anchor='report') }}" class="card-link">
                         Report <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>

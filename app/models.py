@@ -368,12 +368,45 @@ class DipendenteCompetenza(db.Model):
 class Timbratura(db.Model):
     __tablename__ = 'timbrature'
     id = db.Column(db.Integer, primary_key=True)
-    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
-    tipo = db.Column(db.String(20), nullable=False)         # 'entrata1','uscita1','entrata2','uscita2'
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id', name='fk_timbratura_dipendente'), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    tipo = db.Column(db.String(10), nullable=False)  # 'entrata' o 'uscita'
+    modificato_da = db.Column(db.Integer, db.ForeignKey('users.id', name='fk_timbratura_modificatore'))
+    data_modifica = db.Column(db.DateTime)
+    
+    dipendente = db.relationship('Dipendente', backref=db.backref('timbrature', lazy=True))
+    modificatore = db.relationship('User', backref=db.backref('timbrature_modificate', lazy=True))
 
-    def __repr__(self):
-        return f'<Timbratura d{self.dipendente_id} {self.tipo} @ {self.timestamp}>'
+class RichiestaFerie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
+    tipo = db.Column(db.String(20), nullable=False)  # 'ferie', 'rol', 'ex_festivita'
+    data_inizio = db.Column(db.Date, nullable=False)
+    data_fine = db.Column(db.Date, nullable=False)
+    ore = db.Column(db.Float, nullable=False)
+    stato = db.Column(db.String(20), default='in_attesa')  # 'in_attesa', 'approvata', 'rifiutata'
+    note = db.Column(db.String(200))
+    data_richiesta = db.Column(db.DateTime, default=datetime.utcnow)
+    approvato_da = db.Column(db.Integer, db.ForeignKey('users.id', name='fk_richiesta_ferie_approvato_da'))
+    data_approvazione = db.Column(db.DateTime)
+
+    dipendente = db.relationship('Dipendente', backref='richieste_ferie')
+    approvatore = db.relationship('User', backref='ferie_approvate')
+
+class ResiduoFerie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
+    anno = db.Column(db.Integer, nullable=False)
+    tipo = db.Column(db.String(20), nullable=False)  # 'ferie', 'rol', 'ex_festivita'
+    ore_totali = db.Column(db.Float, nullable=False)
+    ore_usate = db.Column(db.Float, default=0)
+    ore_residue = db.Column(db.Float, nullable=False)
+
+    dipendente = db.relationship('Dipendente', backref='residui_ferie')
+
+    __table_args__ = (
+        db.UniqueConstraint('dipendente_id', 'anno', 'tipo', name='unique_residuo'),
+    )
 
 # ==== Modulo 8: Vestiario / Magazzino ====
 class Inventory(db.Model):
@@ -516,3 +549,20 @@ dipendente_corso_sicurezza = db.Table('dipendente_corso_sicurezza',
     db.Column('dipendente_id', db.Integer, db.ForeignKey('dipendente.id'), primary_key=True),
     db.Column('corso_id', db.Integer, db.ForeignKey('corso_sicurezza.id'), primary_key=True)
 )
+
+class RichiestaPermesso(db.Model):
+    __tablename__ = 'richiesta_permesso'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    data_inizio = db.Column(db.Date, nullable=False)
+    data_fine = db.Column(db.Date, nullable=False)
+    ore = db.Column(db.Float, nullable=False)
+    motivo = db.Column(db.String(500), nullable=False)
+    stato = db.Column(db.String(20), default='in_attesa')  # in_attesa, approvata, rifiutata
+    data_richiesta = db.Column(db.DateTime, default=datetime.utcnow)
+    approvato_da = db.Column(db.Integer, db.ForeignKey('users.id'))
+    data_approvazione = db.Column(db.DateTime)
+
+    dipendente = db.relationship('User', foreign_keys=[dipendente_id], backref='richieste_permesso')
+    approvatore = db.relationship('User', foreign_keys=[approvato_da])

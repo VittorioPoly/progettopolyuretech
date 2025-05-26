@@ -3,48 +3,71 @@
 <div class="module-view">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Report Valutazioni Corsi</h2>
-        <a href="{{ url_for('modulo8.formazione') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Torna alla Formazione
-        </a>
+        <div>
+            <a href="{{ url_for('modulo8.formazione') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Torna alla Formazione
+            </a>
+        </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
+    <div class="row">
+        <!-- Media Generale -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
                     <h5 class="card-title">Media Generale</h5>
-                    <h2 class="mb-0">{{ "%.1f"|format(media_generale) }}</h2>
+                    <div class="display-4 mb-3">
+                        {% set media_generale = corsi|map(attribute='media_valutazioni')|list|sum / corsi|length if corsi else 0 %}
+                        {{ "%.1f"|format(media_generale) }}
+                    </div>
+                    <div class="text-dark">
+                        {% for i in range(media_generale|int) %}
+                            <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% if media_generale % 1 >= 0.5 %}
+                            <i class="fas fa-star-half-alt"></i>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white">
+
+        <!-- Statistiche -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Corsi Valutati</h5>
-                    <h2 class="mb-0">{{ corsi_valutati }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Totale Valutazioni</h5>
-                    <h2 class="mb-0">{{ totale_valutazioni }}</h2>
+                    <h5 class="card-title">Statistiche</h5>
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h6>Totale Corsi</h6>
+                            <h3>{{ corsi|length }}</h3>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h6>Corsi Valutati</h6>
+                            <h3>{{ corsi|selectattr('media_valutazioni', 'defined')|list|length }}</h3>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h6>Partecipanti Totali</h6>
+                            <h3>{{ corsi|map(attribute='partecipazioni')|map('length')|sum }}</h3>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Tabella Corsi -->
     <div class="card">
         <div class="card-body">
+            <h5 class="card-title">Dettaglio Corsi</h5>
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table">
                     <thead>
                         <tr>
-                            <th>Titolo Corso</th>
-                            <th>Media Valutazione</th>
-                            <th>Numero Valutazioni</th>
-                            <th>Ultima Valutazione</th>
+                            <th>Corso</th>
+                            <th>Partecipanti</th>
+                            <th>Media Valutazioni</th>
+                            <th>Distribuzione</th>
                             <th>Azioni</th>
                         </tr>
                     </thead>
@@ -52,16 +75,17 @@
                         {% for corso in corsi %}
                         <tr>
                             <td>{{ corso.titolo }}</td>
+                            <td>{{ corso.partecipazioni|length }}</td>
                             <td>
-                                {% if corso.media_valutazione %}
+                                {% if corso.media_valutazioni %}
                                 <div class="d-flex align-items-center">
-                                    <span class="me-2">{{ "%.1f"|format(corso.media_valutazione) }}</span>
-                                    <div class="text-warning">
-                                        {% for i in range(corso.media_valutazione|int) %}
-                                        <i class="fas fa-star"></i>
+                                    <span class="me-2">{{ "%.1f"|format(corso.media_valutazioni) }}</span>
+                                    <div class="text-dark">
+                                        {% for i in range(corso.media_valutazioni|int) %}
+                                            <i class="fas fa-star"></i>
                                         {% endfor %}
-                                        {% if corso.media_valutazione % 1 >= 0.5 %}
-                                        <i class="fas fa-star-half-alt"></i>
+                                        {% if corso.media_valutazioni % 1 >= 0.5 %}
+                                            <i class="fas fa-star-half-alt"></i>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -69,17 +93,42 @@
                                 -
                                 {% endif %}
                             </td>
-                            <td>{{ corso.num_valutazioni }}</td>
-                            <td>{{ corso.ultima_valutazione.strftime('%d/%m/%Y') if corso.ultima_valutazione else '-' }}</td>
                             <td>
-                                <a href="{{ url_for('modulo8.dettaglio_corso', id=corso.id) }}" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-eye"></i> Dettagli
+                                {% set valutazioni = corso.partecipazioni|map(attribute='valutazione')|list %}
+                                {% set totale_valutazioni = valutazioni|length %}
+                                {% set distribuzione = {
+                                    '5': valutazioni|selectattr('valutazione', 'equalto', 5)|list|length,
+                                    '4': valutazioni|selectattr('valutazione', 'equalto', 4)|list|length,
+                                    '3': valutazioni|selectattr('valutazione', 'equalto', 3)|list|length,
+                                    '2': valutazioni|selectattr('valutazione', 'equalto', 2)|list|length,
+                                    '1': valutazioni|selectattr('valutazione', 'equalto', 1)|list|length
+                                } %}
+                                {% if totale_valutazioni > 0 %}
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 20px;">
+                                        {% for i in range(5, 0, -1) %}
+                                        <div class="progress-bar {% if i == 5 %}bg-success{% elif i == 4 %}bg-info{% elif i == 3 %}bg-primary{% elif i == 2 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ (distribuzione[i|string] / totale_valutazioni * 100)|round|int }}%"
+                                             title="{{ i }} stelle: {{ distribuzione[i|string] }}">
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <small class="ms-2 text-muted">
+                                        {% for i in range(5, 0, -1) %}
+                                            {{ i }}★: {{ distribuzione[i|string] }} 
+                                        {% endfor %}
+                                    </small>
+                                </div>
+                                {% else %}
+                                <span class="text-muted">Nessuna valutazione</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('modulo8.report_corso_pdf', id=corso.id) }}" class="btn btn-sm btn-dark">
+                                    <i class="fas fa-file-pdf"></i> PDF
                                 </a>
                             </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center">Nessuna valutazione disponibile</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -88,4 +137,21 @@
         </div>
     </div>
 </div>
+
+<style>
+@media print {
+    .btn, .no-print {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+    }
+    .card-body {
+        padding: 0 !important;
+    }
+    .module-view {
+        padding: 0 !important;
+    }
+}
+</style>
 {% endblock %} 
