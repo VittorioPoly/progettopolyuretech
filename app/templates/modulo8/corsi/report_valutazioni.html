@@ -17,15 +17,19 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">Media Generale</h5>
                     <div class="display-4 mb-3">
-                        {% set media_generale = corsi|map(attribute='media_valutazioni')|list|sum / corsi|length if corsi else 0 %}
-                        {{ "%.1f"|format(media_generale) }}
+                        {# Filtra i None prima di calcolare la media #}
+                        {% set medie_valide = corsi|map(attribute='media_valutazioni')|reject('none')|list %}
+                        {% set media_generale = medie_valide|sum / medie_valide|length if medie_valide else 0 %}
+                        {{ "%.1f"|format(media_generale) if media_generale is not none and medie_valide else 'N/D' }}
                     </div>
                     <div class="text-dark">
-                        {% for i in range(media_generale|int) %}
-                            <i class="fas fa-star"></i>
-                        {% endfor %}
-                        {% if media_generale % 1 >= 0.5 %}
-                            <i class="fas fa-star-half-alt"></i>
+                        {% if medie_valide and media_generale is not none %}
+                            {% for i in range(media_generale|int) %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                            {% if media_generale % 1 >= 0.5 %}
+                                <i class="fas fa-star-half-alt"></i>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -44,7 +48,7 @@
                         </div>
                         <div class="col-md-4 text-center">
                             <h6>Corsi Valutati</h6>
-                            <h3>{{ corsi|selectattr('media_valutazioni', 'defined')|list|length }}</h3>
+                            <h3>{{ corsi|selectattr('media_valutazioni', 'defined')|rejectattr('media_valutazioni', 'none')|list|length }}</h3>
                         </div>
                         <div class="col-md-4 text-center">
                             <h6>Partecipanti Totali</h6>
@@ -77,7 +81,7 @@
                             <td>{{ corso.titolo }}</td>
                             <td>{{ corso.partecipazioni|length }}</td>
                             <td>
-                                {% if corso.media_valutazioni %}
+                                {% if corso.media_valutazioni is not none %}
                                 <div class="d-flex align-items-center">
                                     <span class="me-2">{{ "%.1f"|format(corso.media_valutazioni) }}</span>
                                     <div class="text-dark">
@@ -94,14 +98,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% set valutazioni = corso.partecipazioni|map(attribute='valutazione')|list %}
+                                {% set valutazioni = corso.partecipazioni|map(attribute='valutazione')|reject('none')|list %}
                                 {% set totale_valutazioni = valutazioni|length %}
                                 {% set distribuzione = {
-                                    '5': valutazioni|selectattr('valutazione', 'equalto', 5)|list|length,
-                                    '4': valutazioni|selectattr('valutazione', 'equalto', 4)|list|length,
-                                    '3': valutazioni|selectattr('valutazione', 'equalto', 3)|list|length,
-                                    '2': valutazioni|selectattr('valutazione', 'equalto', 2)|list|length,
-                                    '1': valutazioni|selectattr('valutazione', 'equalto', 1)|list|length
+                                    5: valutazioni|select('equalto', 5)|list|length,
+                                    4: valutazioni|select('equalto', 4)|list|length,
+                                    3: valutazioni|select('equalto', 3)|list|length,
+                                    2: valutazioni|select('equalto', 2)|list|length,
+                                    1: valutazioni|select('equalto', 1)|list|length
                                 } %}
                                 {% if totale_valutazioni > 0 %}
                                 <div class="d-flex align-items-center">
@@ -109,14 +113,14 @@
                                         {% for i in range(5, 0, -1) %}
                                         <div class="progress-bar {% if i == 5 %}bg-success{% elif i == 4 %}bg-info{% elif i == 3 %}bg-primary{% elif i == 2 %}bg-warning{% else %}bg-danger{% endif %}" 
                                              role="progressbar" 
-                                             style="width: {{ (distribuzione[i|string] / totale_valutazioni * 100)|round|int }}%"
-                                             title="{{ i }} stelle: {{ distribuzione[i|string] }}">
+                                             style="width: {{ (distribuzione[i] / totale_valutazioni * 100)|round|int }}%"
+                                             title="{{ i }} stelle: {{ distribuzione[i] }}">
                                         </div>
                                         {% endfor %}
                                     </div>
                                     <small class="ms-2 text-muted">
                                         {% for i in range(5, 0, -1) %}
-                                            {{ i }}★: {{ distribuzione[i|string] }} 
+                                            {{ i }}★: {{ distribuzione[i] }} 
                                         {% endfor %}
                                     </small>
                                 </div>
