@@ -406,7 +406,7 @@ class DipendenteStep3Form(FlaskForm):
 
 class DipendenteStep4Form(FlaskForm):
     """Form per il quarto step di creazione dipendente - Competenze"""
-    competenze = SelectMultipleField('Competenze', coerce=int, validators=[DataRequired()])
+    competenze = SelectMultipleField('Competenze', coerce=int, validators=[Optional()])
     percentuali = FieldList(IntegerField('Percentuale', validators=[NumberRange(min=0, max=100)]))
     submit = SubmitField('Salva')
     previous = SubmitField('Indietro')
