@@ -1,31 +1,32 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="module-view">
     <h2>Nuovo Dipendente</h2>
-    
+
     <div class="progress mb-4">
-        <div class="progress-bar" role="progressbar" style="width: {{ (step / 5) * 100 }}%" 
-             aria-valuenow="{{ (step / 5) * 100 }}" aria-valuemin="0" aria-valuemax="100">
-            Step {{ step if step <= 5 else 5 }} di 5
+        <div class="progress-bar" role="progressbar" style="width: {{ (step / 4) * 100 }}%" 
+             aria-valuenow="{{ (step / 4) * 100 }}" aria-valuemin="0" aria-valuemax="100">
+            Step {{ step }} di 4
         </div>
     </div>
 
     <form method="POST" class="needs-validation" novalidate>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {{ form.csrf_token }}
+        {{ form.hidden_tag() }}
+        
         {% if step == 1 %}
             <h3>Dati Personali</h3>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.nome.label(class="form-label") }}
-                    {{ form.nome(class="form-control") }}
+                    {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else "")) }}
                     {% if form.nome.errors %}
                         <div class="invalid-feedback">{{ form.nome.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.cognome.label(class="form-label") }}
-                    {{ form.cognome(class="form-control") }}
+                    {{ form.cognome(class="form-control" + (" is-invalid" if form.cognome.errors else "")) }}
                     {% if form.cognome.errors %}
                         <div class="invalid-feedback">{{ form.cognome.errors[0] }}</div>
                     {% endif %}
@@ -34,21 +35,21 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     {{ form.data_nascita.label(class="form-label") }}
-                    {{ form.data_nascita(class="form-control", type="date") }}
+                    {{ form.data_nascita(class="form-control" + (" is-invalid" if form.data_nascita.errors else ""), type="date") }}
                     {% if form.data_nascita.errors %}
                         <div class="invalid-feedback">{{ form.data_nascita.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
                     {{ form.luogo_nascita.label(class="form-label") }}
-                    {{ form.luogo_nascita(class="form-control") }}
+                    {{ form.luogo_nascita(class="form-control" + (" is-invalid" if form.luogo_nascita.errors else "")) }}
                     {% if form.luogo_nascita.errors %}
                         <div class="invalid-feedback">{{ form.luogo_nascita.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
                     {{ form.provincia_nascita.label(class="form-label") }}
-                    {{ form.provincia_nascita(class="form-control") }}
+                    {{ form.provincia_nascita(class="form-control" + (" is-invalid" if form.provincia_nascita.errors else "")) }}
                     {% if form.provincia_nascita.errors %}
                         <div class="invalid-feedback">{{ form.provincia_nascita.errors[0] }}</div>
                     {% endif %}
@@ -57,21 +58,21 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     {{ form.codice_fiscale.label(class="form-label") }}
-                    {{ form.codice_fiscale(class="form-control") }}
+                    {{ form.codice_fiscale(class="form-control" + (" is-invalid" if form.codice_fiscale.errors else "")) }}
                     {% if form.codice_fiscale.errors %}
                         <div class="invalid-feedback">{{ form.codice_fiscale.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
                     {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control") }}
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
                     {% if form.email.errors %}
                         <div class="invalid-feedback">{{ form.email.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
                     {{ form.telefono.label(class="form-label") }}
-                    {{ form.telefono(class="form-control") }}
+                    {{ form.telefono(class="form-control" + (" is-invalid" if form.telefono.errors else "")) }}
                     {% if form.telefono.errors %}
                         <div class="invalid-feedback">{{ form.telefono.errors[0] }}</div>
                     {% endif %}
@@ -83,14 +84,14 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.matricola.label(class="form-label") }}
-                    {{ form.matricola(class="form-control") }}
+                    {{ form.matricola(class="form-control" + (" is-invalid" if form.matricola.errors else "")) }}
                     {% if form.matricola.errors %}
                         <div class="invalid-feedback">{{ form.matricola.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.reparto.label(class="form-label") }}
-                    {{ form.reparto(class="form-control") }}
+                    {{ form.reparto(class="form-control" + (" is-invalid" if form.reparto.errors else "")) }}
                     {% if form.reparto.errors %}
                         <div class="invalid-feedback">{{ form.reparto.errors[0] }}</div>
                     {% endif %}
@@ -99,14 +100,14 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.ruolo.label(class="form-label") }}
-                    {{ form.ruolo(class="form-control") }}
+                    {{ form.ruolo(class="form-control" + (" is-invalid" if form.ruolo.errors else "")) }}
                     {% if form.ruolo.errors %}
                         <div class="invalid-feedback">{{ form.ruolo.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.data_assunzione_somministrazione.label(class="form-label") }}
-                    {{ form.data_assunzione_somministrazione(class="form-control", type="date") }}
+                    {{ form.data_assunzione_somministrazione(class="form-control" + (" is-invalid" if form.data_assunzione_somministrazione.errors else ""), type="date") }}
                     {% if form.data_assunzione_somministrazione.errors %}
                         <div class="invalid-feedback">{{ form.data_assunzione_somministrazione.errors[0] }}</div>
                     {% endif %}
@@ -115,14 +116,14 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.agenzia_somministrazione.label(class="form-label") }}
-                    {{ form.agenzia_somministrazione(class="form-control") }}
+                    {{ form.agenzia_somministrazione(class="form-control" + (" is-invalid" if form.agenzia_somministrazione.errors else "")) }}
                     {% if form.agenzia_somministrazione.errors %}
                         <div class="invalid-feedback">{{ form.agenzia_somministrazione.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.data_assunzione_indeterminato.label(class="form-label") }}
-                    {{ form.data_assunzione_indeterminato(class="form-control", type="date") }}
+                    {{ form.data_assunzione_indeterminato(class="form-control" + (" is-invalid" if form.data_assunzione_indeterminato.errors else ""), type="date") }}
                     {% if form.data_assunzione_indeterminato.errors %}
                         <div class="invalid-feedback">{{ form.data_assunzione_indeterminato.errors[0] }}</div>
                     {% endif %}
@@ -131,14 +132,14 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.legge_104.label(class="form-label") }}
-                    {{ form.legge_104(class="form-select") }}
+                    {{ form.legge_104(class="form-select" + (" is-invalid" if form.legge_104.errors else "")) }}
                     {% if form.legge_104.errors %}
                         <div class="invalid-feedback">{{ form.legge_104.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.donatore_avis.label(class="form-label") }}
-                    {{ form.donatore_avis(class="form-select") }}
+                    {{ form.donatore_avis(class="form-select" + (" is-invalid" if form.donatore_avis.errors else "")) }}
                     {% if form.donatore_avis.errors %}
                         <div class="invalid-feedback">{{ form.donatore_avis.errors[0] }}</div>
                     {% endif %}
@@ -150,7 +151,7 @@
             <div class="row">
                 <div class="col-12 mb-3">
                     {{ form.indirizzo_residenza.label(class="form-label") }}
-                    {{ form.indirizzo_residenza(class="form-control") }}
+                    {{ form.indirizzo_residenza(class="form-control" + (" is-invalid" if form.indirizzo_residenza.errors else "")) }}
                     {% if form.indirizzo_residenza.errors %}
                         <div class="invalid-feedback">{{ form.indirizzo_residenza.errors[0] }}</div>
                     {% endif %}
@@ -159,21 +160,21 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.citta_residenza.label(class="form-label") }}
-                    {{ form.citta_residenza(class="form-control") }}
+                    {{ form.citta_residenza(class="form-control" + (" is-invalid" if form.citta_residenza.errors else "")) }}
                     {% if form.citta_residenza.errors %}
                         <div class="invalid-feedback">{{ form.citta_residenza.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-3 mb-3">
                     {{ form.provincia_residenza.label(class="form-label") }}
-                    {{ form.provincia_residenza(class="form-control") }}
+                    {{ form.provincia_residenza(class="form-control" + (" is-invalid" if form.provincia_residenza.errors else "")) }}
                     {% if form.provincia_residenza.errors %}
                         <div class="invalid-feedback">{{ form.provincia_residenza.errors[0] }}</div>
                     {% endif %}
                 </div>
                 <div class="col-md-3 mb-3">
                     {{ form.cap_residenza.label(class="form-label") }}
-                    {{ form.cap_residenza(class="form-control") }}
+                    {{ form.cap_residenza(class="form-control" + (" is-invalid" if form.cap_residenza.errors else "")) }}
                     {% if form.cap_residenza.errors %}
                         <div class="invalid-feedback">{{ form.cap_residenza.errors[0] }}</div>
                     {% endif %}
@@ -182,99 +183,110 @@
 
         {% elif step == 4 %}
             <h3>Competenze</h3>
-            <div class="row">
-                <div class="col-12">
-                    {% set aree = {} %}
-                    {% for comp in competenze %}
-                        {% if comp.area not in aree %}
-                            {% set _ = aree.update({comp.area: []}) %}
-                        {% endif %}
-                        {% set _ = aree[comp.area].append(comp) %}
-                    {% endfor %}
-                    
-                    {% for area, comps in aree.items() %}
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">{{ area or 'Non Specificata' }}</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 25%">Competenza</th>
-                                                <th style="width: 25%">Livello</th>
-                                                <th style="width: 25%">Percentuale</th>
-                                                <th style="width: 25%">Seleziona</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for comp in comps %}
-                                                <tr>
-                                                    <td>{{ comp.nome }}</td>
-                                                    <td>{{ comp.livello or '—' }}</td>
-                                                    <td>
-                                                        <input type="number" 
-                                                               name="percentuali" 
-                                                               class="form-control" 
-                                                               min="0" 
-                                                               max="100" 
-                                                               value="0"
-                                                               {% if not form.competenze.data or comp.id not in form.competenze.data %}disabled{% endif %}>
-                                                    </td>
-                                                    <td>
-                                                        <div class="form-check">
-                                                            <input type="checkbox" 
-                                                                   name="competenze" 
-                                                                   value="{{ comp.id }}" 
-                                                                   class="form-check-input"
-                                                                   {% if form.competenze.data and comp.id in form.competenze.data %}checked{% endif %}
-                                                                   onchange="this.parentElement.parentElement.parentElement.querySelector('input[type=number]').disabled = !this.checked">
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+            <div class="mb-3">
+                {{ form.competenze.label(class="form-label") }}
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ced4da; padding: .375rem .75rem; border-radius: .25rem;">
+                {% set aree = {} %}
+                {% for choice_id, choice_label in form.competenze.choices %}
+                    {% set comp = competenze_select | selectattr('id', 'equalto', choice_id) | first %}
+                    {% set area_name = comp.area if comp and comp.area else 'Non Specificata' %}
+                    {% if area_name not in aree %}
+                        {% set _ = aree.update({area_name: []}) %}
+                    {% endif %}
+                    {% set _ = aree[area_name].append({'id': choice_id, 'label': choice_label, 'obj': comp}) %}
+                {% endfor %}
+
+                {% for area_name, comps_in_area in aree.items()|sort %}
+                    <fieldset class="mb-3">
+                        <legend class="fs-6 fw-bold border-bottom pb-1 mb-2">{{ area_name }}</legend>
+                        {% for item in comps_in_area|sort(attribute='label') %}
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="competenze" value="{{ item.id }}" id="comp-{{ item.id }}" 
+                                   {% if item.id in (form.competenze.data or []) %}checked{% endif %}
+                                   onchange="togglePercentuale('{{ item.id }}')">
+                            <label class="form-check-label" for="comp-{{ item.id }}">
+                                {{ item.label }}
+                            </label>
+                            <div id="percentuale-{{ item.id }}-group" class="mt-1 ms-3" style="display: {% if item.id in (form.competenze.data or []) %}block{% else %}none{% endif %};">
+                                <label for="percentuale-{{ item.id }}" class="form-label form-label-sm">Percentuale:</label>
+                                {% set prefill_percentuale = '' %}
+                                {% if session.get('dipendente_data', {}).get('competenze', {}).get(item.id) is not none %}
+                                    {% set prefill_percentuale = session.get('dipendente_data', {}).get('competenze', {}).get(item.id) %}
+                                {% endif %}
+                                <input type="number" name="percentuali" id="percentuale-{{ item.id }}" 
+                                       class="form-control form-control-sm w-auto d-inline-block" 
+                                       min="0" max="100" placeholder="0-100" value="{{ prefill_percentuale }}">
                             </div>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </fieldset>
+                {% endfor %}
                 </div>
-            </div>
-
-        {% elif step == 5 %}
-            <h3>Vestiario</h3>
-            <div class="row">
-                <div class="col-12 mb-3">
-                    {{ form.vestiario.label(class="form-label") }}
-                    {{ form.vestiario(class="form-select", size="10") }}
-                    {% if form.vestiario.errors %}
-                        <div class="invalid-feedback">{{ form.vestiario.errors[0] }}</div>
-                    {% endif %}
-                </div>
+                {% if form.competenze.errors %}
+                    <div class="invalid-feedback d-block">{{ form.competenze.errors[0] }}</div>
+                {% endif %}
             </div>
         {% endif %}
 
-        <div class="d-flex justify-content-between mt-4">
-            {% if step > 1 %}
-                <button type="submit" name="action" value="previous" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Indietro
-                </button>
-            {% else %}
-                <div></div>
-            {% endif %}
-            
-            {% if step < 5 %}
-                <button type="submit" name="action" value="next" class="btn btn-primary">
-                    Avanti <i class="fas fa-arrow-right"></i>
-                </button>
-            {% else %}
-                <button type="submit" name="action" value="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i> Salva
-                </button>
-            {% endif %}
+        <div class="mt-4 d-flex justify-content-between">
+            <div>
+                {% if step > 1 %}
+                    {{ form.previous_step(class="btn btn-secondary", value="Indietro") }}
+                {% endif %}
+            </div>
+            <div>
+                {% if step < 4 %}
+                    {{ form.next_step(class="btn btn-primary", value="Avanti") }}
+                {% elif step == 4 %}
+                    {{ form.final_submit(class="btn btn-success", value="Salva") }}
+                {% endif %}
+            </div>
         </div>
     </form>
 </div>
+
+<script>
+function togglePercentuale(competenzaId) {
+    var checkbox = document.getElementById('comp-' + competenzaId);
+    var percentualeGroup = document.getElementById('percentuale-' + competenzaId + '-group');
+    var percentualeInput = document.getElementById('percentuale-' + competenzaId);
+    if (checkbox.checked) {
+        percentualeGroup.style.display = 'block';
+    } else {
+        percentualeGroup.style.display = 'none';
+        percentualeInput.value = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var checkboxes = document.querySelectorAll('input[name="competenze"]');
+    checkboxes.forEach(function(checkbox) {
+        if (checkbox.checked) {
+            togglePercentuale(checkbox.value);
+        }
+    });
+});
+</script>
+
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .module-view {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .progress-bar {
+        background-color: #007bff;
+    }
+    .form-label-sm {
+        font-size: 0.875em;
+        margin-bottom: .2rem;
+    }
+</style>
 {% endblock %} 

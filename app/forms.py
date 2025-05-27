@@ -379,8 +379,7 @@ class DipendenteStep1Form(FlaskForm):
     codice_fiscale = StringField('Codice Fiscale', validators=[DataRequired()])
     email = StringField('Email', validators=[Optional()])
     telefono = StringField('Telefono', validators=[Optional()])
-    submit = SubmitField('Avanti')
-    prev = SubmitField('Indietro')
+    next_step = SubmitField('Avanti')
 
 class DipendenteStep2Form(FlaskForm):
     """Form per il secondo step di creazione dipendente - Dati Lavorativi"""
@@ -390,10 +389,10 @@ class DipendenteStep2Form(FlaskForm):
     data_assunzione_somministrazione = DateField('Data Assunzione Somministrazione', validators=[Optional()])
     agenzia_somministrazione = StringField('Agenzia Somministrazione', validators=[Optional()])
     data_assunzione_indeterminato = DateField('Data Assunzione Indeterminato', validators=[Optional()])
-    legge_104 = SelectField('Legge 104', choices=[('si', 'Sì'), ('no', 'No')], validators=[DataRequired()])
-    donatore_avis = SelectField('Donatore AVIS', choices=[('si', 'Sì'), ('no', 'No')], validators=[DataRequired()])
-    submit = SubmitField('Avanti')
-    prev = SubmitField('Indietro')
+    legge_104 = SelectField('Legge 104', choices=[('no', 'No'), ('si', 'Sì')], validators=[DataRequired()])
+    donatore_avis = SelectField('Donatore AVIS', choices=[('no', 'No'), ('si', 'Sì')], validators=[DataRequired()])
+    previous_step = SubmitField('Indietro')
+    next_step = SubmitField('Avanti')
 
 class DipendenteStep3Form(FlaskForm):
     """Form per il terzo step di creazione dipendente - Dati Residenza"""
@@ -401,19 +400,12 @@ class DipendenteStep3Form(FlaskForm):
     citta_residenza = StringField('Città', validators=[DataRequired()])
     provincia_residenza = StringField('Provincia', validators=[DataRequired()])
     cap_residenza = StringField('CAP', validators=[DataRequired()])
-    submit = SubmitField('Avanti')
-    prev = SubmitField('Indietro')
+    previous_step = SubmitField('Indietro')
+    next_step = SubmitField('Avanti')
 
 class DipendenteStep4Form(FlaskForm):
     """Form per il quarto step di creazione dipendente - Competenze"""
     competenze = SelectMultipleField('Competenze', coerce=int, validators=[Optional()])
-    percentuali = FieldList(IntegerField('Percentuale', validators=[NumberRange(min=0, max=100)]))
-    submit = SubmitField('Salva')
-    previous = SubmitField('Indietro')
-    next = SubmitField('Avanti')
-
-class DipendenteStep5Form(FlaskForm):
-    """Form per il quinto step di creazione dipendente - Vestiario"""
-    vestiario = SelectMultipleField('Vestiario', coerce=int, validators=[Optional()])
-    submit = SubmitField('Completa')
-    prev = SubmitField('Indietro')
+    percentuali = FieldList(IntegerField('Percentuale', validators=[Optional(), NumberRange(min=0, max=100)]))
+    previous_step = SubmitField('Indietro')
+    final_submit = SubmitField('Completa e Salva')

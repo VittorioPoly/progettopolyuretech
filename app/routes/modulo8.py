@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from calendar import monthrange
 from app.forms import (
     DipendenteStep1Form, DipendenteStep2Form, DipendenteStep3Form,
-    DipendenteStep4Form, DipendenteStep5Form, CompetenzaForm, CorsoFormazioneForm, PartecipazioneCorsoForm
+    DipendenteStep4Form, CompetenzaForm, CorsoFormazioneForm, PartecipazioneCorsoForm
 )
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField
@@ -102,63 +102,168 @@ def dipendenti():
 def nuovo_dipendente():
     step = request.args.get('step', 1, type=int)
     form = None
-    
+    competenze = None # Inizializza competenze a None
+
     if step == 1:
-        form = DipendenteStep1Form()
+        form = DipendenteStep1Form(data=session.get('dipendente_data', {}).get('step1'))
     elif step == 2:
-        form = DipendenteStep2Form()
+        form = DipendenteStep2Form(data=session.get('dipendente_data', {}).get('step2'))
     elif step == 3:
-        form = DipendenteStep3Form()
+        form = DipendenteStep3Form(data=session.get('dipendente_data', {}).get('step3'))
     elif step == 4:
-        form = DipendenteStep4Form()
-        competenze = Competenza.query.order_by(Competenza.area, Competenza.nome).all()
-        form.competenze.choices = [(c.id, c.nome) for c in competenze]
-    elif step == 5:
-        form = DipendenteStep5Form()
-    
-    if form and form.validate_on_submit():
-        if request.form.get('action') == 'previous':
+        form = DipendenteStep4Form(data=session.get('dipendente_data', {}).get('step4'))
+        competenze_db = Competenza.query.order_by(Competenza.area, Competenza.nome).all()
+        form.competenze.choices = [(c.id, c.nome) for c in competenze_db]
+        # Pre-popola le competenze e percentuali se presenti in sessione
+        if request.method == 'GET' and 'competenze' in session.get('dipendente_data', {}):
+            form.competenze.data = list(session['dipendente_data']['competenze'].keys())
+            # Per le percentuali, il FieldList necessita di un approccio diverso per il pre-popolamento,
+            # spesso gestito nel template o con più logica qui se necessario.
+            # Per ora, ci concentriamo sulla selezione delle competenze.
+            
+    if not form:
+        # Se lo step non è valido (es. step 5 o maggiore), reindirizza al primo step
+        flash("Step non valido.", "warning")
+        return redirect(url_for('modulo8.nuovo_dipendente', step=1))
+
+    if form.validate_on_submit():
+        action = None
+        # Controlla quale pulsante è stato premuto verificando la sua presenza in request.form
+        # I nomi dei pulsanti sono definiti nei Form (es. previous_step, next_step, final_submit)
+        if 'previous_step' in request.form:
+            action = 'previous'
+        elif 'next_step' in request.form:
+            action = 'next'
+        elif 'final_submit' in request.form:
+            action = 'submit'
+
+        if action == 'previous':
+            # Salva i dati correnti nella sessione prima di tornare indietro
+            if 'dipendente_data' not in session:
+                session['dipendente_data'] = {}
+            if f'step{step}' not in session['dipendente_data']:
+                 session['dipendente_data'][f'step{step}'] = {}
+            
+            if step == 4: # Gestione speciale per le competenze
+                competenze_ids = request.form.getlist('competenze')
+                percentuali_raw = request.form.getlist('percentuali') # Lista di stringhe
+                
+                # Filtra solo le percentuali che sono numeri e non stringhe vuote
+                percentuali_valide = [p for p in percentuali_raw if p.isdigit()]
+
+                competenze_data = {}
+                for i, comp_id_str in enumerate(competenze_ids):
+                    if comp_id_str: # Assicurati che ci sia un ID competenza
+                        comp_id = int(comp_id_str)
+                        # Se c'è una percentuale valida corrispondente, usala, altrimenti default a 0 o non includerla
+                        # In questo caso, per coerenza con la logica di salvataggio, includiamo solo se c'è una percentuale valida
+                        if i < len(percentuali_valide) and percentuali_valide[i]:
+                             competenze_data[comp_id] = int(percentuali_valide[i])
+                        elif comp_id not in competenze_data: # Se la percentuale non è fornita ma la competenza sì
+                             # Potresti decidere di assegnare un default o saltare
+                             # Per ora, la logica if id and pct nel salvataggio finale si occuperebbe di questo
+                             pass # Non aggiungere se la percentuale non è valida o mancante
+                session['dipendente_data']['competenze'] = competenze_data # Salva anche se vuoto
+            else:
+                for field_name, field_obj in form._fields.items():
+                    if field_name not in ['csrf_token', 'previous_step', 'next_step', 'final_submit']:
+                        session['dipendente_data'][f'step{step}'][field_name] = field_obj.data
+            session.modified = True
             return redirect(url_for('modulo8.nuovo_dipendente', step=step-1))
-        elif request.form.get('action') == 'next':
-            # Salva i dati nel session
+            
+        elif action == 'next':
             if 'dipendente_data' not in session:
                 session['dipendente_data'] = {}
             
-            if step == 4:
+            current_step_data = {}
+            if step == 4: # Logica specifica per lo step delle competenze
                 competenze_ids = request.form.getlist('competenze')
-                percentuali = request.form.getlist('percentuali')
-                competenze_data = {int(id): int(pct) for id, pct in zip(competenze_ids, percentuali) if id and pct}
+                percentuali_raw = request.form.getlist('percentuali')
+                percentuali_valide = [p for p in percentuali_raw if p.strip().isdigit()]
+
+
+                competenze_data = {}
+                for i, comp_id_str in enumerate(competenze_ids):
+                    if comp_id_str:
+                        comp_id = int(comp_id_str)
+                        # Se la competenza è selezionata ma non c'è una percentuale valida corrispondente,
+                        # si potrebbe volerla salvare con una percentuale di default (es. 0) o ignorarla.
+                        # La logica attuale `if id and pct` nel salvataggio finale ignora queste.
+                        # Qui, per coerenza, salviamo solo se c'è una percentuale valida.
+                        if i < len(percentuali_valide) and percentuali_valide[i]:
+                            competenze_data[comp_id] = int(percentuali_valide[i])
+                        # else: # Opzionale: gestire competenze selezionate senza percentuale
+                            # competenze_data[comp_id] = 0 # Esempio: default a 0
                 session['dipendente_data']['competenze'] = competenze_data
             else:
-                for field in form:
-                    if field.name not in ['csrf_token', 'submit', 'previous', 'next']:
-                        session['dipendente_data'][field.name] = field.data
-            
+                for field_name, field_obj in form._fields.items():
+                    # Escludi i pulsanti e il token csrf
+                    if field_name not in ['csrf_token', 'previous_step', 'next_step', 'final_submit']:
+                        current_step_data[field_name] = field_obj.data
+                session['dipendente_data'][f'step{step}'] = current_step_data
+            session.modified = True
             return redirect(url_for('modulo8.nuovo_dipendente', step=step+1))
-        elif request.form.get('action') == 'submit':
+
+        elif action == 'submit' and step == 4: # Il salvataggio avviene solo allo step 4
+            # Salva i dati dell'ultimo step (competenze)
+            if 'dipendente_data' not in session:
+                session['dipendente_data'] = {} # Dovrebbe già esistere
+            
+            competenze_ids = request.form.getlist('competenze')
+            percentuali_raw = request.form.getlist('percentuali') 
+            # Filtra per assicurarsi che le percentuali siano stringhe numeriche valide prima della conversione
+            percentuali_valide = [p for p in percentuali_raw if p.strip().isdigit()]
+
+
+            competenze_data = {}
+            for i, comp_id_str in enumerate(competenze_ids):
+                if comp_id_str: # Assicurati che ci sia un ID competenza
+                    comp_id = int(comp_id_str)
+                    # Solo se la percentuale è presente e valida la associamo
+                    if i < len(percentuali_valide) and percentuali_valide[i]:
+                        percentuale_val = int(percentuali_valide[i])
+                        if 0 <= percentuale_val <= 100: # Ulteriore controllo sul range se necessario
+                             competenze_data[comp_id] = percentuale_val
+                    # Se una competenza è selezionata ma non ha una percentuale valida,
+                    # la logica `if id and pct` nel salvataggio originale la salterebbe.
+                    # Se vuoi salvarla con 0%, aggiungi: else: competenze_data[comp_id] = 0
+            session['dipendente_data']['competenze'] = competenze_data
+            session.modified = True
+
             try:
+                # Unisci tutti i dati dalla sessione
+                data = {}
+                for step_data_key in ['step1', 'step2', 'step3']: 
+                    data.update(session.get('dipendente_data', {}).get(step_data_key, {}))
+                
+                # Converte stringhe vuote in None per campi opzionali prima di creare l'oggetto Dipendente
+                campi_opzionali_stringa = ['email', 'telefono', 'matricola', 'reparto', 'ruolo', 'agenzia_somministrazione']
+                for campo in campi_opzionali_stringa:
+                    if data.get(campo) == '':
+                        data[campo] = None
+
                 # Crea il nuovo dipendente
                 dipendente = Dipendente(
-                    nome=session['dipendente_data']['nome'],
-                    cognome=session['dipendente_data']['cognome'],
-                    data_nascita=session['dipendente_data']['data_nascita'],
-                    luogo_nascita=session['dipendente_data']['luogo_nascita'],
-                    provincia_nascita=session['dipendente_data']['provincia_nascita'],
-                    codice_fiscale=session['dipendente_data']['codice_fiscale'],
-                    email=session['dipendente_data'].get('email'),
-                    telefono=session['dipendente_data'].get('telefono'),
-                    indirizzo_residenza=session['dipendente_data']['indirizzo_residenza'],
-                    citta_residenza=session['dipendente_data']['citta_residenza'],
-                    provincia_residenza=session['dipendente_data']['provincia_residenza'],
-                    cap_residenza=session['dipendente_data']['cap_residenza'],
-                    matricola=session['dipendente_data'].get('matricola'),
-                    reparto=session['dipendente_data'].get('reparto'),
-                    ruolo=session['dipendente_data'].get('ruolo'),
-                    data_assunzione_somministrazione=session['dipendente_data'].get('data_assunzione_somministrazione'),
-                    agenzia_somministrazione=session['dipendente_data'].get('agenzia_somministrazione'),
-                    data_assunzione_indeterminato=session['dipendente_data'].get('data_assunzione_indeterminato'),
-                    legge_104=session['dipendente_data'].get('legge_104') == 'si',
-                    donatore_avis=session['dipendente_data'].get('donatore_avis') == 'si'
+                    nome=data.get('nome'),
+                    cognome=data.get('cognome'),
+                    data_nascita=data.get('data_nascita'),
+                    luogo_nascita=data.get('luogo_nascita'),
+                    provincia_nascita=data.get('provincia_nascita'),
+                    codice_fiscale=data.get('codice_fiscale'),
+                    email=data.get('email'),
+                    telefono=data.get('telefono'),
+                    indirizzo_residenza=data.get('indirizzo_residenza'),
+                    citta_residenza=data.get('citta_residenza'),
+                    provincia_residenza=data.get('provincia_residenza'),
+                    cap_residenza=data.get('cap_residenza'),
+                    matricola=data.get('matricola'),
+                    reparto=data.get('reparto'),
+                    ruolo=data.get('ruolo'),
+                    data_assunzione_somministrazione=data.get('data_assunzione_somministrazione'),
+                    agenzia_somministrazione=data.get('agenzia_somministrazione'),
+                    data_assunzione_indeterminato=data.get('data_assunzione_indeterminato'),
+                    legge_104=(data.get('legge_104') == 'si'),
+                    donatore_avis=(data.get('donatore_avis') == 'si')
                 )
                 
                 db.session.add(dipendente)
@@ -167,25 +272,39 @@ def nuovo_dipendente():
                 # Gestione competenze con percentuali
                 if 'competenze' in session['dipendente_data']:
                     for comp_id, percentuale in session['dipendente_data']['competenze'].items():
-                        competenza = Competenza.query.get(comp_id)
-                        if competenza:
-                            dipendente_competenza = DipendenteCompetenza(
-                                dipendente_id=dipendente.id,
-                                competenza_id=comp_id,
-                                percentuale=percentuale
-                            )
-                            db.session.add(dipendente_competenza)
+                        # Assicurati che la percentuale sia un intero valido
+                        # La logica sopra dovrebbe già aver filtrato, ma un doppio controllo non fa male
+                        if isinstance(percentuale, int):
+                            competenza_obj = Competenza.query.get(comp_id)
+                            if competenza_obj:
+                                dipendente_competenza = DipendenteCompetenza(
+                                    dipendente_id=dipendente.id,
+                                    competenza_id=comp_id,
+                                    percentuale=percentuale
+                                )
+                                db.session.add(dipendente_competenza)
                 
                 db.session.commit()
                 flash('Dipendente creato con successo!', 'success')
-                session.pop('dipendente_data', None)
+                session.pop('dipendente_data', None) # Pulisci la sessione
                 return redirect(url_for('modulo8.dipendenti'))
                 
             except Exception as e:
                 db.session.rollback()
                 flash(f'Errore durante la creazione del dipendente: {str(e)}', 'error')
     
-    return render_template('modulo8/dipendenti/nuovo_step.html', form=form, step=step, competenze=competenze if step == 4 else None)
+    # Se il form non è valido o è la prima visualizzazione dello step
+    # recupera i dati dalla sessione per pre-popolare i campi (se non già fatto dal costruttore del form)
+    if request.method == 'GET' and not form.is_submitted():
+        step_session_data = session.get('dipendente_data', {}).get(f'step{step}', {})
+        if step_session_data:
+            form.process(data=step_session_data)
+        if step == 4 and 'competenze' in session.get('dipendente_data', {}):
+             form.competenze.data = list(session['dipendente_data']['competenze'].keys())
+             # Gestione pre-popolamento percentuali se necessario (più complesso con FieldList)
+
+
+    return render_template('modulo8/dipendenti/nuovo_step.html', form=form, step=step, competenze_select=competenze if step == 4 else None)
 
 @modulo8.route('/dipendenti/<int:id>')
 @login_required
