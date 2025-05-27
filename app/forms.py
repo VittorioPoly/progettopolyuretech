@@ -359,13 +359,17 @@ class PartecipazioneCorsoForm(FlaskForm):
         ('in_corso', 'In Corso'),
         ('completato', 'Completato')
     ])
-    valutazione = SelectField('Valutazione', choices=[
-        (1, '1 - Insufficiente'),
-        (2, '2 - Sufficiente'),
-        (3, '3 - Buono'),
-        (4, '4 - Ottimo'),
-        (5, '5 - Eccellente')
-    ], coerce=int)
+    valutazione = SelectField('Valutazione', 
+                              choices=[
+                                  ('', 'Seleziona Valutazione (Opzionale)'),
+                                  (1, '1 - Insufficiente'),
+                                  (2, '2 - Sufficiente'),
+                                  (3, '3 - Buono'),
+                                  (4, '4 - Ottimo'),
+                                  (5, '5 - Eccellente')
+                              ],
+                              coerce=lambda x: int(x) if x else None,
+                              validators=[Optional()])
     note = TextAreaField('Note')
     submit = SubmitField('Salva')
 
