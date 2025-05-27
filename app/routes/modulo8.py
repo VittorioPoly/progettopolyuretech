@@ -237,7 +237,10 @@ def nuovo_dipendente():
                     data.update(session.get('dipendente_data', {}).get(step_data_key, {}))
                 
                 # Converte stringhe vuote in None per campi opzionali prima di creare l'oggetto Dipendente
-                campi_opzionali_stringa = ['email', 'telefono', 'matricola', 'reparto', 'ruolo', 'agenzia_somministrazione']
+                campi_opzionali_stringa = [
+                    'email', 'telefono', 'matricola', 'reparto', 'ruolo', 'agenzia_somministrazione',
+                    'indirizzo_residenza', 'citta_residenza', 'provincia_residenza', 'cap_residenza'
+                ]
                 for campo in campi_opzionali_stringa:
                     if data.get(campo) == '':
                         data[campo] = None

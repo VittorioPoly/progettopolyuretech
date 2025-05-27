@@ -396,10 +396,10 @@ class DipendenteStep2Form(FlaskForm):
 
 class DipendenteStep3Form(FlaskForm):
     """Form per il terzo step di creazione dipendente - Dati Residenza"""
-    indirizzo_residenza = StringField('Indirizzo', validators=[DataRequired()])
-    citta_residenza = StringField('Città', validators=[DataRequired()])
-    provincia_residenza = StringField('Provincia', validators=[DataRequired()])
-    cap_residenza = StringField('CAP', validators=[DataRequired()])
+    indirizzo_residenza = StringField('Indirizzo', validators=[Optional()])
+    citta_residenza = StringField('Città', validators=[Optional()])
+    provincia_residenza = StringField('Provincia', validators=[Optional()])
+    cap_residenza = StringField('CAP', validators=[Optional()])
     previous_step = SubmitField('Indietro')
     next_step = SubmitField('Avanti')
 
