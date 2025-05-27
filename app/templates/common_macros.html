@@ -1,0 +1,27 @@
+{% macro render_field_with_errors(field, sr_only_label=False, class="form-control", placeholder="", required=False, autofocus=False, autocomplete="", pattern="", title="", min="", max="", step="", list="", readonly=False, disabled=False, size="", maxlength="", minlength="", multiple=False, accept="", form="", formaction="", formenctype="", formmethod="", formnovalidate=False, formtarget="", value="", type="", id="", style="", tabindex="", accesskey="", contenteditable="", contextmenu="", dir="", draggable="", dropzone="", hidden="", lang="", spellcheck="", translate="", onclick="", ondblclick="", onmousedown="", onmousemove="", onmouseout="", onmouseover="", onmouseup="", onkeydown="", onkeypress="", onkeyup="", onblur="", onchange="", oncontextmenu="", onfocus="", oninput="", oninvalid="", onreset="", onsearch="", onselect="", onsubmit="", help_text="") %}
+  <div class="form-group mb-3 {% if field.errors %}has-error{% endif %}">
+    {% if not sr_only_label %}
+      {{ field.label(class="form-label") }}
+    {% endif %}
+    {{ field(class=class + (" is-invalid" if field.errors else ""), placeholder=placeholder, required=required, autofocus=autofocus, autocomplete=autocomplete, pattern=pattern, title=title, min=min, max=max, step=step, list=list, readonly=readonly, disabled=disabled, size=size, maxlength=maxlength, minlength=minlength, multiple=multiple, accept=accept, form=form, formaction=formaction, formenctype=formenctype, formmethod=formmethod, formnovalidate=formnovalidate, formtarget=formtarget, value=value, type=type, id=id, style=style, tabindex=tabindex, accesskey=accesskey, contenteditable=contenteditable, contextmenu=contextmenu, dir=dir, draggable=draggable, dropzone=dropzone, hidden=hidden, lang=lang, spellcheck=spellcheck, translate=translate, onclick=onclick, ondblclick=ondblclick, onmousedown=onmousedown, onmousemove=onmousemove, onmouseout=onmouseout, onmouseover=onmouseover, onmouseup=onmouseup, onkeydown=onkeydown, onkeypress=onkeypress, onkeyup=onkeyup, onblur=onblur, onchange=onchange, oncontextmenu=oncontextmenu, onfocus=onfocus, oninput=oninput, oninvalid=oninvalid, onreset=onreset, onsearch=onsearch, onselect=onselect, onsubmit=onsubmit) }}
+    {% if field.errors %}
+      <div class="invalid-feedback">
+        {% for error in field.errors %}
+          <span>{{ error }}</span><br>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if field.description %}
+      <small class="form-text text-muted">{{ field.description }}</small>
+    {% endif %}
+    {% if help_text %}
+      <small class="form-text text-muted">{{ help_text }}</small>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro render_submit_button(field, text=None, class="btn btn-primary", type="submit", value="", id="", style="", tabindex="", accesskey="", contenteditable="", contextmenu="", dir="", draggable="", dropzone="", hidden="", lang="", spellcheck="", translate="", onclick="", ondblclick="", onmousedown="", onmousemove="", onmouseout="", onmouseover="", onmouseup="", onkeydown="", onkeypress="", onkeyup="", onblur="", onchange="", oncontextmenu="", onfocus="", oninput="", oninvalid="", onreset="", onsearch="", onselect="", onsubmit="", icon_class="") %}
+  <button type="{{ type }}" class="{{ class }}" id="{{ id }}" style="{{ style }}" tabindex="{{ tabindex }}" accesskey="{{ accesskey }}" contenteditable="{{ contenteditable }}" contextmenu="{{ contextmenu }}" dir="{{ dir }}" draggable="{{ draggable }}" dropzone="{{ dropzone }}" hidden="{{ hidden }}" lang="{{ lang }}" spellcheck="{{ spellcheck }}" translate="{{ translate }}" onclick="{{ onclick }}" ondblclick="{{ ondblclick }}" onmousedown="{{ onmousedown }}" onmousemove="{{ onmousemove }}" onmouseout="{{ onmouseout }}" onmouseover="{{ onmouseover }}" onmouseup="{{ onmouseup }}" onkeydown="{{ onkeydown }}" onkeypress="{{ onkeypress }}" onkeyup="{{ onkeyup }}" onblur="{{ onblur }}" onchange="{{ onchange }}" oncontextmenu="{{ oncontextmenu }}" onfocus="{{ onfocus }}" oninput="{{ oninput }}" oninvalid="{{ oninvalid }}" onreset="{{ onreset }}" onsearch="{{ onsearch }}" onselect="{{ onselect }}" onsubmit="{{ onsubmit }}">
+    {% if icon_class %}<i class="{{ icon_class }}"></i> {% endif %}{{ text if text else field.label.text }}
+  </button>
+{% endmacro %} 

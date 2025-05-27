@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Boolean, ForeignKey, Table
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Boolean, ForeignKey, Table, select
+from sqlalchemy.orm import relationship, column_property
 from app import db, login_manager
+from sqlalchemy.ext.hybrid import hybrid_property
 
 # Tabella di associazione per relazione many-to-many tra dipendenti e competenze
 # dipendente_competenza = db.Table('dipendente_competenza',
@@ -270,7 +271,7 @@ class Modulo7Entry(db.Model):
 
 
 # Modulo 8: Gestione dipendenti e competenze (solo admin)
-class Dipendente(db.Model):
+class Dipendente(UserMixin, db.Model):
     """Modello per i dipendenti dell'azienda"""
     __tablename__ = 'dipendente'
     
@@ -285,7 +286,7 @@ class Dipendente(db.Model):
     telefono = db.Column(db.String(20))
     matricola = db.Column(db.String(20), unique=True)
     reparto = db.Column(db.String(100))
-    ruolo = db.Column(db.String(100))
+    mansione_id = db.Column(db.Integer, db.ForeignKey('mansione.id'), nullable=True)
     data_assunzione_somministrazione = db.Column(db.Date)
     agenzia_somministrazione = db.Column(db.String(100))
     data_assunzione_indeterminato = db.Column(db.Date)
@@ -307,24 +308,37 @@ class Dipendente(db.Model):
                                backref=db.backref('dipendenti', lazy='dynamic'))
     competenze_associate = db.relationship('DipendenteCompetenza', 
                                          back_populates='dipendente',
+                                         cascade='all, delete-orphan',
                                          overlaps="competenze,dipendenti")
-    vestiario = db.relationship('Inventory', 
-                              secondary='prelievi_vestiario', 
-                              backref='dipendenti')
+    prelievi_vestiario = db.relationship('PrelievoVestiario', 
+                               back_populates='dipendente',  # Modificato da backref
+                               lazy='dynamic', 
+                               cascade="all, delete-orphan")
+    
     performance = db.relationship('Performance', back_populates='dipendente', cascade='all, delete-orphan')
-    partecipazioni_corsi = db.relationship('PartecipazioneCorso', backref='dipendente', lazy=True)
-    corsi_sicurezza = db.relationship('CorsoSicurezza', secondary='dipendente_corso_sicurezza',
-                                    backref=db.backref('dipendenti', lazy=True))
+    partecipazioni_corsi = db.relationship('PartecipazioneCorso', backref='dipendente', lazy='dynamic', cascade='all, delete-orphan')
+    contratti = db.relationship('Contratto', 
+                              back_populates='dipendente',  # Modificato da backref
+                              lazy='dynamic', 
+                              cascade="all, delete-orphan")
+    prelievi_dpi = db.relationship('PrelievoDPI', backref='dipendente', lazy='dynamic', cascade="all, delete-orphan")
+    mansione = db.relationship('Mansione', back_populates='dipendenti')
+
+    # Aggiungiamo la relazione corretta per corsi_sicurezza
+    corsi_sicurezza = db.relationship('CorsoSicurezza', 
+                                    secondary='dipendente_corso_sicurezza', 
+                                    lazy='dynamic',
+                                    back_populates='dipendenti')
 
     @property
     def data_assunzione_date(self):
-        """Restituisce solo la data di assunzione senza l'orario"""
-        return self.data_assunzione.date() if self.data_assunzione else None
-    
+        if self.data_assunzione_indeterminato:
+            return self.data_assunzione_indeterminato
+        return self.data_assunzione_somministrazione
+
     @property
     def data_cessazione_date(self):
-        """Restituisce solo la data di cessazione senza l'orario"""
-        return self.data_cessazione.date() if self.data_cessazione else None
+        return self.data_cessazione
     
     def __repr__(self):
         return f'<Dipendente {self.nome} {self.cognome}>'
@@ -429,7 +443,7 @@ class PrelievoVestiario(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     data_prelievo = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    dipendente = db.relationship('Dipendente', backref='prelievi_vestiario')
+    dipendente = db.relationship('Dipendente', back_populates='prelievi_vestiario')
     item = db.relationship('Inventory')
 
     def __repr__(self):
@@ -544,6 +558,12 @@ class CorsoSicurezza(db.Model):
     archiviato = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Aggiungiamo la relazione corretta per dipendenti
+    dipendenti = db.relationship('Dipendente', 
+                                 secondary='dipendente_corso_sicurezza', 
+                                 lazy='dynamic',
+                                 back_populates='corsi_sicurezza')
+
 # Tabella di associazione per dipendenti e corsi di sicurezza
 dipendente_corso_sicurezza = db.Table('dipendente_corso_sicurezza',
     db.Column('dipendente_id', db.Integer, db.ForeignKey('dipendente.id'), primary_key=True),
@@ -554,7 +574,7 @@ class RichiestaPermesso(db.Model):
     __tablename__ = 'richiesta_permesso'
     
     id = db.Column(db.Integer, primary_key=True)
-    dipendente_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
     data_inizio = db.Column(db.Date, nullable=False)
     data_fine = db.Column(db.Date, nullable=False)
     ore = db.Column(db.Float, nullable=False)
@@ -564,5 +584,73 @@ class RichiestaPermesso(db.Model):
     approvato_da = db.Column(db.Integer, db.ForeignKey('users.id'))
     data_approvazione = db.Column(db.DateTime)
 
-    dipendente = db.relationship('User', foreign_keys=[dipendente_id], backref='richieste_permesso')
-    approvatore = db.relationship('User', foreign_keys=[approvato_da])
+    dipendente_ref = db.relationship('Dipendente', foreign_keys=[dipendente_id], backref='richieste_permesso_dipendente')
+    approvatore = db.relationship('User', foreign_keys=[approvato_da], backref='permessi_approvati_da_utente')
+
+class Mansione(db.Model):
+    __tablename__ = 'mansione'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False, unique=True)
+    descrizione = db.Column(db.Text, nullable=True)
+    dipendenti = db.relationship('Dipendente', back_populates='mansione', lazy='dynamic')
+
+    def __repr__(self):
+        return f'<Mansione {self.nome}>'
+
+# Nuovo modello per DPI
+class DPI(db.Model):
+    __tablename__ = 'dpi'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(150), nullable=False)
+    descrizione = db.Column(db.Text, nullable=True)
+    categoria = db.Column(db.String(100), nullable=True)
+    fornitore = db.Column(db.String(150), nullable=True)
+    codice = db.Column(db.String(50), nullable=True)
+    taglia = db.Column(db.String(50), nullable=True)
+    lotto = db.Column(db.String(100), nullable=True)
+    data_acquisto = db.Column(db.Date, nullable=True)
+    data_scadenza = db.Column(db.Date, nullable=True)
+    data_scadenza_lotto = db.Column(db.Date, nullable=True)
+    quantita_disponibile = db.Column(db.Integer, nullable=False, default=0)
+    prelievi = db.relationship('PrelievoDPI', backref='dpi_item', lazy='dynamic', cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f'<DPI {self.nome} {self.taglia if self.taglia else ""}>'
+
+# Nuovo modello per Prelievi DPI
+class PrelievoDPI(db.Model):
+    __tablename__ = 'prelievo_dpi'
+    id = db.Column(db.Integer, primary_key=True)
+    dpi_id = db.Column(db.Integer, db.ForeignKey('dpi.id'), nullable=False)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
+    quantita_prelevata = db.Column(db.Integer, nullable=False)
+    data_prelievo = db.Column(db.Date, nullable=False, default=date.today)
+    data_scadenza_dpi_consegnato = db.Column(db.Date, nullable=True)
+
+    def __repr__(self):
+        return f'<PrelievoDPI ID: {self.id} DPI: {self.dpi_id} Dip: {self.dipendente_id} Data: {self.data_prelievo}>'
+
+class TipoContratto(db.Model):
+    __tablename__ = 'tipo_contratto'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(50), nullable=False, unique=True) # Es. Tempo Indeterminato, Tempo Determinato, Apprendistato
+    descrizione = db.Column(db.Text, nullable=True)
+    contratti = db.relationship('Contratto', back_populates='tipo_contratto', lazy='dynamic')
+
+    def __repr__(self):
+        return f'<TipoContratto {self.nome}>'
+
+class Contratto(db.Model):
+    __tablename__ = 'contratti'
+    id = db.Column(db.Integer, primary_key=True)
+    dipendente_id = db.Column(db.Integer, db.ForeignKey('dipendente.id'), nullable=False)
+    tipo_contratto_id = db.Column(db.Integer, db.ForeignKey('tipo_contratto.id'), nullable=False)
+    data_inizio = db.Column(db.Date, nullable=False)
+    data_fine = db.Column(db.Date, nullable=True)
+    note = db.Column(db.Text, nullable=True)
+
+    dipendente = db.relationship('Dipendente', back_populates='contratti')
+    tipo_contratto = db.relationship('TipoContratto', back_populates='contratti')
+
+    def __repr__(self):
+        return f'<Contratto ID: {self.id} Dip: {self.dipendente_id} Tipo: {self.tipo_contratto_id}>'

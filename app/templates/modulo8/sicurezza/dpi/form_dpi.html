@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% from 'common_macros.html' import render_field_with_errors, render_submit_button %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ title }}</h2>
+        <a href="{{ url_for('modulo8.gestione_dpi') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna a Gestione DPI
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }} {# CSRF token #}
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        {{ render_field_with_errors(form.nome, class="form-control") }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ render_field_with_errors(form.taglia, class="form-control") }}
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        {{ render_field_with_errors(form.lotto, class="form-control") }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ render_field_with_errors(form.data_scadenza_lotto, class="form-control", type="date") }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ render_field_with_errors(form.quantita_disponibile, class="form-control", type="number") }}
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    {{ render_submit_button(form.submit, class='btn btn-primary', text=azione) }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

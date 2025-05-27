@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="module-view">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ title }}</h2>
+        <a href="{{ url_for('modulo8.sicurezza') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Torna a Sicurezza
+        </a>
+    </div>
+
+    <p class="mb-3">
+        Vengono mostrati i DPI (sia lotti in magazzino sia quelli consegnati ai dipendenti) 
+        che sono già scaduti o scadranno entro i prossimi <strong>{{ giorni_preavviso }} giorni</strong> (rispetto a oggi: {{ oggi.strftime('%d/%m/%Y') }}).
+    </p>
+
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-boxes"></i> DPI in Magazzino (Lotti in Scadenza)</h5>
+        </div>
+        {% if dpi_lotti_scadenza %}
+            <div class="list-group list-group-flush">
+                {% for dpi in dpi_lotti_scadenza %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center 
+                                {% if dpi.data_scadenza_lotto < oggi %}bg-danger-soft text-danger-emphasis{% elif dpi.data_scadenza_lotto < oggi + timedelta(days=30) %}bg-warning-soft{% endif %}">
+                        <div>
+                            <strong>{{ dpi.nome }}</strong>
+                            {% if dpi.taglia %}(Taglia: {{ dpi.taglia }}){% endif %}
+                            {% if dpi.lotto %}- Lotto: {{ dpi.lotto }}{% endif %}<br>
+                            Scadenza Lotto: <span class="fw-bold">{{ dpi.data_scadenza_lotto.strftime('%d/%m/%Y') }}</span>
+                            {% if dpi.data_scadenza_lotto < oggi %}
+                                <span class="badge bg-danger">SCADUTO da {{ (oggi - dpi.data_scadenza_lotto).days }} giorni</span>
+                            {% elif dpi.data_scadenza_lotto == oggi %}
+                                <span class="badge bg-warning text-dark">SCADE OGGI</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Scade tra {{ (dpi.data_scadenza_lotto - oggi).days }} giorni</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            Quantità: {{ dpi.quantita_disponibile }}
+                            <a href="{{ url_for('modulo8.modifica_dpi', id=dpi.id) }}" class="btn btn-sm btn-outline-secondary ms-2" title="Vedi/Modifica DPI">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-body">
+                <p class="mb-0 text-muted">Nessun lotto di DPI in magazzino risulta in scadenza o scaduto nei prossimi {{ giorni_preavviso }} giorni.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-user-check"></i> DPI Consegnati ai Dipendenti (in Scadenza)</h5>
+        </div>
+        {% if prelievi_dpi_scadenza %}
+            <div class="list-group list-group-flush">
+                {% for prelievo in prelievi_dpi_scadenza %}
+                    <div class="list-group-item 
+                                {% if prelievo.data_scadenza_dpi_consegnato < oggi %}bg-danger-soft text-danger-emphasis{% elif prelievo.data_scadenza_dpi_consegnato < oggi + timedelta(days=30) %}bg-info-soft{% endif %}">
+                        <strong>{{ prelievo.dpi_item.nome }}</strong> 
+                        {% if prelievo.dpi_item.taglia %}(Taglia: {{ prelievo.dpi_item.taglia }}){% endif %}
+                        - Consegnato a: <strong>{{ prelievo.dipendente.nome }} {{ prelievo.dipendente.cognome }}</strong>
+                        (Matr: {{ prelievo.dipendente.matricola if prelievo.dipendente.matricola else 'N/D' }}) <br>
+                        Data Prelievo: {{ prelievo.data_prelievo.strftime('%d/%m/%Y') }} - Quantità: {{ prelievo.quantita_prelevata }} <br>
+                        Scadenza DPI Consegnato: <span class="fw-bold">{{ prelievo.data_scadenza_dpi_consegnato.strftime('%d/%m/%Y') }}</span>
+                        {% if prelievo.data_scadenza_dpi_consegnato < oggi %}
+                            <span class="badge bg-danger">SCADUTO da {{ (oggi - prelievo.data_scadenza_dpi_consegnato).days }} giorni</span>
+                        {% elif prelievo.data_scadenza_dpi_consegnato == oggi %}
+                            <span class="badge bg-warning text-dark">SCADE OGGI</span>
+                        {% else %}
+                            <span class="badge bg-info text-dark">Scade tra {{ (prelievo.data_scadenza_dpi_consegnato - oggi).days }} giorni</span>
+                        {% endif %}
+                        {# Potrebbe essere utile un link al dipendente o al dettaglio prelievo #}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-body">
+                <p class="mb-0 text-muted">Nessun DPI consegnato ai dipendenti risulta in scadenza o scaduto nei prossimi {{ giorni_preavviso }} giorni.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .bg-danger-soft {
+        background-color: #f8d7da !important; /* Rosso chiaro per Bootstrap */
+    }
+    .text-danger-emphasis {
+        color: #721c24 !important; /* Testo più scuro per rosso */
+    }
+    .bg-warning-soft {
+        background-color: #fff3cd !important; /* Giallo chiaro per Bootstrap */
+    }
+    .bg-info-soft {
+        background-color: #d1ecf1 !important; /* Azzurro chiaro per Bootstrap */
+    }
+</style>
+
+{% endblock %} 

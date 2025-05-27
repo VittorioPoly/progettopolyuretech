@@ -4,7 +4,7 @@ from wtforms import StringField, TextAreaField, PasswordField, BooleanField, Sub
 from wtforms import SelectField, FloatField, DateField, MultipleFileField, HiddenField, IntegerField
 from wtforms import SelectMultipleField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange, ValidationError
-from datetime import datetime
+from datetime import datetime, date
 from app.models import User, Cliente, Fornitore, Competenza, Dipendente
 from app import db
 from app.data.italian_locations import COMUNI_ITALIANI, PROVINCE_ITALIANE
@@ -413,3 +413,82 @@ class DipendenteStep4Form(FlaskForm):
     percentuali = FieldList(IntegerField('Percentuale', validators=[Optional(), NumberRange(min=0, max=100)]))
     previous_step = SubmitField('Indietro')
     final_submit = SubmitField('Completa e Salva')
+
+class VestiarioItemForm(FlaskForm):
+    nome = StringField('Nome Articolo', validators=[DataRequired(), Length(min=2, max=100)])
+    taglia = StringField('Taglia (Opzionale)', validators=[Optional(), Length(max=50)])
+    quantita = IntegerField('Quantità Iniziale', validators=[DataRequired(), NumberRange(min=0)], default=0)
+    submit = SubmitField('Salva Articolo')
+
+class PrelievoVestiarioForm(FlaskForm):
+    dipendente_id = SelectField('Dipendente', coerce=int, validators=[DataRequired()])
+    quantita = IntegerField('Quantità da Prelevare', validators=[DataRequired(), NumberRange(min=1)])
+    submit = SubmitField('Registra Prelievo')
+
+    def __init__(self, *args, **kwargs):
+        super(PrelievoVestiarioForm, self).__init__(*args, **kwargs)
+        # Popola il campo dipendente_id con i dipendenti non archiviati
+        from app.models import Dipendente
+        self.dipendente_id.choices = [(d.id, f"{d.nome} {d.cognome}") for d in Dipendente.query.filter_by(archiviato=False).order_by(Dipendente.cognome, Dipendente.nome).all()]
+        if not self.dipendente_id.choices:
+            self.dipendente_id.choices = [(0, "Nessun dipendente disponibile")]
+        elif len(self.dipendente_id.choices) > 1:
+             self.dipendente_id.choices.insert(0, (0, "Seleziona un dipendente..."))
+
+# Form per DPI
+class DPIForm(FlaskForm):
+    nome = StringField('Nome DPI', validators=[DataRequired(), Length(min=2, max=150)])
+    descrizione = TextAreaField('Descrizione', validators=[Optional(), Length(max=500)])
+    categoria = StringField('Categoria', validators=[Optional(), Length(max=100)])
+    fornitore = StringField('Fornitore', validators=[Optional(), Length(max=150)])
+    codice = StringField('Codice', validators=[Optional(), Length(max=50)])
+    taglia = StringField('Taglia (Opzionale)', validators=[Optional(), Length(max=50)])
+    lotto = StringField('Lotto (Opzionale)', validators=[Optional(), Length(max=100)])
+    data_acquisto = DateField('Data Acquisto', format='%Y-%m-%d', validators=[Optional()])
+    data_scadenza = DateField('Data Scadenza', format='%Y-%m-%d', validators=[Optional()])
+    data_scadenza_lotto = DateField('Data Scadenza Lotto (Opzionale)', format='%Y-%m-%d', validators=[Optional()])
+    quantita_disponibile = IntegerField('Quantità Disponibile', validators=[DataRequired(), NumberRange(min=0)], default=0)
+    submit = SubmitField('Salva DPI')
+
+# Form per Prelievo DPI
+class PrelievoDPIForm(FlaskForm):
+    # dpi_id sarà gestito dalla route/template, non un campo diretto del form base
+    dipendente_id = SelectField('Dipendente', coerce=int, validators=[DataRequired()])
+    quantita_prelevata = IntegerField('Quantità da Prelevare', validators=[DataRequired(), NumberRange(min=1)])
+    data_prelievo = DateField('Data Prelievo', format='%Y-%m-%d', default=date.today, validators=[DataRequired()])
+    # La scadenza del DPI consegnato potrebbe essere calcolata. 
+    # Se deve essere inserita manualmente o ha una logica complessa, può restare.
+    # Per ora la manteniamo opzionale, l'utente la imposterà se nota, altrimenti la logica applicativa può calcolarla.
+    data_scadenza_dpi_consegnato = DateField('Data Scadenza DPI Consegnato (Opzionale)', format='%Y-%m-%d', validators=[Optional()])
+    submit = SubmitField('Registra Prelievo DPI')
+
+    def __init__(self, *args, **kwargs):
+        super(PrelievoDPIForm, self).__init__(*args, **kwargs)
+        from app.models import Dipendente
+        choices = [(d.id, f"{d.nome} {d.cognome}") for d in Dipendente.query.filter_by(archiviato=False).order_by(Dipendente.cognome, Dipendente.nome).all()]
+        if not choices:
+            self.dipendente_id.choices = [(0, "Nessun dipendente disponibile")] # o disabilitare il campo
+        else:
+            self.dipendente_id.choices = [(0, "Seleziona dipendente...")] + choices
+
+# Form per Report Verbale DPI
+class VerbaleDPIReportForm(FlaskForm):
+    dipendente_id = SelectField('Dipendente', coerce=int, validators=[DataRequired()])
+    # L'anno potrebbe essere un IntegerField o un SelectField con anni pertinenti
+    anno = IntegerField('Anno del Verbale (YYYY)', validators=[
+        DataRequired(),
+        NumberRange(min=2000, max=date.today().year + 5) # Range di anni ragionevole
+    ], default=date.today().year)
+    submit = SubmitField('Genera Verbale PDF')
+
+    def __init__(self, *args, **kwargs):
+        super(VerbaleDPIReportForm, self).__init__(*args, **kwargs)
+        from app.models import Dipendente
+        choices = [(d.id, f"{d.nome} {d.cognome}") for d in Dipendente.query.filter_by(archiviato=False).order_by(Dipendente.cognome, Dipendente.nome).all()]
+        if not choices:
+            self.dipendente_id.choices = [(0, "Nessun dipendente disponibile")]
+        else:
+            self.dipendente_id.choices = [(0, "Seleziona dipendente...")] + choices
+        
+        # Potremmo popolare gli anni dinamicamente se necessario, ad esempio basati sui prelievi DPI esistenti
+        # Per ora usiamo un IntegerField con validatori di range.

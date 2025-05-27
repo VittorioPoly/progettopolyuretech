@@ -1,13 +1,15 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, send_file, make_response
 from flask_login import login_required, current_user
 from app import db
-from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso, CorsoSicurezza, ResiduoFerie, RichiestaFerie, RichiestaPermesso
+from app.models import Dipendente, Competenza, Timbratura, VestiarioItem, Inventory, PrelievoVestiario, DipendenteCompetenza, Performance, CorsoFormazione, PartecipazioneCorso, CorsoSicurezza, ResiduoFerie, RichiestaFerie, RichiestaPermesso, DPI, PrelievoDPI
 from app.utils import admin_required, check_module_access
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from calendar import monthrange
 from app.forms import (
     DipendenteStep1Form, DipendenteStep2Form, DipendenteStep3Form,
-    DipendenteStep4Form, CompetenzaForm, CorsoFormazioneForm, PartecipazioneCorsoForm
+    DipendenteStep4Form, CompetenzaForm, CorsoFormazioneForm, PartecipazioneCorsoForm,
+    PrelievoVestiarioForm,
+    DPIForm, PrelievoDPIForm, VerbaleDPIReportForm
 )
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField
@@ -17,10 +19,11 @@ import os
 from sqlalchemy import func
 import tempfile
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
+from io import BytesIO
 
 modulo8 = Blueprint('modulo8', __name__, url_prefix='/modulo8')
 
@@ -78,10 +81,7 @@ def dipendenti():
     
     # Recupera la lista dei reparti e ruoli per i filtri
     reparti = db.session.query(Dipendente.reparto).distinct().filter(Dipendente.reparto.isnot(None)).all()
-    reparti = [r[0] for r in reparti]
-    
-    ruoli = db.session.query(Dipendente.ruolo).distinct().filter(Dipendente.ruolo.isnot(None)).all()
-    ruoli = [r[0] for r in ruoli]
+    reparti_list = [r[0] for r in reparti if r[0]]
     
     # Per i link alle timbrature
     now = datetime.utcnow()
@@ -90,8 +90,7 @@ def dipendenti():
         'modulo8/dipendenti.html',
         dipendenti=dipendenti,
         now=now,
-        reparti=reparti,
-        ruoli=ruoli,
+        reparti=reparti_list,
         sort_by=sort_by,
         sort_order=sort_order
     )
@@ -103,7 +102,7 @@ def nuovo_dipendente():
     step = request.args.get('step', 1, type=int)
     form = None
     competenze = None # Inizializza competenze a None
-
+    
     if step == 1:
         form = DipendenteStep1Form(data=session.get('dipendente_data', {}).get('step1'))
     elif step == 2:
@@ -125,7 +124,7 @@ def nuovo_dipendente():
         # Se lo step non è valido (es. step 5 o maggiore), reindirizza al primo step
         flash("Step non valido.", "warning")
         return redirect(url_for('modulo8.nuovo_dipendente', step=1))
-
+    
     if form.validate_on_submit():
         action = None
         # Controlla quale pulsante è stato premuto verificando la sua presenza in request.form
@@ -238,7 +237,8 @@ def nuovo_dipendente():
                 
                 # Converte stringhe vuote in None per campi opzionali prima di creare l'oggetto Dipendente
                 campi_opzionali_stringa = [
-                    'email', 'telefono', 'matricola', 'reparto', 'ruolo', 'agenzia_somministrazione',
+                    'email', 'telefono', 'matricola', 'reparto', # 'ruolo' rimosso da questa lista
+                    'agenzia_somministrazione',
                     'indirizzo_residenza', 'citta_residenza', 'provincia_residenza', 'cap_residenza'
                 ]
                 for campo in campi_opzionali_stringa:
@@ -261,7 +261,6 @@ def nuovo_dipendente():
                     cap_residenza=data.get('cap_residenza'),
                     matricola=data.get('matricola'),
                     reparto=data.get('reparto'),
-                    ruolo=data.get('ruolo'),
                     data_assunzione_somministrazione=data.get('data_assunzione_somministrazione'),
                     agenzia_somministrazione=data.get('agenzia_somministrazione'),
                     data_assunzione_indeterminato=data.get('data_assunzione_indeterminato'),
@@ -291,7 +290,7 @@ def nuovo_dipendente():
                 flash('Dipendente creato con successo!', 'success')
                 session.pop('dipendente_data', None) # Pulisci la sessione
                 return redirect(url_for('modulo8.dipendenti'))
-                
+            
             except Exception as e:
                 db.session.rollback()
                 flash(f'Errore durante la creazione del dipendente: {str(e)}', 'error')
@@ -1582,3 +1581,144 @@ def calendario_assenze():
     ferie = RichiestaFerie.query.filter_by(stato='approvata').all()
     permessi = RichiestaPermesso.query.filter_by(stato='approvata').all()
     return render_template('modulo8/calendario_assenze.html', ferie=ferie, permessi=permessi)
+
+@modulo8.route('/sicurezza/dpi', methods=['GET'])
+@login_required
+@admin_required
+def gestione_dpi():
+    """Visualizza l'inventario dei DPI e permette di aggiungerne/prelevarne."""
+    lista_dpi = DPI.query.order_by(DPI.nome).all()
+    return render_template('modulo8/sicurezza/dpi/gestione_dpi.html', 
+                           lista_dpi=lista_dpi, 
+                           title="Gestione DPI")
+
+@modulo8.route('/sicurezza/dpi/nuovo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def aggiungi_dpi():
+    """Aggiunge un nuovo item DPI all'inventario."""
+    form = DPIForm()
+    if form.validate_on_submit():
+        nuovo_dpi = DPI(
+            nome=form.nome.data,
+            descrizione=form.descrizione.data,
+            categoria=form.categoria.data,
+            fornitore=form.fornitore.data,
+            codice=form.codice.data,
+            taglia=form.taglia.data if form.taglia.data else None,
+            lotto=form.lotto.data if form.lotto.data else None,
+            data_acquisto=form.data_acquisto.data,
+            data_scadenza=form.data_scadenza.data,
+            data_scadenza_lotto=form.data_scadenza_lotto.data,
+            quantita_disponibile=form.quantita_disponibile.data
+        )
+        db.session.add(nuovo_dpi)
+        db.session.commit()
+        flash('Nuovo DPI aggiunto con successo!', 'success')
+        return redirect(url_for('modulo8.gestione_dpi'))
+    return render_template('modulo8/sicurezza/dpi/nuovo.html', 
+                           form=form, 
+                           title="Aggiungi Nuovo DPI")
+
+@modulo8.route('/sicurezza/dpi/<int:id>/modifica', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modifica_dpi(id):
+    """Modifica un item DPI esistente."""
+    dpi_item = DPI.query.get_or_404(id)
+    form = DPIForm(obj=dpi_item)
+    if form.validate_on_submit():
+        dpi_item.nome = form.nome.data
+        dpi_item.taglia = form.taglia.data if form.taglia.data else None
+        dpi_item.lotto = form.lotto.data if form.lotto.data else None
+        dpi_item.data_scadenza_lotto = form.data_scadenza_lotto.data
+        dpi_item.quantita_disponibile = form.quantita_disponibile.data
+        db.session.commit()
+        flash('DPI modificato con successo!', 'success')
+        return redirect(url_for('modulo8.gestione_dpi'))
+    return render_template('modulo8/sicurezza/dpi/form_dpi.html', 
+                           form=form, 
+                           title=f"Modifica DPI: {dpi_item.nome}", 
+                           azione="Modifica", 
+                           dpi_item=dpi_item)
+
+@modulo8.route('/sicurezza/dpi/<int:dpi_id>/prelievo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def prelievo_dpi(dpi_id):
+    """Registra un prelievo di un DPI specifico per un dipendente."""
+    dpi_item = DPI.query.get_or_404(dpi_id)
+    form = PrelievoDPIForm()
+    if form.validate_on_submit():
+        quantita_richiesta = form.quantita_prelevata.data
+        if form.dipendente_id.data == 0: # Assumendo che 0 sia per "Seleziona..."
+             flash('Per favore, seleziona un dipendente.', 'warning')
+        elif quantita_richiesta > dpi_item.quantita_disponibile:
+            flash(f'Quantità richiesta ({quantita_richiesta}) supera la disponibilità ({dpi_item.quantita_disponibile}).', 'danger')
+        else:
+            prelievo = PrelievoDPI(
+                dpi_id=dpi_item.id,
+                dipendente_id=form.dipendente_id.data,
+                quantita_prelevata=quantita_richiesta,
+                data_prelievo=form.data_prelievo.data,
+                data_scadenza_dpi_consegnato=form.data_scadenza_dpi_consegnato.data
+            )
+            dpi_item.quantita_disponibile -= quantita_richiesta
+            db.session.add(prelievo)
+            db.session.commit()
+            flash(f'Prelievo di {quantita_richiesta} x {dpi_item.nome} registrato per il dipendente selezionato.', 'success')
+            return redirect(url_for('modulo8.gestione_dpi'))
+            
+    return render_template('modulo8/sicurezza/dpi/form_prelievo_dpi.html', 
+                           form=form, 
+                           dpi_item=dpi_item, 
+                           title=f"Prelievo DPI: {dpi_item.nome}")
+
+@modulo8.route('/sicurezza/dpi/scadenze', methods=['GET'])
+@login_required
+@admin_required
+def scadenze_dpi():
+    """Mostra i DPI in magazzino e quelli consegnati prossimi alla scadenza o scaduti."""
+    oggi = date.today()
+    giorni_preavviso = 90 # Giorni di preavviso per la scadenza
+    
+    dpi_lotti_scadenza = DPI.query.filter(
+        DPI.data_scadenza_lotto != None,
+        DPI.data_scadenza_lotto <= oggi + timedelta(days=giorni_preavviso)
+    ).order_by(DPI.data_scadenza_lotto).all()
+
+    prelievi_dpi_scadenza = PrelievoDPI.query.join(DPI).filter(
+        PrelievoDPI.data_scadenza_dpi_consegnato != None,
+        PrelievoDPI.data_scadenza_dpi_consegnato <= oggi + timedelta(days=giorni_preavviso)
+    ).options(db.joinedload(PrelievoDPI.dpi_item), db.joinedload(PrelievoDPI.dipendente)).order_by(PrelievoDPI.data_scadenza_dpi_consegnato).all()
+
+    return render_template('modulo8/sicurezza/dpi/scadenze_dpi.html', 
+                           title="Scadenze DPI",
+                           dpi_lotti_scadenza=dpi_lotti_scadenza,
+                           prelievi_dpi_scadenza=prelievi_dpi_scadenza,
+                           oggi=oggi,
+                           giorni_preavviso=giorni_preavviso)
+
+@modulo8.route('/sicurezza/dpi/verbale', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def report_form_dpi():
+    """Form per selezionare dipendente e anno per generare il verbale DPI."""
+    form = VerbaleDPIReportForm()
+    if form.validate_on_submit():
+        if form.dipendente_id.data == 0: # Assumendo che 0 sia per "Seleziona..."
+            flash('Per favore, seleziona un dipendente.', 'warning')
+            # Rendo il template corretto qui se la validazione fallisce
+            return render_template('modulo8/sicurezza/dpi/report_form_dpi.html', 
+                                   form=form, 
+                                   title="Genera Verbale Consegna DPI")
+        
+        dipendente_id = form.dipendente_id.data
+        anno = form.anno.data
+        return redirect(url_for('modulo8.genera_verbale_dpi_pdf', dipendente_id=dipendente_id, anno=anno))
+    
+    return render_template('modulo8/sicurezza/dpi/report_form_dpi.html', 
+                           form=form, 
+                           title="Genera Verbale Consegna DPI")
+
+# ... (codice successivo, inclusa la route genera_verbale_dpi_pdf e altre route) ...

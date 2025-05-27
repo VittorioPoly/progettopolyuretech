@@ -39,6 +39,7 @@ def create_app(config_name='default'):
     # Registra i modelli
     with app.app_context():
         from app import models
+        db.create_all()
     
     # Importa e registra le rotte
     from app.routes import register_routes

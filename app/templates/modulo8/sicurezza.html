@@ -3,53 +3,53 @@
 {% block content %}
 <div class="dashboard-container">
     <div class="dashboard-header">
-        <h1 class="dashboard-title">Gestione Sicurezza</h1>
-        <p class="dashboard-subtitle">Gestisci i corsi e le attività di sicurezza aziendale</p>
+        <h1 class="dashboard-title">Gestione Dispositivi di Protezione Individuale (DPI)</h1>
+        <p class="dashboard-subtitle">Monitora, gestisci e verbalizza la consegna dei DPI ai dipendenti.</p>
     </div>
     
     <div class="row g-4">
-        <!-- Corsi di Sicurezza -->
+        <!-- Gestione DPI -->
         <div class="col-md-6 col-lg-4">
             <div class="dashboard-card primary-gradient">
                 <div class="card-icon">
-                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-hard-hat"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Corsi di Sicurezza</h3>
-                    <p>Gestisci i corsi di sicurezza obbligatori</p>
-                    <a href="#" class="card-link">
+                    <h3>Gestione DPI</h3>
+                    <p>Visualizza inventario, aggiungi nuovi DPI e registra prelievi per dipendente.</p>
+                    <a href="{{ url_for('modulo8.gestione_dpi') }}" class="card-link">
                         Accedi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Certificazioni -->
-        <div class="col-md-6 col-lg-4">
-            <div class="dashboard-card success-gradient">
-                <div class="card-icon">
-                    <i class="fas fa-certificate"></i>
-                </div>
-                <div class="card-content">
-                    <h3>Certificazioni</h3>
-                    <p>Gestisci le certificazioni di sicurezza</p>
-                    <a href="#" class="card-link">
-                        Accedi <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Controlli Periodici -->
+        <!-- Scadenze DPI -->
         <div class="col-md-6 col-lg-4">
             <div class="dashboard-card warning-gradient">
                 <div class="card-icon">
-                    <i class="fas fa-calendar-check"></i>
+                    <i class="fas fa-calendar-times"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Controlli Periodici</h3>
-                    <p>Monitora i controlli periodici di sicurezza</p>
-                    <a href="#" class="card-link">
+                    <h3>Scadenze DPI</h3>
+                    <p>Controlla i DPI in magazzino o assegnati prossimi alla scadenza.</p>
+                    <a href="{{ url_for('modulo8.scadenze_dpi') }}" class="card-link">
+                        Accedi <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verbale Consegna DPI -->
+        <div class="col-md-6 col-lg-4">
+            <div class="dashboard-card success-gradient">
+                <div class="card-icon">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Verbale Consegna DPI</h3>
+                    <p>Genera un verbale PDF annuale dei DPI consegnati a un dipendente.</p>
+                    <a href="{{ url_for('modulo8.report_form_dpi') }}" class="card-link">
                         Accedi <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -147,6 +147,10 @@
 
 .warning-gradient {
     background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.info-gradient {
+    background: linear-gradient(135deg, #36b9cc 0%, #2a96a5 100%);
 }
 </style>
 {% endblock %} 
